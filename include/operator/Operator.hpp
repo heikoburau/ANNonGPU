@@ -35,24 +35,6 @@ public:
 
     template<typename Psi_t, typename Basis_t>
     HDINLINE
-    void nth_matrix_element(
-        MatrixElement<Basis_t>& result,
-        const Basis_t& basis_vector,
-        const int n,
-        const Psi_t& psi,
-        typename Psi_t::dtype* angles_prime
-    ) const {
-        #include "cuda_kernel_defines.h"
-
-        SINGLE {
-            result = this->pauli_strings[n].apply(basis_vector);
-            result.coefficient *= this->coefficients[n];
-        }
-        psi.update_input_units(angles_prime, basis_vector, result.vector);
-    }
-
-    template<typename Psi_t, typename Basis_t>
-    HDINLINE
     void local_energy(
         typename Psi_t::dtype& result,
         const Psi_t& psi,
@@ -69,19 +51,24 @@ public:
             result = typename Psi_t::dtype(0.0);
         }
 
-        SHARED MatrixElement<Basis_t> matrix_element;
-        SHARED typename Psi_t::dtype angles_prime[Psi_t::max_width];
+        SHARED MatrixElement<Basis_t>   matrix_element;
+        SHARED typename Psi_t::dtype    angles_prime[Psi_t::max_width];
 
         SHARED_MEM_LOOP_BEGIN(n, this->num_strings) {
 
             MULTI(j, psi.get_num_angles()) {
                 angles_prime[j] = angles[j];
             }
-            this->nth_matrix_element<Psi_t, Basis_t>(matrix_element, basis_vector, n, psi, angles_prime);
+            SINGLE {
+                matrix_element = this->pauli_strings[n].apply(basis_vector);
+                matrix_element.coefficient *= this->coefficients[n];
+            }
+
+            psi.update_input_units(angles_prime, basis_vector, matrix_element.vector);
             SYNC;
 
             SHARED typename Psi_t::dtype log_psi_prime;
-            psi.log_psi_s(log_psi_prime, angles_prime, activations);
+            psi.log_psi_s(log_psi_prime, matrix_element.vector, angles_prime, activations);
             SINGLE {
                 result += matrix_element.coefficient * exp(log_psi_prime - log_psi);
             }

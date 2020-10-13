@@ -69,25 +69,25 @@ void generic_atomicAdd(T1* const address, const T2& value) {
     #endif
 }
 
-template<>
-HDINLINE
-void generic_atomicAdd(double* const address, const float& value) {
-    #ifdef __CUDA_ARCH__
-    atomicAdd(address, static_cast<double>(value));
-    #else
-    *address += static_cast<double>(value);
-    #endif
-}
+// template<>
+// HDINLINE
+// void generic_atomicAdd(double* const address, const float& value) {
+//     #ifdef __CUDA_ARCH__
+//     atomicAdd(address, static_cast<double>(value));
+//     #else
+//     *address += static_cast<double>(value);
+//     #endif
+// }
 
-template<>
-HDINLINE
-void generic_atomicAdd(cuda_complex::complex<double>* const address, const cuda_complex::complex<float>& value) {
-    #ifdef __CUDA_ARCH__
-    atomicAdd(address, precision_cast<cuda_complex::complex<double>>(value));
-    #else
-    *address += precision_cast<cuda_complex::complex<double>>(value);
-    #endif
-}
+// template<>
+// HDINLINE
+// void generic_atomicAdd(cuda_complex::complex<double>* const address, const cuda_complex::complex<float>& value) {
+//     #ifdef __CUDA_ARCH__
+//     atomicAdd(address, precision_cast<cuda_complex::complex<double>>(value));
+//     #else
+//     *address += precision_cast<cuda_complex::complex<double>>(value);
+//     #endif
+// }
 
 // dangerous, fix at some point
 template<typename T>

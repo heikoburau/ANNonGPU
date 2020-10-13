@@ -120,7 +120,7 @@ PsiDeepT<dtype>::PsiDeepT(const PsiDeepT<dtype>& other)
 
 template<typename dtype>
 void PsiDeepT<dtype>::init_kernel() {
-    this->num_params = 2 * this->N; // alpha and beta
+    this->num_params = this->N; // initial biases
     auto angle_idx = 0u;
     for(auto layer_idx = 0u; layer_idx < this->num_layers; layer_idx++) {
         const auto& layer = *next(this->layers.begin(), layer_idx);
@@ -151,7 +151,7 @@ void PsiDeepT<dtype>::init_kernel() {
     this->num_final_weights = this->layers.back().size;
     this->num_params += this->num_final_weights;
 
-    this->O_k_length = this->num_params - 2 * this->N;
+    this->O_k_length = this->num_params;
 
     this->update_kernel();
 }
@@ -214,7 +214,7 @@ Array<dtype> PsiDeepT<dtype>::get_params() const {
     Array<dtype> result(this->num_params, false);
 
     for(auto i = 0u; i < this->N; i++) {
-        result[i] = get_real<dtype>(this->input_biases[i]);
+        result[i] = this->input_biases[i];
     }
     auto it = result.begin() + this->N;
 
@@ -236,7 +236,7 @@ Array<dtype> PsiDeepT<dtype>::get_params() const {
 template<typename dtype>
 void PsiDeepT<dtype>::set_params(const Array<dtype>& new_params) {
     for(auto i = 0u; i < this->N; i++) {
-        this->input_biases[i] = get_real<real_dtype>(new_params[i]);
+        this->input_biases[i] = new_params[i];
     }
     this->input_biases.update_device();
     auto it = new_params.begin() + this->N;

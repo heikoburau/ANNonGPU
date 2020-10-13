@@ -1,4 +1,4 @@
-from ._pyRBMonGPU import *
+from ._pyANNonGPU import *
 
 try:
     from .PsiDeep import PsiDeep

@@ -1,4 +1,4 @@
-from ._pyRBMonGPU import PsiDeep
+from ._pyANNonGPU import PsiDeep
 from .json_numpy import NumpyEncoder, NumpyDecoder
 import json
 

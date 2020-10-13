@@ -1,5 +1,5 @@
 try:
-    from pyRBMonGPU import PsiDeep
+    from pyANNonGPU import PsiDeep
 except ImportError:
     pass
 

@@ -61,7 +61,7 @@ struct ExactSummation {
             SYNC;
 
             psi.compute_angles(angles, spins);
-            psi.log_psi_s(log_psi, angles, activations);
+            psi.log_psi_s(log_psi, spins, angles, activations);
 
             SYNC;
 

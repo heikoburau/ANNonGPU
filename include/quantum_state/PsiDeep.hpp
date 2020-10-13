@@ -171,6 +171,7 @@ public:
         MULTI(j, this->num_final_weights) {
             generic_atomicAdd(&result, activations[j] * this->final_weights[j]);
         }
+        SYNC;
     }
 
     template<typename result_dtype, typename Basis_t>
@@ -182,19 +183,27 @@ public:
         SINGLE {
             result = result_dtype(0.0);
         }
+        SYNC;
+        MULTI(i, this->N) {
+            generic_atomicAdd(&result, result_dtype(basis_vector.network_unit_at(i)) * this->input_biases[i]);
+        }
 
         this->compute_angles(activations, basis_vector);
         this->forward_pass(result, activations, activations, nullptr);
     }
 
-    template<typename result_dtype>
+    template<typename result_dtype, typename Basis_t>
     HDINLINE
-    void log_psi_s_generic(result_dtype& result, dtype* RESTRICT angles, dtype* RESTRICT activations) const {
+    void log_psi_s_generic(result_dtype& result, const Basis_t& basis_vector, dtype* RESTRICT angles, dtype* RESTRICT activations) const {
         #include "cuda_kernel_defines.h"
         // CAUTION: 'result' has to be a shared variable.
 
         SINGLE {
             result = result_dtype(0.0);
+        }
+        SYNC;
+        MULTI(i, this->N) {
+            generic_atomicAdd(&result, result_dtype(basis_vector.network_unit_at(i)) * this->input_biases[i]);
         }
 
         this->forward_pass(result, angles, activations, nullptr);
@@ -212,14 +221,16 @@ public:
         log_psi_s_generic(result, basis_vector, activations);
     }
 
+    template<typename Basis_t>
     HDINLINE
-    void log_psi_s(dtype& result, dtype* RESTRICT angles, dtype* RESTRICT activations) const {
-        log_psi_s_generic(result, angles, activations);
+    void log_psi_s(dtype& result, const Basis_t& basis_vector, dtype* RESTRICT angles, dtype* RESTRICT activations) const {
+        log_psi_s_generic(result, basis_vector, angles, activations);
     }
 
+    template<typename Basis_t>
     HDINLINE
-    void log_psi_s_real(real_dtype& result, dtype* RESTRICT angles, dtype* RESTRICT activations) const {
-        log_psi_s_generic(result, angles, activations);
+    void log_psi_s_real(real_dtype& result, const Basis_t& basis_vector, dtype* RESTRICT angles, dtype* RESTRICT activations) const {
+        log_psi_s_generic(result, basis_vector, angles, activations);
     }
 
     template<typename Basis_t>
@@ -330,6 +341,15 @@ public:
         }
         SYNC;
 
+        MULTI(i, this->N) {
+            function(
+                i,
+                get_real<dtype>(static_cast<real_dtype>(
+                    basis_vector.network_unit_at(i)
+                ))
+            );
+        }
+
         this->compute_angles(angles, basis_vector);
         this->forward_pass(log_psi, angles, activations, deep_angles);
 
@@ -340,9 +360,13 @@ public:
             // here, these are the back-propagated derivatives.
             if(layer_idx == this->num_layers - 1) {
                 MULTI(j, layer.size) {
-                    activations[j] = this->final_weights[j] * my_tanh(deep_angles[
-                        layer.begin_deep_angles + j
-                    ]);
+                    activations[j] = this->final_weights[j] * my_tanh(
+                        layer_idx == 1 ?
+                        angles[j] :
+                        deep_angles[
+                            layer.begin_deep_angles + j
+                        ]
+                    );
                 }
             } else {
                 // TODO: check if shared memory solution is faster (most likely not)
@@ -359,12 +383,10 @@ public:
                             ]
                         );
                     }
-                    REGISTER(unit_activation, i) *= (
-                        my_tanh(
-                            layer_idx == 1 ?
-                            angles[i] :
-                            deep_angles[layer.begin_deep_angles + i]
-                        )
+                    REGISTER(unit_activation, i) *= my_tanh(
+                        layer_idx == 1 ?
+                        angles[i] :
+                        deep_angles[layer.begin_deep_angles + i]
                     );
                 }
                 SYNC;
@@ -401,7 +423,9 @@ public:
         MULTI(j, this->num_final_weights) {
             function(
                 this->num_params - this->num_final_weights + j,
-                log_psi * my_logcosh(
+                my_logcosh(
+                    this->num_layers == 2u ?
+                    angles[j] :
                     deep_angles[this->layers[this->num_layers - 1].begin_deep_angles + j]
                 )
             );
@@ -544,6 +568,7 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype> {
         // cout << "width: " << this->width << endl;
         // cout << "num_params: " << this->num_params << endl;
         // cout << "prefactor: " << this->prefactor << endl;
+        // cout << "num_final_weights: " << this->num_final_weights << endl;
         // cout << endl;
 
         // for(auto layer_idx = int(this->num_layers) - 1; layer_idx >= 0; layer_idx--) {

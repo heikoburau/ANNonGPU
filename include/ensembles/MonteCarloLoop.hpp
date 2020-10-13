@@ -98,7 +98,7 @@ struct MonteCarloLoop {
         SHARED typename Psi_t::real_dtype   log_psi_real;
 
         psi.compute_angles(angles, spins);
-        psi.log_psi_s_real(log_psi_real, angles, activations);
+        psi.log_psi_s_real(log_psi_real, spins, angles, activations);
 
         this->thermalize<total_z_symmetry>(psi, log_psi_real, spins, &rng_state, angles, activations);
 
@@ -113,7 +113,7 @@ struct MonteCarloLoop {
                 SHARED_MEM_LOOP_END(i);
             }
 
-            psi.log_psi_s(log_psi, angles, activations);
+            psi.log_psi_s(log_psi, spins, angles, activations);
 
             function(
                 mc_step_within_chain * this->num_markov_chains + markov_index,
@@ -181,7 +181,7 @@ struct MonteCarloLoop {
         psi.update_input_units(angles, spins, original_spins);
 
         SHARED real_dtype next_log_psi_real;
-        psi.log_psi_s_real(next_log_psi_real, angles, activations);
+        psi.log_psi_s_real(next_log_psi_real, spins, angles, activations);
 
         SHARED bool accepted;
         SHARED real_dtype ratio;

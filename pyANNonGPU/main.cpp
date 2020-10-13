@@ -37,7 +37,7 @@ using real_tensor = xt::pytensor<dtype, dim>;
 
 // Python Module and Docstrings
 
-PYBIND11_MODULE(_pyRBMonGPU, m)
+PYBIND11_MODULE(_pyANNonGPU, m)
 {
     xt::import_numpy();
 
@@ -72,6 +72,7 @@ PYBIND11_MODULE(_pyRBMonGPU, m)
         .def_property_readonly("b", &PsiDeep::get_b)
         .def_property_readonly("connections", &PsiDeep::get_connections)
         .def_property_readonly("W", &PsiDeep::get_W)
+        .def_property_readonly("input_biases", [](const PsiDeep& psi) {return psi.input_biases.to_pytensor_1d();})
         .def_property_readonly("final_weights", [](const PsiDeep& psi) {return psi.final_weights.to_pytensor_1d();})
     #ifdef ENABLE_EXACT_SUMMATION
         .def_property_readonly("_vector", [](const PsiDeep& psi) {return psi_vector_py(psi);})
@@ -90,7 +91,7 @@ PYBIND11_MODULE(_pyRBMonGPU, m)
         .def_readonly("num_strings", &Operator::num_strings);
 
     py::class_<ann_on_gpu::Spins>(m, "Spins")
-        // .def(py::init<ann_on_gpu::Spins::type, const unsigned int>())
+        .def(py::init<ann_on_gpu::Spins::type, const unsigned int>())
         .def("array", &ann_on_gpu::Spins::array)
         .def("flip", &ann_on_gpu::Spins::flip);
 

@@ -1,7 +1,7 @@
 import numpy as np
 import math
-import pyRBMonGPU
-from pyRBMonGPU import Operator
+import pyANNonGPU
+from pyANNonGPU import Operator
 from .gradient_descent import *
 from .L2Regularization import L2Regularization
 from itertools import islice
@@ -36,14 +36,14 @@ class PoorLearning(RuntimeError):
 class LearningByGradientDescent:
     def __init__(self, psi, spin_ensemble):
         self.gpu = psi.gpu
-        if hasattr(pyRBMonGPU, "MonteCarloLoop"):
-            self.mc = type(spin_ensemble) is pyRBMonGPU.MonteCarloLoop
+        if hasattr(pyANNonGPU, "MonteCarloLoop"):
+            self.mc = type(spin_ensemble) is pyANNonGPU.MonteCarloLoop
         else:
             self.mc = False
         self.spin_ensemble = spin_ensemble
         self.num_params = psi.num_params
-        self.hilbert_space_distance = pyRBMonGPU.HilbertSpaceDistance(psi.N, self.num_params, psi.gpu)
-        self.expectation_value = pyRBMonGPU.ExpectationValue(self.gpu)
+        self.hilbert_space_distance = pyANNonGPU.HilbertSpaceDistance(psi.N, self.num_params, psi.gpu)
+        self.expectation_value = pyANNonGPU.ExpectationValue(self.gpu)
         self.regularization = None
 
     @property

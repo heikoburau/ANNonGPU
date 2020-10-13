@@ -4,7 +4,7 @@ import numpy as np
 import cmath
 import random
 
-translational_invariance = True
+translational_invariance = False
 
 
 def test_psi_s(psi_deep, gpu):
@@ -15,34 +15,32 @@ def test_psi_s(psi_deep, gpu):
 
     for i in range(10):
         spins_idx = random.randint(0, 2**N - 1)
-        spins = Spins(spins_idx).array(N)
+        spins = Spins(spins_idx, 64).array(N)
 
-        log_psi_s_ref = 0
+        activations = +spins
+        for w, b in zip(psi.W, psi.b):
+            n, m = len(activations), len(b)
 
-        for shift in range(psi.N if translational_invariance else 1):
+            if m > n:
+                delta = 1
+            elif n % m == 0:
+                delta = n // m
+            else:
+                delta = w.shape[0]
 
-            activations = np.roll(spins, shift)
-            for w, b in zip(psi.W, psi.b):
-                n, m = len(activations), len(b)
+            activations = [
+                activation_function(
+                    sum(
+                        w[i, j] * activations[(j * delta + i) % n]
+                        for i in range(w.shape[0])
+                    ) + b[j]
+                )
+                for j in range(len(b))
+            ]
 
-                if m > n:
-                    delta = 1
-                elif n % m == 0:
-                    delta = n // m
-                else:
-                    delta = w.shape[0]
-
-                activations = [
-                    activation_function(
-                        sum(
-                            w[i, j] * activations[(j * delta + i) % n]
-                            for i in range(w.shape[0])
-                        ) + b[j]
-                    )
-                    for j in range(len(b))
-                ]
-
-            log_psi_s_ref += sum(activations)
+        print(spins)
+        print(psi.input_biases)
+        log_psi_s_ref = psi.input_biases @ spins + psi.final_weights @ activations
 
         psi_s_ref = cmath.exp(log_psi_s_ref)
 

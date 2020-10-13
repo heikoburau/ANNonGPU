@@ -80,7 +80,7 @@ struct MonteCarloLoopPaulis {
         SHARED typename Psi_t::real_dtype   log_psi_real;
 
         psi.compute_angles(angles, pauli_string);
-        psi.log_psi_s_real(log_psi_real, angles, activations);
+        psi.log_psi_s_real(log_psi_real, pauli_string, angles, activations);
 
         this->thermalize(psi, log_psi_real, pauli_string, &rng_state, angles, activations);
 
@@ -95,7 +95,7 @@ struct MonteCarloLoopPaulis {
                 SHARED_MEM_LOOP_END(i);
             }
 
-            psi.log_psi_s(log_psi, angles, activations);
+            psi.log_psi_s(log_psi, pauli_string, angles, activations);
 
             function(
                 mc_step_within_chain * this->num_markov_chains + markov_index,
@@ -157,7 +157,7 @@ struct MonteCarloLoopPaulis {
         psi.update_input_units(angles, pauli_string, next_pauli_string);
 
         SHARED real_dtype next_log_psi_real;
-        psi.log_psi_s_real(next_log_psi_real, angles, activations);
+        psi.log_psi_s_real(next_log_psi_real, next_pauli_string, angles, activations);
 
         SHARED bool accepted;
         SHARED real_dtype ratio;
