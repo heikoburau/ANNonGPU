@@ -1,4 +1,5 @@
 from pyANNonGPU import new_deep_neural_network, ExactSummation
+from QuantumExpression import sigma_x, sigma_y, sigma_z
 import quantum_tools as qt
 
 
@@ -29,6 +30,16 @@ def pytest_generate_tests(metafunc):
             "hamiltonian",
             [
                 lambda L: qt.disordered_Heisenberg_chain(L, 1, 0.2, 1)
+            ]
+        )
+
+    if 'single_sigma' in metafunc.fixturenames:
+        metafunc.parametrize(
+            "single_sigma",
+            [
+                sigma_x(0),
+                sigma_y(0),
+                sigma_z(0)
             ]
         )
 
