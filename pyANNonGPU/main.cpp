@@ -1,7 +1,4 @@
 #define __PYTHONCC__
-#include "quantum_states.hpp"
-#include "ensembles.hpp"
-#include "operator/Operator.hpp"
 #include "network_functions/ExpectationValue.hpp"
 #include "network_functions/HilbertSpaceDistance.hpp"
 #include "network_functions/KullbackLeibler.hpp"
@@ -9,6 +6,10 @@
 #include "network_functions/PsiNorm.hpp"
 #include "network_functions/PsiOkVector.hpp"
 #include "network_functions/PsiAngles.hpp"
+#include "quantum_states.hpp"
+#include "ensembles.hpp"
+#include "operator/Operator.hpp"
+#include "bases.hpp"
 #include "RNGStates.hpp"
 #include "types.h"
 
@@ -75,8 +76,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("input_biases", [](const PsiDeep& psi) {return psi.input_biases.to_pytensor_1d();})
         .def_property_readonly("final_weights", [](const PsiDeep& psi) {return psi.final_weights.to_pytensor_1d();})
     #ifdef ENABLE_EXACT_SUMMATION
-        .def_property_readonly("_vector", [](const PsiDeep& psi) {return psi_vector_py(psi);})
-        .def("norm", [](const PsiDeep& psi, ExactSummation& exact_summation) {return psi_norm(psi, exact_summation);})
+    #ifdef ENABLE_SPINS
+        .def("_vector", [](const PsiDeep& psi, ExactSummationSpins& exact_summation) {return psi_vector_py(psi, exact_summation);})
+        .def("norm", [](const PsiDeep& psi, ExactSummationSpins& exact_summation) {return psi_norm(psi, exact_summation);})
+    #endif // ENABLE_SPINS
+    #ifdef ENABLE_PAULIS
+        .def("_vector", [](const PsiDeep& psi, ExactSummationPaulis& exact_summation) {return psi_vector_py(psi, exact_summation);})
+        .def("norm", [](const PsiDeep& psi, ExactSummationPaulis& exact_summation) {return psi_norm(psi, exact_summation);})
+    #endif // ENABLE_PAULIS
     #endif // ENABLE_EXACT_SUMMATION
         ;
 
@@ -90,53 +97,80 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("expr", &Operator::to_expr)
         .def_readonly("num_strings", &Operator::num_strings);
 
+#ifdef ENABLE_SPINS
     py::class_<ann_on_gpu::Spins>(m, "Spins")
-        .def(py::init<ann_on_gpu::Spins::type, const unsigned int>())
-        .def("array", &ann_on_gpu::Spins::array)
-        .def("flip", &ann_on_gpu::Spins::flip);
+        .def(py::init<ann_on_gpu::Spins::dtype, const unsigned int>())
+        .def("array", &ann_on_gpu::Spins::array);
+#endif // ENABLE_SPINS
+
+#ifdef ENABLE_PAULIS
+    py::class_<ann_on_gpu::PauliString>(m, "PauliString")
+        .def(py::init<ann_on_gpu::PauliString::dtype, ann_on_gpu::PauliString::dtype>())
+        .def("array", &ann_on_gpu::PauliString::array);
+#endif // ENABLE_PAULIS
+
 
 #ifdef ENABLE_MONTE_CARLO
-    py::class_<MonteCarloLoop>(m, "MonteCarloLoop")
-        .def(py::init<unsigned int, unsigned int, unsigned int, unsigned int, bool>())
-        .def(py::init<MonteCarloLoop&>())
-        .def("set_total_z_symmetry", &MonteCarloLoop::set_total_z_symmetry)
-        .def_property_readonly("num_steps", &MonteCarloLoop::get_num_steps)
-        .def_property_readonly("acceptance_rate", [](const MonteCarloLoop& mc){
+#ifdef ENABLE_SPINS
+    py::class_<MonteCarloSpins>(m, "MonteCarloSpins")
+        .def(py::init(&make_MonteCarloSpins))
+        .def(py::init<MonteCarloSpins&>())
+        // .def("set_total_z_symmetry", &MonteCarloSpins::set_total_z_symmetry)
+        .def_property_readonly("num_steps", &MonteCarloSpins::get_num_steps)
+        .def_property_readonly("acceptance_rate", [](const MonteCarloSpins& mc){
             return float(mc.acceptances_ar.front()) / float(mc.acceptances_ar.front() + mc.rejections_ar.front());
         });
+#endif // ENABLE_SPINS
+#ifdef ENABLE_PAULIS
+    py::class_<MonteCarloPaulis>(m, "MonteCarloPaulis")
+        .def(py::init(&make_MonteCarloPaulis))
+        .def(py::init<MonteCarloPaulis&>())
+        // .def("set_total_z_symmetry", &MonteCarloPaulis::set_total_z_symmetry)
+        .def_property_readonly("num_steps", &MonteCarloPaulis::get_num_steps)
+        .def_property_readonly("acceptance_rate", [](const MonteCarloPaulis& mc){
+            return float(mc.acceptances_ar.front()) / float(mc.acceptances_ar.front() + mc.rejections_ar.front());
+        });
+#endif // ENABLE_PAULIS
 #endif // ENABLE_MONTE_CARLO
 
-#ifdef ENABLE_MONTE_CARLO_PAULIS
-    py::class_<MonteCarloLoopPaulis>(m, "MonteCarloLoopPaulis")
-        .def(py::init<unsigned int, unsigned int, unsigned int, unsigned int, Operator>())
-        .def(py::init<MonteCarloLoopPaulis&>())
-        .def_property_readonly("num_steps", &MonteCarloLoopPaulis::get_num_steps)
-        .def_property_readonly("acceptance_rate", [](const MonteCarloLoopPaulis& mc){
-            return float(mc.acceptances_ar.front()) / float(mc.acceptances_ar.front() + mc.rejections_ar.front());
-        });
-#endif // ENABLE_MONTE_CARLO_PAULIS
 
 #ifdef ENABLE_EXACT_SUMMATION
-    py::class_<ExactSummation>(m, "ExactSummation")
+#ifdef ENABLE_SPINS
+    py::class_<ExactSummationSpins>(m, "ExactSummationSpins")
         .def(py::init<unsigned int, bool>())
-        .def("set_total_z_symmetry", &ExactSummation::set_total_z_symmetry)
-        .def_property_readonly("num_steps", &ExactSummation::get_num_steps);
+        // .def("set_total_z_symmetry", &ExactSummationSpins::set_total_z_symmetry)
+        .def_property_readonly("num_steps", &ExactSummationSpins::get_num_steps);
+#endif // ENABLE_SPINS
+#ifdef ENABLE_PAULIS
+    py::class_<ExactSummationPaulis>(m, "ExactSummationPaulis")
+        .def(py::init<unsigned int, bool>())
+        // .def("set_total_z_symmetry", &ExactSummationPaulis::set_total_z_symmetry)
+        .def_property_readonly("num_steps", &ExactSummationPaulis::get_num_steps);
+#endif // ENABLE_PAULIS
 #endif // ENABLE_EXACT_SUMMATION
 
 
     py::class_<ExpectationValue>(m, "ExpectationValue")
         .def(py::init<bool>())
 #ifdef ENABLE_MONTE_CARLO
-#ifdef ENABLE_PSI_DEEP
-        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarloLoop>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarloLoop>)
-#endif // ENABLE_PSI_DEEP
+#ifdef ENABLE_SPINS
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarloSpins>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarloSpins>)
+#endif // ENABLE_SPINS
+#ifdef ENABLE_PAULIS
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarloPaulis>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarloPaulis>)
+#endif // ENABLE_PAULIS
 #endif // ENABLE_MONTE_CARLO
 #ifdef ENABLE_EXACT_SUMMATION
-#ifdef ENABLE_PSI_DEEP
-        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation>)
-#endif // ENABLE_PSI_DEEP
+#ifdef ENABLE_SPINS
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummationSpins>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummationSpins>)
+#endif // ENABLE_SPINS
+#ifdef ENABLE_PAULIS
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummationPaulis>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummationPaulis>)
+#endif // ENABLE_PAULIS
 #endif // ENABLE_EXACT_SUMMATION
     ;
 
@@ -144,68 +178,52 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<HilbertSpaceDistance>(m, "HilbertSpaceDistance")
         .def(py::init<unsigned int, unsigned int, bool>())
 #ifdef ENABLE_MONTE_CARLO
-#ifdef ENABLE_PSI_DEEP
-        .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
-        .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
-#endif // ENABLE_PSI_DEEP
+#ifdef ENABLE_SPINS
+        .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, MonteCarloSpins>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
+        .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, MonteCarloSpins>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
+#endif // ENABLE_SPINS
+#ifdef ENABLE_PAULIS
+        .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, MonteCarloPaulis>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
+        .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, MonteCarloPaulis>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
+#endif // ENABLE_PAULIS
 #endif // ENABLE_MONTE_CARLO
-#ifdef ENABLE_EXACT_SUMMATION
-#ifdef ENABLE_PSI_DEEP
-        .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, ExactSummation>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
-        .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, ExactSummation>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
-#endif // ENABLE_PSI_DEEP
-#endif // ENABLE_EXACT_SUMMATION
+#ifdef ENABLE_MONTE_EXACT_SUMMATION
+#ifdef ENABLE_SPINS
+        .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, ExactSummationSpins>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
+        .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, ExactSummationSpins>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
+#endif // ENABLE_SPINS
+#ifdef ENABLE_PAULIS
+        .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, ExactSummationPaulis>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
+        .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, ExactSummationPaulis>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
+#endif // ENABLE_PAULIS
+#endif // ENABLE_MONTE_EXACT_SUMMATION
     ;
 
 
-    py::class_<KullbackLeibler>(m, "KullbackLeibler")
-        .def(py::init<unsigned int, bool>())
-#ifdef ENABLE_MONTE_CARLO
-#ifdef ENABLE_PSI_DEEP
-        .def("__call__", &KullbackLeibler::value_with_op<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
-        .def("gradient", &KullbackLeibler::gradient_with_op_py<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
-        .def("__call__", &KullbackLeibler::value_2nd_order<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "op"_a, "op2"_a, "spin_ensemble"_a)
-        .def("gradient", &KullbackLeibler::gradient_2nd_order_py<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "op"_a, "op2"_a, "spin_ensemble"_a, "nu"_a)
-#endif // ENABLE_PSI_DEEP
-#endif // ENABLE_MONTE_CARLO
-#ifdef ENABLE_EXACT_SUMMATION
-#ifdef ENABLE_PSI_DEEP
-        .def("__call__", &KullbackLeibler::value_with_op<PsiDeep, PsiDeep, ExactSummation>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
-        .def("gradient", &KullbackLeibler::gradient_with_op_py<PsiDeep, PsiDeep, ExactSummation>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
-        .def("__call__", &KullbackLeibler::value_2nd_order<PsiDeep, PsiDeep, ExactSummation>, "psi"_a, "psi_prime"_a, "op"_a, "op2"_a, "spin_ensemble"_a)
-        .def("gradient", &KullbackLeibler::gradient_2nd_order_py<PsiDeep, PsiDeep, ExactSummation>, "psi"_a, "psi_prime"_a, "op"_a, "op2"_a, "spin_ensemble"_a, "nu"_a)
-#endif // ENABLE_PSI_DEEP
-#endif // ENABLE_EXACT_SUMMATION
-    ;
+//     py::class_<KullbackLeibler>(m, "KullbackLeibler")
+//         .def(py::init<unsigned int, bool>())
+// #ifdef ENABLE_MONTE_CARLO
+// #ifdef ENABLE_PSI_DEEP
+//         .def("__call__", &KullbackLeibler::value_with_op<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
+//         .def("gradient", &KullbackLeibler::gradient_with_op_py<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
+//         .def("__call__", &KullbackLeibler::value_2nd_order<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "op"_a, "op2"_a, "spin_ensemble"_a)
+//         .def("gradient", &KullbackLeibler::gradient_2nd_order_py<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "op"_a, "op2"_a, "spin_ensemble"_a, "nu"_a)
+// #endif // ENABLE_PSI_DEEP
+// #endif // ENABLE_MONTE_CARLO
+// #ifdef ENABLE_EXACT_SUMMATION
+// #ifdef ENABLE_PSI_DEEP
+//         .def("__call__", &KullbackLeibler::value_with_op<PsiDeep, PsiDeep, ExactSummation>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
+//         .def("gradient", &KullbackLeibler::gradient_with_op_py<PsiDeep, PsiDeep, ExactSummation>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
+//         .def("__call__", &KullbackLeibler::value_2nd_order<PsiDeep, PsiDeep, ExactSummation>, "psi"_a, "psi_prime"_a, "op"_a, "op2"_a, "spin_ensemble"_a)
+//         .def("gradient", &KullbackLeibler::gradient_2nd_order_py<PsiDeep, PsiDeep, ExactSummation>, "psi"_a, "psi_prime"_a, "op"_a, "op2"_a, "spin_ensemble"_a, "nu"_a)
+// #endif // ENABLE_PSI_DEEP
+// #endif // ENABLE_EXACT_SUMMATION
+//     ;
 
 
-py::class_<RNGStates>(m, "RNGStates")
-    .def(py::init<unsigned int, bool>());
+    py::class_<RNGStates>(m, "RNGStates")
+        .def(py::init<unsigned int, bool>());
 
-
-#ifdef ENABLE_PSI_DEEP
-    m.def("psi_O_k_vector", psi_O_k_vector_py<PsiDeep>);
-#endif
-
-
-#ifdef ENABLE_PSI_DEEP
-#ifdef ENABLE_EXACT_SUMMATION
-    m.def("psi_angles", [](const PsiDeep& psi, ExactSummation& spin_ensemble) {
-        return psi_angles(psi, spin_ensemble).to_pytensor_2d({
-            spin_ensemble.get_num_steps(),
-            psi.get_num_angles()
-        });
-    });
-#endif
-#ifdef ENABLE_MONTE_CARLO
-    m.def("psi_angles", [](const PsiDeep& psi, MonteCarloLoop& spin_ensemble) {
-        return psi_angles(psi, spin_ensemble).to_pytensor_2d({
-            spin_ensemble.get_num_steps(),
-            psi.get_num_angles()
-        });
-    });
-#endif
-#endif
 
     m.def("activation_function", [](const complex<double>& x) {
         return my_logcosh(complex_t(x.real(), x.imag())).to_std();

@@ -13,36 +13,46 @@ using namespace std;
 
 namespace ann_on_gpu {
 
-ExactSummation::ExactSummation(const unsigned int num_spins, const bool gpu)
+template<typename Basis_t>
+ExactSummation_t<Basis_t>::ExactSummation_t(const unsigned int num_sites, const bool gpu)
     :
-        gpu(gpu),
-        num_spins(num_spins),
-        allowed_spin_configurations_vec(nullptr)
+    gpu(gpu)
+        // allowed_spin_configurations_vec(nullptr)
     {
-        this->num_spin_configurations = pow(2, num_spins);
-        this->has_total_z_symmetry = false;
+        this->num_sites = num_sites;
+        this->num_configurations = Basis_t::num_configurations(num_sites);
+        // this->has_total_z_symmetry = false;
     }
 
-void ExactSummation::set_total_z_symmetry(const int sector) {
-    vector<Spins> spins_tmp;
-    const auto hilbert_space_dim = pow(2, this->num_spins);
+// void ExactSummation_t::set_total_z_symmetry(const int sector) {
+//     vector<Spins> spins_tmp;
+//     const auto hilbert_space_dim = pow(2, this->num_sites);
 
-    for(auto spin_index = 0u; spin_index < hilbert_space_dim; spin_index++) {
-        Spins spins(spin_index, this->num_spins);
+//     for(auto spin_index = 0u; spin_index < hilbert_space_dim; spin_index++) {
+//         Spins spins(spin_index, this->num_sites);
 
-        if(spins.total_z(this->num_spins) == sector) {
-            spins_tmp.push_back(spins);
-        }
-    }
+//         if(spins.total_z(this->num_sites) == sector) {
+//             spins_tmp.push_back(spins);
+//         }
+//     }
 
-    this->num_spin_configurations = spins_tmp.size();
-    this->allowed_spin_configurations_vec = unique_ptr<Array<Spins>>(new Array<Spins>(spins_tmp.size(), this->gpu));
-    this->allowed_spin_configurations_vec->assign(spins_tmp.begin(), spins_tmp.end());
-    this->allowed_spin_configurations_vec->update_device();
-    this->allowed_spin_configurations = this->allowed_spin_configurations_vec->data();
+//     this->num_configurations = spins_tmp.size();
+//     this->allowed_spin_configurations_vec = unique_ptr<Array<Spins>>(new Array<Spins>(spins_tmp.size(), this->gpu));
+//     this->allowed_spin_configurations_vec->assign(spins_tmp.begin(), spins_tmp.end());
+//     this->allowed_spin_configurations_vec->update_device();
+//     this->allowed_spin_configurations = this->allowed_spin_configurations_vec->data();
 
-    this->has_total_z_symmetry = true;
-}
+//     this->has_total_z_symmetry = true;
+// }
+
+
+#ifdef ENABLE_SPINS
+template struct ExactSummation_t<Spins>;
+#endif // ENABLE_SPINS
+
+#ifdef ENABLE_PAULIS
+template struct ExactSummation_t<PauliString>;
+#endif // ENABLE_PAULIS
 
 } // namespace ann_on_gpu
 

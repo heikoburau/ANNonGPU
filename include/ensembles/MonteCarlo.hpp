@@ -1,7 +1,18 @@
 #pragma once
 
 #include "operator/Operator.hpp"
-#include "operator/PauliString.hpp"
+#include "policies/Init_Policy.hpp"
+#include "policies/Update_Policy.hpp"
+#include "bases.hpp"
+
+#ifdef __CUDACC__
+    namespace quantum_expression {
+        class PauliExpression;
+    }
+#else
+    #include "QuantumExpression/QuantumExpression.hpp"
+#endif
+
 #include "RNGStates.hpp"
 #include "random.h"
 #include "Array.hpp"
@@ -16,9 +27,9 @@ namespace ann_on_gpu {
 
 namespace kernel {
 
-struct MonteCarloLoopPaulis {
-
-    using Basis_t = PauliString;
+template<typename Basis, typename Init_Policy, typename Update_Policy>
+struct MonteCarlo_t {
+    using Basis_t = Basis;
 
     RNGStates       rng_states;
     unsigned int    num_samples;
@@ -29,7 +40,7 @@ struct MonteCarloLoopPaulis {
 
     double          weight;
 
-    Operator        update_operator;
+    Update_Policy   update_policy;
 
     unsigned int*   acceptances;
     unsigned int*   rejections;
@@ -37,10 +48,6 @@ struct MonteCarloLoopPaulis {
 
     inline unsigned int get_num_steps() const {
         return this->num_samples;
-    }
-
-    inline bool has_weights() const {
-        return false;
     }
 
 #ifdef __CUDACC__
@@ -67,11 +74,9 @@ struct MonteCarloLoopPaulis {
             this->rng_states.get_state(rng_state, markov_index);
         }
 
-        SHARED PauliString pauli_string;
+        SHARED Basis_t configuration;
 
-        SINGLE {
-            pauli_string = PauliString(0lu, 0lu);
-        }
+        Init_Policy::call(configuration, psi, &rng_state);
         SYNC;
 
         SHARED typename Psi_t::dtype        angles[Psi_t::max_width];
@@ -79,27 +84,33 @@ struct MonteCarloLoopPaulis {
         SHARED typename Psi_t::dtype        log_psi;
         SHARED typename Psi_t::real_dtype   log_psi_real;
 
-        psi.compute_angles(angles, pauli_string);
-        psi.log_psi_s_real(log_psi_real, pauli_string, angles, activations);
+        psi.compute_angles(angles, configuration);
+        psi.log_psi_s_real(log_psi_real, configuration, angles, activations);
 
-        this->thermalize(psi, log_psi_real, pauli_string, &rng_state, angles, activations);
+        // thermalization
+        SHARED_MEM_LOOP_BEGIN(i, this->num_thermalization_sweeps * psi.get_num_input_units()) {
+            this->mc_update(psi, log_psi_real, configuration, &rng_state, angles, activations);
 
+            SHARED_MEM_LOOP_END(i);
+        }
+
+        // main loop
         SHARED_MEM_LOOP_BEGIN(mc_step_within_chain, this->num_mc_steps_per_chain) {
 
             SHARED_MEM_LOOP_BEGIN(
                 i,
                 this->num_sweeps * psi.get_num_input_units()
             ) {
-                this->mc_update(psi, log_psi_real, pauli_string, &rng_state, angles, activations);
+                this->mc_update(psi, log_psi_real, configuration, &rng_state, angles, activations);
 
                 SHARED_MEM_LOOP_END(i);
             }
 
-            psi.log_psi_s(log_psi, pauli_string, angles, activations);
+            psi.log_psi_s(log_psi, configuration, angles, activations);
 
             function(
                 mc_step_within_chain * this->num_markov_chains + markov_index,
-                pauli_string,
+                configuration,
                 log_psi,
                 angles,
                 activations,
@@ -116,29 +127,10 @@ struct MonteCarloLoopPaulis {
 
     template<typename Psi_t>
     HDINLINE
-    void thermalize(
-        const Psi_t& psi,
-        typename Psi_t::real_dtype& log_psi_real,
-        PauliString& pauli_string,
-        void* rng_state,
-        typename Psi_t::dtype* angles,
-        typename Psi_t::dtype* activations
-    ) const {
-        #include "cuda_kernel_defines.h"
-
-        SHARED_MEM_LOOP_BEGIN(i, this->num_thermalization_sweeps * psi.get_num_input_units()) {
-            this->mc_update(psi, log_psi_real, pauli_string, rng_state, angles, activations);
-
-            SHARED_MEM_LOOP_END(i);
-        }
-    }
-
-    template<typename Psi_t>
-    HDINLINE
     void mc_update(
         const Psi_t& psi,
         typename Psi_t::real_dtype& log_psi_real,
-        PauliString& pauli_string,
+        Basis_t& configuration,
         void* rng_state,
         typename Psi_t::dtype* angles,
         typename Psi_t::dtype* activations
@@ -146,18 +138,12 @@ struct MonteCarloLoopPaulis {
         #include "cuda_kernel_defines.h"
         using real_dtype = typename Psi_t::real_dtype;
 
-        SHARED PauliString next_pauli_string;
-        SINGLE {
-            next_pauli_string = pauli_string.apply(
-                this->update_operator.pauli_strings[
-                    random_uint32(rng_state) % this->update_operator.num_strings
-                ]
-            ).vector;
-        }
-        psi.update_input_units(angles, pauli_string, next_pauli_string);
+        SHARED Basis_t next_configuration;
+        this->update_policy(next_configuration, configuration, psi, rng_state);
+        psi.update_input_units(angles, configuration, next_configuration);
 
         SHARED real_dtype next_log_psi_real;
-        psi.log_psi_s_real(next_log_psi_real, next_pauli_string, angles, activations);
+        psi.log_psi_s_real(next_log_psi_real, next_configuration, angles, activations);
 
         SHARED bool accepted;
         SHARED real_dtype ratio;
@@ -166,6 +152,7 @@ struct MonteCarloLoopPaulis {
 
             if(ratio > real_dtype(1.0) || real_dtype(random_real(rng_state)) <= ratio) {
                 log_psi_real = next_log_psi_real;
+                configuration = next_configuration;
                 accepted = true;
                 generic_atomicAdd(this->acceptances, 1u);
             }
@@ -177,18 +164,19 @@ struct MonteCarloLoopPaulis {
         SYNC;
 
         if(!accepted) {
-            psi.update_input_units(angles, next_pauli_string, pauli_string);
+            psi.update_input_units(angles, next_configuration, configuration);
         }
+
     }
 
 #endif // __CUDACC__
 
 
-    inline MonteCarloLoopPaulis& kernel() {
+    inline MonteCarlo_t& kernel() {
         return *this;
     }
 
-    inline const MonteCarloLoopPaulis& kernel() const {
+    inline const MonteCarlo_t& kernel() const {
         return *this;
     }
 };
@@ -196,23 +184,25 @@ struct MonteCarloLoopPaulis {
 } // namespace kernel
 
 
-struct MonteCarloLoopPaulis : public kernel::MonteCarloLoopPaulis {
+template<typename Basis_t, typename Init_Policy, typename Update_Policy>
+struct MonteCarlo_t : public kernel::MonteCarlo_t<Basis_t, Init_Policy, typename Update_Policy::kernel_t> {
     bool gpu;
 
     Array<unsigned int> acceptances_ar;
     Array<unsigned int> rejections_ar;
     RNGStates           rng_states;
 
-    Operator update_operator_host;
+    Update_Policy       update_policy;
 
-    MonteCarloLoopPaulis(
-        const unsigned int num_samples,
-        const unsigned int num_sweeps,
-        const unsigned int num_thermalization_sweeps,
-        const unsigned int num_markov_chains,
-        const Operator     update_operator
+    MonteCarlo_t(
+        const unsigned int  num_samples,
+        const unsigned int  num_sweeps,
+        const unsigned int  num_thermalization_sweeps,
+        const unsigned int  num_markov_chains,
+        const Update_Policy update_policy,
+        const bool          gpu
     );
-    MonteCarloLoopPaulis(MonteCarloLoopPaulis& other);
+    MonteCarlo_t(const MonteCarlo_t& other);
 
 #ifdef __CUDACC__
     template<typename Psi_t, typename Function>
@@ -239,6 +229,57 @@ struct MonteCarloLoopPaulis : public kernel::MonteCarloLoopPaulis {
     }
 #endif
 };
+
+
+template<typename Basis_t>
+using MonteCarlo_tt = MonteCarlo_t<Basis_t, Init_Policy<Basis_t>, Update_Policy<Basis_t>>;
+
+
+#ifdef ENABLE_SPINS
+using MonteCarloSpins = MonteCarlo_tt<Spins>;
+
+#ifndef __CUDACC__
+inline MonteCarloSpins make_MonteCarloSpins(
+    const unsigned int  num_samples,
+    const unsigned int  num_sweeps,
+    const unsigned int  num_thermalization_sweeps,
+    const unsigned int  num_markov_chains,
+    const bool          gpu
+) {
+    return MonteCarloSpins(
+        num_samples, num_sweeps, num_thermalization_sweeps, num_markov_chains, Update_Policy<Spins>(), gpu
+    );
+}
+#endif // __CUDACC__
+
+#endif // ENABLE_SPINS
+
+
+#ifdef ENABLE_PAULIS
+using MonteCarloPaulis = MonteCarlo_tt<PauliString>;
+
+
+#ifndef __CUDACC__
+inline MonteCarloPaulis make_MonteCarloPaulis(
+    const unsigned int  num_samples,
+    const unsigned int  num_sweeps,
+    const unsigned int  num_thermalization_sweeps,
+    const unsigned int  num_markov_chains,
+    const quantum_expression::PauliExpression update_expr,
+    const bool          gpu
+) {
+    return MonteCarloPaulis(
+        num_samples,
+        num_sweeps,
+        num_thermalization_sweeps,
+        num_markov_chains,
+        Update_Policy<PauliString>(Operator(update_expr, gpu)),
+        gpu
+    );
+}
+#endif // __CUDACC__
+
+#endif // ENABLE_PAULIS
 
 
 } // namespace ann_on_gpu

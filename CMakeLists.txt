@@ -91,24 +91,24 @@ add_library(ANNonGPU SHARED ${SRCFILES})
 # User options
 # ==============
 
+option(ENABLE_SPINS "enable Spins" ON)
+if (ENABLE_SPINS)
+  target_compile_definitions(ANNonGPU PUBLIC ENABLE_SPINS)
+endif()
+
+option(ENABLE_PAULIS "enable Pauli-strings" ON)
+if (ENABLE_PAULIS)
+  target_compile_definitions(ANNonGPU PUBLIC ENABLE_PAULIS)
+endif()
+
 option(ENABLE_MONTE_CARLO "enable monte-carlo" ON)
 if (ENABLE_MONTE_CARLO)
   target_compile_definitions(ANNonGPU PUBLIC ENABLE_MONTE_CARLO)
 endif()
 
-option(ENABLE_MONTE_CARLO_PAULIS "enable monte-carlo for mixed states" ON)
-if (ENABLE_MONTE_CARLO_PAULIS)
-  target_compile_definitions(ANNonGPU PUBLIC ENABLE_MONTE_CARLO_PAULIS)
-endif()
-
 option(ENABLE_EXACT_SUMMATION "enable exact summation" ON)
 if (ENABLE_EXACT_SUMMATION)
   target_compile_definitions(ANNonGPU PUBLIC ENABLE_EXACT_SUMMATION)
-endif()
-
-option(ENABLE_PSI_DEEP "enable PsiDeep" ON)
-if (ENABLE_PSI_DEEP)
-  target_compile_definitions(ANNonGPU PUBLIC ENABLE_PSI_DEEP)
 endif()
 
 # Compile and link ANNonGPU

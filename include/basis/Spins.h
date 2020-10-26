@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MatrixElement.hpp"
+#include "operator/MatrixElement.hpp"
 #include "types.h"
 #include "random.h"
 #include <builtin_types.h>
@@ -24,15 +24,15 @@ namespace generic {
 
 template<unsigned int num_types>
 struct Spins_t {
-    using type = uint64_t;
+    using dtype = uint64_t;
     // constexpr unsigned int num_types_half = num_types / 2u;
 
-    type configurations[num_types];
+    dtype configurations[num_types];
 
     Spins_t() = default;
 
     HDINLINE Spins_t(
-        const type configurations[num_types],
+        const dtype configurations[num_types],
         const unsigned int num_spins
     ) {
         #ifdef __CUDA_ARCH__
@@ -44,7 +44,7 @@ struct Spins_t {
 
         const auto type_idx = num_spins / 64u;
         if(type_idx < num_types) {
-            this->configurations[type_idx] &= ((type)1u << (num_spins % 64)) - 1u;
+            this->configurations[type_idx] &= (1lu << (num_spins % 64)) - 1u;
         }
     }
 
@@ -55,6 +55,25 @@ struct Spins_t {
         for(auto i = 0u; i < num_types; i++) {
             this->configurations[i] = other.configurations[i];
         }
+    }
+
+    static HDINLINE unsigned int num_configurations(const unsigned int num_sites) {
+        return 1u << num_sites;
+    }
+
+
+    static HDINLINE Spins_t enumerate(const unsigned int index) {
+        Spins_t result;
+        result.configurations[0] = index;
+
+        #ifdef __CUDA_ARCH__
+        #pragma unroll
+        #endif
+        for(auto i = 1u; i < num_types; i++) {
+            result.configurations[i] = 0lu;
+        }
+
+        return result;
     }
 
     HDINLINE Spins_t& operator=(const Spins_t& other) {
@@ -78,13 +97,13 @@ struct Spins_t {
 
         const auto type_idx = num_spins / 64u;
         if(type_idx < num_types) {
-            this->configurations[type_idx] &= ((type)1u << (num_spins % 64)) - 1u;
+            this->configurations[type_idx] &= (1lu << (num_spins % 64)) - 1u;
         }
     }
 
     HDINLINE float operator[](const unsigned int position) const {
         return 2.0f * static_cast<float>(
-            static_cast<bool>(this->configurations[position / 64u] & ((type)1u << (position % 64u)))
+            static_cast<bool>(this->configurations[position / 64u] & (1lu << (position % 64u)))
         ) - 1.0f;
     }
 
@@ -93,7 +112,7 @@ struct Spins_t {
 
         return (
             2 * static_cast<int>(static_cast<bool>(
-                this->configurations[idx / 64u] & ((type)1u << (idx % 64u))
+                this->configurations[idx / 64u] & (1lu << (idx % 64u))
             )) - 1
         );
     }
@@ -109,10 +128,12 @@ struct Spins_t {
         return result;
     }
 
-    #endif // __CUDACC__
+    #endif // __PYTHONCC__
 
-    HDINLINE void flip(const unsigned int position) {
-        this->configurations[position / 64u] ^= (type)1u << (position % 64u);
+    HDINLINE Spins_t flip(const unsigned int position) const {
+        Spins_t result = *this;
+        result.configurations[position / 64u] ^= 1lu << (position % 64u);
+        return result;
     }
 
     HDINLINE bool operator==(const Spins_t& other) const {
@@ -177,16 +198,16 @@ struct Spins_t {
         #include "cuda_kernel_defines.h"
         SHARED bool little_bit, big_bit;
 
-        little_bit = this->configurations[num_types - 1] & ((type)1u << ((num_spins - 1u) % 64u));
+        little_bit = this->configurations[num_types - 1] & (1lu << ((num_spins - 1u) % 64u));
 
         #ifdef __CUDA_ARCH__
         #pragma unroll
         #endif
         for(auto i = 0; i < num_types; i++) {
-            big_bit = this->configurations[i] & ((type)1u << 63u);
+            big_bit = this->configurations[i] & (1lu << 63u);
 
             this->configurations[i] <<= 1u;
-            this->configurations[i] |= (type)little_bit;
+            this->configurations[i] |= (dtype)little_bit;
 
             little_bit = big_bit;
         }
@@ -254,12 +275,12 @@ struct Spins_t<1u> : public generic::Spins_t<1u> {
 
     Spins_t<1u>() = default;
 
-    HDINLINE Spins_t<1u>(type configuration, const unsigned int num_spins) {
+    HDINLINE Spins_t<1u>(dtype configuration, const unsigned int num_spins) {
         if(num_spins == 64u) {
             this->configuration() = configuration;
         }
         else {
-            this->configuration() = configuration & (((type)1u << num_spins) - 1u);
+            this->configuration() = configuration & ((1lu << num_spins) - 1u);
         }
     }
 
@@ -267,11 +288,11 @@ struct Spins_t<1u> : public generic::Spins_t<1u> {
         this->configuration() = other.configurations[0];
     }
 
-    HDINLINE type& configuration() {
+    HDINLINE dtype& configuration() {
         return this->configurations[0];
     }
 
-    HDINLINE const type& configuration() const {
+    HDINLINE const dtype& configuration() const {
         return this->configurations[0];
     }
 
@@ -280,14 +301,14 @@ struct Spins_t<1u> : public generic::Spins_t<1u> {
     }
 
     HDINLINE uint64_t bit_at(const unsigned int i) const {
-        return this->configuration() & ((type)1u << i);
+        return this->configuration() & (1lu << i);
     }
 
     HDINLINE Spins_t<1u> extract_first_n(const unsigned int n) const {
         return Spins_t<1u>(this->configuration(), n);
     }
 
-    HDINLINE type is_different(const Spins_t<1u>& other) const {
+    HDINLINE dtype is_different(const Spins_t<1u>& other) const {
         return this->configuration() ^ other.configuration();
     }
 
@@ -311,8 +332,11 @@ struct Spins_t<1u> : public generic::Spins_t<1u> {
         return this->configuration() != other.configuration();
     }
 
-    HDINLINE void flip(const unsigned int position) {
-        this->configuration() ^= (type)1u << (position % 64u);
+
+    HDINLINE Spins_t<1u> flip(const unsigned int position) const {
+        Spins_t<1u> result = *this;
+        result.configuration() ^= 1lu << (position % 64u);
+        return result;
     }
 
     // todo: fix for N = 64
@@ -334,7 +358,7 @@ struct Spins_t<1u> : public generic::Spins_t<1u> {
 
     HDINLINE Spins_t<1u> select_left_columns(const unsigned int select, const unsigned int nrows, const unsigned int ncols) const {
         const auto row = ((1u << select) - 1u) << (ncols - select);
-        type mask = 0u;
+        dtype mask = 0u;
         for(auto i = 0u; i < nrows; i++) {
             mask |= row << (i * ncols);
         }
@@ -343,7 +367,7 @@ struct Spins_t<1u> : public generic::Spins_t<1u> {
 
     HDINLINE Spins_t<1u> select_right_columns(const unsigned int select, const unsigned int nrows, const unsigned int ncols) const {
         const auto row = (1u << select) - 1u;
-        type mask = 0u;
+        dtype mask = 0u;
         for(auto i = 0u; i < nrows; i++) {
             mask |= row << (i * ncols);
         }

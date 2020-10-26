@@ -1,7 +1,6 @@
 #pragma once
 
 #include "operator/Operator.hpp"
-#include "operator/Spins.h"
 #include "Array.hpp"
 #include "types.h"
 
@@ -27,23 +26,24 @@ public:
     complex_t*  O_k;
     complex_t*  log_ratio_O_k;
 
-    template<bool compute_gradient, typename Psi_t, typename Psi_t_prime, typename SpinEnsemble>
+    template<bool compute_gradient, typename Psi_t, typename Psi_t_prime, typename Ensemble>
     void compute_averages(
-        const Psi_t& psi, const Psi_t_prime& psi_prime, SpinEnsemble& spin_ensemble
+        const Psi_t& psi, const Psi_t_prime& psi_prime, Ensemble& spin_ensemble
     ) const;
 
-    template<bool compute_gradient, typename Psi_t, typename Psi_t_prime, typename SpinEnsemble>
-    void compute_averages(
-        const Psi_t& psi, const Psi_t_prime& psi_prime, const Operator& operator_,
-        const bool is_unitary, SpinEnsemble& spin_ensemble
-    ) const;
 
-    template<bool compute_gradient, typename Psi_t, typename Psi_t_prime, typename SpinEnsemble>
-    void compute_averages_2nd_order(
-        const Psi_t& psi, const Psi_t_prime& psi_prime,
-        const Operator& op, const Operator& op2,
-        SpinEnsemble& spin_ensemble
-    ) const;
+    // template<bool compute_gradient, typename Psi_t, typename Psi_t_prime, typename Ensemble>
+    // void compute_averages(
+    //     const Psi_t& psi, const Psi_t_prime& psi_prime, const Operator& operator_,
+    //     const bool is_unitary, Ensemble& spin_ensemble
+    // ) const;
+
+    // template<bool compute_gradient, typename Psi_t, typename Psi_t_prime, typename Ensemble>
+    // void compute_averages_2nd_order(
+    //     const Psi_t& psi, const Psi_t_prime& psi_prime,
+    //     const Operator& op, const Operator& op2,
+    //     Ensemble& spin_ensemble
+    // ) const;
 };
 
 } // namespace kernel
@@ -63,64 +63,64 @@ private:
 public:
     KullbackLeibler(const unsigned int num_params, const bool gpu);
 
-    template<typename Psi_t, typename Psi_t_prime, typename SpinEnsemble>
+    template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
     double value(
-        const Psi_t& psi, const Psi_t_prime& psi_prime, SpinEnsemble& spin_ensemble
+        const Psi_t& psi, const Psi_t_prime& psi_prime, Ensemble& spin_ensemble
     );
 
-    template<typename Psi_t, typename Psi_t_prime, typename SpinEnsemble>
-    double value(
-        const Psi_t& psi, const Psi_t_prime& psi_prime, const Operator& operator_,
-        const bool is_unitary, SpinEnsemble& spin_ensemble
-    );
+    // template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
+    // double value(
+    //     const Psi_t& psi, const Psi_t_prime& psi_prime, const Operator& operator_,
+    //     const bool is_unitary, Ensemble& spin_ensemble
+    // );
 
-    template<typename Psi_t, typename Psi_t_prime, typename SpinEnsemble>
-    double value(
-        const Psi_t& psi, const Psi_t_prime& psi_prime,
-        const Operator& op, const Operator& op2,
-        SpinEnsemble& spin_ensemble
-    );
+    // template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
+    // double value(
+    //     const Psi_t& psi, const Psi_t_prime& psi_prime,
+    //     const Operator& op, const Operator& op2,
+    //     Ensemble& spin_ensemble
+    // );
 
-    template<typename Psi_t, typename Psi_t_prime, typename SpinEnsemble>
+    template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
     double gradient(
-        complex<double>* result, const Psi_t& psi, const Psi_t_prime& psi_prime, SpinEnsemble& spin_ensemble, const double nu
+        complex<double>* result, const Psi_t& psi, const Psi_t_prime& psi_prime, Ensemble& spin_ensemble, const double nu
     );
 
-    template<typename Psi_t, typename Psi_t_prime, typename SpinEnsemble>
-    double gradient(
-        complex<double>* result, const Psi_t& psi, const Psi_t_prime& psi_prime,
-        const Operator& operator_, const bool is_unitary, SpinEnsemble& spin_ensemble, const double nu
-    );
+    // template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
+    // double gradient(
+    //     complex<double>* result, const Psi_t& psi, const Psi_t_prime& psi_prime,
+    //     const Operator& operator_, const bool is_unitary, Ensemble& spin_ensemble, const double nu
+    // );
 
-    template<typename Psi_t, typename Psi_t_prime, typename SpinEnsemble>
-    double gradient(
-        complex<double>* result, const Psi_t& psi, const Psi_t_prime& psi_prime,
-        const Operator& op, const Operator& op2,
-        SpinEnsemble& spin_ensemble, const double nu
-    );
+    // template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
+    // double gradient(
+    //     complex<double>* result, const Psi_t& psi, const Psi_t_prime& psi_prime,
+    //     const Operator& op, const Operator& op2,
+    //     Ensemble& spin_ensemble, const double nu
+    // );
 
 #ifdef __PYTHONCC__
 
-    template<typename Psi_t, typename Psi_t_prime, typename SpinEnsemble>
-    double value_with_op(
-        const Psi_t& psi, const Psi_t_prime& psi_prime, const Operator& operator_,
-        const bool is_unitary, SpinEnsemble& spin_ensemble
-    ) {
-        return this->value(psi, psi_prime, operator_, is_unitary, spin_ensemble);
-    }
+    // template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
+    // double value_with_op(
+    //     const Psi_t& psi, const Psi_t_prime& psi_prime, const Operator& operator_,
+    //     const bool is_unitary, Ensemble& spin_ensemble
+    // ) {
+    //     return this->value(psi, psi_prime, operator_, is_unitary, spin_ensemble);
+    // }
 
-    template<typename Psi_t, typename Psi_t_prime, typename SpinEnsemble>
-    double value_2nd_order(
-        const Psi_t& psi, const Psi_t_prime& psi_prime,
-        const Operator& op, const Operator& op2,
-        SpinEnsemble& spin_ensemble
-    ) {
-        return this->value(psi, psi_prime, op, op2, spin_ensemble);
-    }
+    // template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
+    // double value_2nd_order(
+    //     const Psi_t& psi, const Psi_t_prime& psi_prime,
+    //     const Operator& op, const Operator& op2,
+    //     Ensemble& spin_ensemble
+    // ) {
+    //     return this->value(psi, psi_prime, op, op2, spin_ensemble);
+    // }
 
-    template<typename Psi_t, typename Psi_t_prime, typename SpinEnsemble>
+    template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
     pair<xt::pytensor<complex<double>, 1u>, double> gradient_py(
-        const Psi_t& psi, const Psi_t_prime& psi_prime, SpinEnsemble& spin_ensemble, const double nu
+        const Psi_t& psi, const Psi_t_prime& psi_prime, Ensemble& spin_ensemble, const double nu
     ) {
         xt::pytensor<complex<double>, 1u> grad(std::array<long int, 1u>({(long int)psi_prime.num_params}));
 
@@ -129,30 +129,30 @@ public:
         return {grad, value};
     }
 
-    template<typename Psi_t, typename Psi_t_prime, typename SpinEnsemble>
-    pair<xt::pytensor<complex<double>, 1u>, double> gradient_with_op_py(
-        const Psi_t& psi, const Psi_t_prime& psi_prime, const Operator& operator_,
-        const bool is_unitary, SpinEnsemble& spin_ensemble, const double nu
-    ) {
-        xt::pytensor<complex<double>, 1u> grad(std::array<long int, 1u>({(long int)psi_prime.num_params}));
+    // template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
+    // pair<xt::pytensor<complex<double>, 1u>, double> gradient_with_op_py(
+    //     const Psi_t& psi, const Psi_t_prime& psi_prime, const Operator& operator_,
+    //     const bool is_unitary, Ensemble& spin_ensemble, const double nu
+    // ) {
+    //     xt::pytensor<complex<double>, 1u> grad(std::array<long int, 1u>({(long int)psi_prime.num_params}));
 
-        const double value = this->gradient(grad.data(), psi, psi_prime, operator_, is_unitary, spin_ensemble, nu);
+    //     const double value = this->gradient(grad.data(), psi, psi_prime, operator_, is_unitary, spin_ensemble, nu);
 
-        return {grad, value};
-    }
+    //     return {grad, value};
+    // }
 
-    template<typename Psi_t, typename Psi_t_prime, typename SpinEnsemble>
-    pair<xt::pytensor<complex<double>, 1u>, double> gradient_2nd_order_py(
-        const Psi_t& psi, const Psi_t_prime& psi_prime,
-        const Operator& op, const Operator& op2,
-        SpinEnsemble& spin_ensemble, const double nu
-    ) {
-        xt::pytensor<complex<double>, 1u> grad(std::array<long int, 1u>({(long int)psi_prime.num_params}));
+    // template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
+    // pair<xt::pytensor<complex<double>, 1u>, double> gradient_2nd_order_py(
+    //     const Psi_t& psi, const Psi_t_prime& psi_prime,
+    //     const Operator& op, const Operator& op2,
+    //     Ensemble& spin_ensemble, const double nu
+    // ) {
+    //     xt::pytensor<complex<double>, 1u> grad(std::array<long int, 1u>({(long int)psi_prime.num_params}));
 
-        const double value = this->gradient(grad.data(), psi, psi_prime, op, op2, spin_ensemble, nu);
+    //     const double value = this->gradient(grad.data(), psi, psi_prime, op, op2, spin_ensemble, nu);
 
-        return {grad, value};
-    }
+    //     return {grad, value};
+    // }
 
 #endif // __PYTHONCC__
 

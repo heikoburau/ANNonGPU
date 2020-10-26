@@ -1,8 +1,14 @@
 #pragma once
 
-#include "MatrixElement.hpp"
+#include "bit_operations.hpp"
+#include "operator/MatrixElement.hpp"
 #include "Spins.h"
 #include "types.h"
+
+#ifdef __PYTHONCC__
+    #define FORCE_IMPORT_ARRAY
+    #include "xtensor-python/pytensor.hpp"
+#endif
 
 
 namespace ann_on_gpu {
@@ -16,6 +22,17 @@ struct PauliString {
 
     PauliString() = default;
     HDINLINE PauliString(const dtype& a, const dtype& b) : a(a), b(b) {};
+
+    static HDINLINE unsigned int num_configurations(const unsigned int num_sites) {
+        return 1u << (2u * num_sites);
+    }
+
+    static HDINLINE PauliString enumerate(const unsigned int index) {
+        return PauliString(
+            detail::pick_bits_at_even_sites(index),
+            detail::pick_bits_at_even_sites(index >> 1u)
+        );
+    }
 
     HDINLINE void set_at(const unsigned int idx, const unsigned int type) {
         switch(type)
@@ -44,6 +61,17 @@ struct PauliString {
             (int(bool(this->b & (1lu << idx))) << 1lu)
         );
     }
+
+#ifdef __PYTHONCC__
+    decltype(auto) array(const unsigned int num_sites) const {
+        xt::pytensor<unsigned int, 1u> result(std::array<long int, 1u>({num_sites}));
+        for(auto i = 0u; i < num_sites; i++) {
+            result[i] = (*this)[i];
+        }
+
+        return result;
+    }
+#endif // __PYTHONCC__
 
     HDINLINE int network_unit_at(const unsigned int idx) const {
         // caution: this implementation has to be consistend with `PsiDeep::update_angles()`

@@ -53,7 +53,6 @@ def __pos__(self):
 
 @property
 def vector(self):
-
     return self._vector
 
 

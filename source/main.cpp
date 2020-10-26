@@ -1,5 +1,5 @@
 #include "quantum_states.hpp"
-#include "ensembles/MonteCarloLoop.hpp"
+#include "ensembles/MonteCarlo.hpp"
 #include "operator/Operator.hpp"
 #include "network_functions/HilbertSpaceDistance.hpp"
 #include "types.h"
@@ -38,13 +38,13 @@ int main(int argc, char *argv[]) {
 
     HilbertSpaceDistance hs_distance(N, psi.num_params, gpu);
 
-    MonteCarloLoop mc_loop(
-        1u << 14u,
-        1u,
-        2u,
-        gpu ? (1u << 10u) : 1u,
-        gpu
-    );
+    // MonteCarloSpins mc_loop(
+    //     1u << 14u,
+    //     1u,
+    //     2u,
+    //     gpu ? (1u << 10u) : 1u,
+    //     gpu
+    // );
 
     vector<cpx> result(psi.num_params);
 

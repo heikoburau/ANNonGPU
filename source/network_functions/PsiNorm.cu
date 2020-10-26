@@ -10,8 +10,8 @@
 namespace ann_on_gpu {
 
 
-template<typename Psi_t>
-double psi_norm(const Psi_t& psi, ExactSummation& exact_summation) {
+template<typename Psi_t, typename Ensemble>
+double psi_norm(const Psi_t& psi, Ensemble& exact_summation) {
 
     Array<double> result_ar(1, exact_summation.gpu);
     result_ar.clear();
@@ -23,7 +23,7 @@ double psi_norm(const Psi_t& psi, ExactSummation& exact_summation) {
         psi,
         [=] __host__ __device__ (
             const unsigned int spin_index,
-            const Spins spins,
+            typename Ensemble::Basis_t& conf,
             const complex_t log_psi,
             typename Psi_t::dtype* angles,
             typename Psi_t::dtype* activations,
@@ -43,17 +43,14 @@ double psi_norm(const Psi_t& psi, ExactSummation& exact_summation) {
 }
 
 
-#ifdef ENABLE_PSI_DEEP
-template double psi_norm(const PsiDeep& psi, ExactSummation&);
-#endif // ENABLE_PSI_DEEP
+#ifdef ENABLE_SPINS
+template double psi_norm(const PsiDeep& psi, ExactSummationSpins&);
+#endif // ENABLE_SPINS
 
-#ifdef ENABLE_PSI_PAIR
-template double psi_norm(const PsiPair& psi, ExactSummation&);
-#endif // ENABLE_PSI_PAIR
+#ifdef ENABLE_PAULIS
+template double psi_norm(const PsiDeep& psi, ExactSummationPaulis&);
+#endif // ENABLE_PAULIS
 
-#ifdef ENABLE_PSI_EXACT
-template double psi_norm(const PsiExact& psi, ExactSummation&);
-#endif // ENABLE_PSI_EXACT
 
 } // namespace ann_on_gpu
 

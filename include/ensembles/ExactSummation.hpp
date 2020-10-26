@@ -1,8 +1,8 @@
 #pragma once
 
 #include "operator/Operator.hpp"
+#include "bases.hpp"
 #include "Array.hpp"
-#include "operator/Spins.h"
 #include "cuda_complex.hpp"
 #include "types.h"
 
@@ -14,21 +14,18 @@ namespace ann_on_gpu {
 
 namespace kernel {
 
-struct ExactSummation {
-    using Basis_t = Spins;
+template<typename Basis>
+struct ExactSummation_t {
+    using Basis_t = Basis;
 
-
-    unsigned int  num_spin_configurations;
-    bool          has_total_z_symmetry;
-    Spins*        allowed_spin_configurations;
+    unsigned int  num_sites;
+    unsigned int  num_configurations;
+    // bool          has_total_z_symmetry;
+    // Basis_t*        allowed_spin_configurations;
 
 
     inline unsigned int get_num_steps() const {
-        return this->num_spin_configurations;
-    }
-
-    inline bool has_weights() const {
-        return true;
+        return this->num_configurations;
     }
 
 #ifdef __CUDACC__
@@ -38,7 +35,7 @@ struct ExactSummation {
     void kernel_foreach(Psi_t psi, Function function) const {
         #include "cuda_kernel_defines.h"
 
-        SHARED Spins        spins;
+        SHARED Basis_t      configuration;
         SHARED complex_t    log_psi;
         SHARED double       weight;
 
@@ -46,22 +43,22 @@ struct ExactSummation {
         SHARED typename Psi_t::dtype activations[Psi_t::max_width];
 
         #ifdef __CUDA_ARCH__
-        const auto spin_index = blockIdx.x;
+        const auto conf_index = blockIdx.x;
         #else
-        for(auto spin_index = 0u; spin_index < this->num_spin_configurations; spin_index++)
+        for(auto conf_index = 0u; conf_index < this->num_configurations; conf_index++)
         #endif
         {
-            if(this->has_total_z_symmetry) {
-                spins = Spins(this->allowed_spin_configurations[spin_index]);
-            }
-            else {
-                spins = Spins(spin_index, psi.get_num_input_units());
-            }
+            // if(this->has_total_z_symmetry) {
+            //     configuration = Basis_t(this->allowed_spin_configurations[conf_index]);
+            // }
+            // else {
+            configuration = Basis_t::enumerate(conf_index);
+            // }
 
             SYNC;
 
-            psi.compute_angles(angles, spins);
-            psi.log_psi_s(log_psi, spins, angles, activations);
+            psi.compute_angles(angles, configuration);
+            psi.log_psi_s(log_psi, configuration, angles, activations);
 
             SYNC;
 
@@ -71,13 +68,13 @@ struct ExactSummation {
 
             SYNC;
 
-            function(spin_index, spins, log_psi, angles, activations, weight);
+            function(conf_index, configuration, log_psi, angles, activations, weight);
         }
     }
 
 #endif // __CUDACC__
 
-    ExactSummation kernel() const {
+    ExactSummation_t kernel() const {
         return *this;
     }
 
@@ -85,18 +82,19 @@ struct ExactSummation {
 
 } // namespace kernel
 
-struct ExactSummation : public kernel::ExactSummation {
-    bool          gpu;
-    unsigned int  num_spins;
-    unique_ptr<Array<Spins>> allowed_spin_configurations_vec;
+template<typename Basis_t>
+struct ExactSummation_t : public kernel::ExactSummation_t<Basis_t> {
+    bool gpu;
 
-    ExactSummation(const unsigned int num_spins, const bool gpu);
+    // unique_ptr<Array<Basis_t>> allowed_spin_configurations_vec;
 
-    // ExactSummation copy() const {
+    ExactSummation_t(const unsigned int num_sites, const bool gpu);
+
+    // ExactSummation_t copy() const {
     //     return *this;
     // }
 
-    void set_total_z_symmetry(const int sector);
+    // void set_total_z_symmetry(const int sector);
 
 #ifdef __CUDACC__
     template<typename Psi_t, typename Function>
@@ -106,7 +104,7 @@ struct ExactSummation : public kernel::ExactSummation {
         if(this->gpu) {
             const auto blockDim_ = blockDim == -1 ? psi.get_width() : blockDim;
 
-            cuda_kernel<<<this->num_spin_configurations, blockDim_>>>(
+            cuda_kernel<<<this->num_configurations, blockDim_>>>(
                 [=] __device__ () {this_kernel.kernel_foreach(psi_kernel, function);}
             );
         }
@@ -117,5 +115,15 @@ struct ExactSummation : public kernel::ExactSummation {
 #endif
 
 };
+
+
+#ifdef ENABLE_SPINS
+using ExactSummationSpins = ExactSummation_t<Spins>;
+#endif  // ENABLE_SPINS
+
+#ifdef ENABLE_PAULIS
+using ExactSummationPaulis = ExactSummation_t<PauliString>;
+#endif  // ENABLE_PAULIS
+
 
 } // namespace ann_on_gpu

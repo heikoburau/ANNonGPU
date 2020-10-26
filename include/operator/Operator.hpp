@@ -1,7 +1,6 @@
 #pragma once
 
-#include "PauliString.hpp"
-#include "Spins.h"
+#include "basis/PauliString.hpp"
 #include "Array.hpp"
 #include "types.h"
 
@@ -23,13 +22,10 @@ namespace ann_on_gpu {
 
 namespace kernel {
 
-class Operator {
-public:
+struct Operator {
     complex_t*      coefficients;
     PauliString*    pauli_strings;
     unsigned int    num_strings;
-
-public:
 
 #ifdef __CUDACC__
 
@@ -88,13 +84,10 @@ public:
 } // namespace kernel
 
 
-class Operator : public kernel::Operator {
-public:
+struct Operator : public kernel::Operator {
     bool                gpu;
     Array<complex_t>    coefficients_ar;
     Array<PauliString>  pauli_strings_ar;
-
-public:
 
     Operator(
         const ::quantum_expression::PauliExpression& expr,

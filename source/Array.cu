@@ -1,5 +1,5 @@
-#include "operator/Spins.h"
-#include "operator/PauliString.hpp"
+#include "basis/Spins.h"
+#include "basis/PauliString.hpp"
 #include "Array.hpp"
 #include <algorithm>
 

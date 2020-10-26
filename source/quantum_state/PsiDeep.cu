@@ -1,5 +1,3 @@
-#if defined(ENABLE_PSI_DEEP)
-
 #include "quantum_state/PsiDeep.hpp"
 
 #include <complex>
@@ -268,14 +266,7 @@ void PsiDeepT<dtype>::set_params(const Array<dtype>& new_params) {
 }
 
 
-template struct PsiDeepT<cuda_complex::complex<float>>;
+// template struct PsiDeepT<cuda_complex::complex<float>>;
 template struct PsiDeepT<cuda_complex::complex<double>>;
-#ifdef ENABLE_PSI_PAIR
-template struct PsiDeepT<float>;
-template struct PsiDeepT<double>;
-#endif // ENABLE_PSI_PAIR
 
 } // namespace ann_on_gpu
-
-
-#endif // ENABLE_PSI_DEEP

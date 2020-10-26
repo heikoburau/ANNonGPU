@@ -2,9 +2,8 @@
 
 #include "psi_functions.hpp"
 
+#include "bases.hpp"
 #include "Array.hpp"
-#include "operator/Spins.h"
-#include "operator/PauliString.hpp"
 #include "types.h"
 #ifdef __CUDACC__
     #include "utils.kernel"
@@ -244,6 +243,7 @@ public:
         return exp(log(this->prefactor) + log_psi);
     }
 
+#ifdef ENABLE_SPINS
     HDINLINE void update_angles(
         dtype* angles, const unsigned int pos, const Spins&, const Spins& new_spins
     ) const {
@@ -256,7 +256,9 @@ public:
             );
         }
     }
+#endif  // ENABLE_SPINS
 
+#ifdef ENABLE_PAULIS
     HDINLINE void update_angles(
         dtype* angles, const unsigned int pos, const PauliString& old_paulis, const PauliString& new_paulis
     ) const {
@@ -277,6 +279,7 @@ public:
             );
         }
     }
+#endif  // ENABLE_PAULIS
 
     template<typename Basis_t>
     HDINLINE void update_input_units(
@@ -607,9 +610,11 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype> {
         return *this;
     }
 
+#ifdef ENABLE_SPINS
     xt::pytensor<complex<double>, 1> O_k_vector_py(const Spins& spins) {
         return psi_O_k_vector_py(*this, spins);
     }
+#endif
 
     inline vector<xt::pytensor<typename std_dtype<dtype>::type, 1u>> get_b() const {
         vector<xt::pytensor<typename std_dtype<dtype>::type, 1u>> result;
