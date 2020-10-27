@@ -16,16 +16,16 @@ public:
     ExpectationValue(const bool gpu);
 
     template<typename Psi_t, typename Ensemble>
-    complex<double> operator()(const Psi_t& psi, const Operator& operator_, Ensemble& ensemble);
+    complex<double> operator()(const Operator& operator_, const Psi_t& psi, Ensemble& ensemble);
 
     template<typename Psi_t, typename Ensemble>
-    pair<double, complex<double>> fluctuation(const Psi_t& psi, const Operator& operator_, Ensemble& ensemble);
+    pair<double, complex<double>> fluctuation(const Operator& operator_, const Psi_t& psi, Ensemble& ensemble);
 
 #ifdef __PYTHONCC__
 
     template<typename Psi_t, typename Ensemble>
-    inline complex<double> __call__(const Psi_t& psi, const Operator& operator_, Ensemble& ensemble) {
-        return (*this)(psi, operator_, ensemble);
+    inline complex<double> __call__(const Operator& operator_, const Psi_t& psi, Ensemble& ensemble) {
+        return (*this)(operator_, psi, ensemble);
     }
 
 #endif  // __PYTHONCC__

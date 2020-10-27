@@ -11,7 +11,7 @@ ExpectationValue::ExpectationValue(const bool gpu) : A_local(1, gpu), A_local_ab
 
 template<typename Psi_t, typename Ensemble>
 complex<double> ExpectationValue::operator()(
-    const Psi_t& psi, const Operator& operator_, Ensemble& ensemble
+    const Operator& operator_, const Psi_t& psi, Ensemble& ensemble
 ) {
 
     this->A_local.clear();
@@ -47,7 +47,7 @@ complex<double> ExpectationValue::operator()(
 
 template<typename Psi_t, typename Ensemble>
 pair<double, complex<double>> ExpectationValue::fluctuation(
-    const Psi_t& psi, const Operator& operator_, Ensemble& ensemble
+    const Operator& operator_, const Psi_t& psi, Ensemble& ensemble
 ) {
 
     this->A_local.clear();
@@ -93,13 +93,13 @@ pair<double, complex<double>> ExpectationValue::fluctuation(
 #ifdef ENABLE_MONTE_CARLO
 
 #ifdef ENABLE_SPINS
-template complex<double> ExpectationValue::operator()(const PsiDeep& psi, const Operator&, MonteCarloSpins&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const PsiDeep&, const Operator&, MonteCarloSpins&);
+template complex<double> ExpectationValue::operator()(const Operator&, const PsiDeep& psi, MonteCarloSpins&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiDeep&, MonteCarloSpins&);
 #endif // ENABLE_SPINS
 
 #ifdef ENABLE_PAULIS
-template complex<double> ExpectationValue::operator()(const PsiDeep& psi, const Operator&, MonteCarloPaulis&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const PsiDeep&, const Operator&, MonteCarloPaulis&);
+template complex<double> ExpectationValue::operator()(const Operator&, const PsiDeep& psi, MonteCarloPaulis&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiDeep&, MonteCarloPaulis&);
 #endif // ENABLE_PAULIS
 
 #endif // ENABLE_MONTE_CARLO
@@ -107,13 +107,13 @@ template pair<double, complex<double>> ExpectationValue::fluctuation(const PsiDe
 #ifdef ENABLE_EXACT_SUMMATION
 
 #ifdef ENABLE_SPINS
-template complex<double> ExpectationValue::operator()(const PsiDeep& psi, const Operator&, ExactSummationSpins&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const PsiDeep&, const Operator&, ExactSummationSpins&);
+template complex<double> ExpectationValue::operator()(const Operator&, const PsiDeep& psi, ExactSummationSpins&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiDeep&, ExactSummationSpins&);
 #endif // ENABLE_SPINS
 
 #ifdef ENABLE_PAULIS
-template complex<double> ExpectationValue::operator()(const PsiDeep& psi, const Operator&, ExactSummationPaulis&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const PsiDeep&, const Operator&, ExactSummationPaulis&);
+template complex<double> ExpectationValue::operator()(const Operator&, const PsiDeep& psi, ExactSummationPaulis&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiDeep&, ExactSummationPaulis&);
 #endif // ENABLE_PAULIS
 
 #endif // ENABLE_EXACT_SUMMATION

@@ -1,6 +1,5 @@
-from pyANNonGPU import Spins, activation_function
+from pyANNonGPU import Spins, activation_function, ExactSummationSpins
 from pytest import approx
-import numpy as np
 import cmath
 import random
 
@@ -9,9 +8,9 @@ translational_invariance = False
 
 def test_psi_s(psi_deep, gpu):
     psi = psi_deep(gpu)
-    psi_vector = psi.vector
-
     N = psi.N
+    ensemble = ExactSummationSpins(N, gpu)
+    psi_vector = psi.vector(ensemble)
 
     for i in range(10):
         spins_idx = random.randint(0, 2**N - 1)

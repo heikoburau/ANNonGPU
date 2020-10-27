@@ -66,7 +66,7 @@ private:
     void clear();
 
 public:
-    HilbertSpaceDistance(const unsigned int N, const unsigned int num_params, const bool gpu);
+    HilbertSpaceDistance(const unsigned int num_params, const bool gpu);
 
     template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
     double distance(

@@ -173,7 +173,7 @@ struct PauliString {
         }
 
         if(num_sigma_y & 1lu) {
-            result *= complex_t(0.0, 1.0);
+            result *= complex_t(0.0, -1.0);
         }
 
         return result;
@@ -199,6 +199,7 @@ struct PauliString {
         return result;
     }
 
+#ifdef ENABLE_SPINS
     HDINLINE MatrixElement<Spins> apply(const Spins& spins) const {
         complex_t factor = this->complex_prefactor();
 
@@ -212,6 +213,7 @@ struct PauliString {
 
         return MatrixElement<Spins>{factor, result_spins};
     }
+#endif // ENABLE_SPINS
 
     HDINLINE MatrixElement<PauliString> apply(const PauliString& x) const {
         complex_t factor = 1.0;

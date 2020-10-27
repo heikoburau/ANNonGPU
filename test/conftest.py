@@ -1,4 +1,4 @@
-from pyANNonGPU import new_deep_neural_network, ExactSummation
+from pyANNonGPU import new_deep_neural_network, ExactSummationSpins
 from QuantumExpression import sigma_x, sigma_y, sigma_z
 import quantum_tools as qt
 
@@ -37,16 +37,16 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize(
             "single_sigma",
             [
-                sigma_x(0),
-                sigma_y(0),
-                sigma_z(0)
+                lambda L: sigma_x(L // 2),
+                lambda L: sigma_y(L // 2),
+                lambda L: sigma_z(L // 2)
             ]
         )
 
-    if 'spin_ensemble' in metafunc.fixturenames:
+    if 'ensemble' in metafunc.fixturenames:
         metafunc.parametrize(
-            "spin_ensemble",
+            "ensemble",
             [
-                lambda L, gpu: ExactSummation(L, gpu)
+                lambda L, gpu: ExactSummationSpins(L, gpu)
             ]
         )

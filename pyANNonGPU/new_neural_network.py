@@ -1,7 +1,5 @@
-try:
-    from pyANNonGPU import PsiDeep
-except ImportError:
-    pass
+from pyANNonGPU import PsiDeep
+
 
 import numpy as np
 import math

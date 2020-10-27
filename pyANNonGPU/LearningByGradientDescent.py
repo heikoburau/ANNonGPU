@@ -34,15 +34,11 @@ class PoorLearning(RuntimeError):
 
 
 class LearningByGradientDescent:
-    def __init__(self, psi, spin_ensemble):
-        self.gpu = psi.gpu
-        if hasattr(pyANNonGPU, "MonteCarloLoop"):
-            self.mc = type(spin_ensemble) is pyANNonGPU.MonteCarloLoop
-        else:
-            self.mc = False
+    def __init__(self, num_params, spin_ensemble):
+        self.gpu = spin_ensemble.gpu
+        self.mc = spin_ensemble.__class__.__name__.startswith("MonteCarlo")
         self.spin_ensemble = spin_ensemble
-        self.num_params = psi.num_params
-        self.hilbert_space_distance = pyANNonGPU.HilbertSpaceDistance(psi.N, self.num_params, psi.gpu)
+        self.hilbert_space_distance = pyANNonGPU.HilbertSpaceDistance(num_params, self.gpu)
         self.expectation_value = pyANNonGPU.ExpectationValue(self.gpu)
         self.regularization = None
 

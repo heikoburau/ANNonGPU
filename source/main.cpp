@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
 
     PsiDeep psi(N, M, gpu);
 
-    HilbertSpaceDistance hs_distance(N, psi.num_params, gpu);
+    HilbertSpaceDistance hs_distance(psi.num_params, gpu);
 
     // MonteCarloSpins mc_loop(
     //     1u << 14u,

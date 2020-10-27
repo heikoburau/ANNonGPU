@@ -82,7 +82,7 @@ void kernel::HilbertSpaceDistance::compute_averages(
 
 } // namespace kernel
 
-HilbertSpaceDistance::HilbertSpaceDistance(const unsigned int N, const unsigned int num_params, const bool gpu)
+HilbertSpaceDistance::HilbertSpaceDistance(const unsigned int num_params, const bool gpu)
     :
     num_params(num_params),
     omega_avg_ar(1, gpu),
@@ -122,12 +122,10 @@ double HilbertSpaceDistance::distance(
     this->probability_ratio_avg_ar.update_host();
     this->next_state_norm_avg_ar.update_host();
 
-    // return this->probability_ratio_avg_ar.front();
-    return sqrt(
-        1.0 - (this->omega_avg_ar.front() * conj(this->omega_avg_ar.front())).real() / (
-            this->next_state_norm_avg_ar.front() *this->probability_ratio_avg_ar.front()
-        )
-    );
+    const auto u = abs2(this->omega_avg_ar.front());
+    const auto v = this->next_state_norm_avg_ar.front() * this->probability_ratio_avg_ar.front();
+
+    return sqrt(max(1.0 - u / v, 1e-8));
 }
 
 
@@ -147,7 +145,7 @@ double HilbertSpaceDistance::gradient(
 
     const auto u = (this->omega_avg_ar.front() * conj(this->omega_avg_ar.front())).real();
     const auto v = this->next_state_norm_avg_ar.front() * this->probability_ratio_avg_ar.front();
-    const auto distance = sqrt(1.0 - u / v);
+    const auto distance = sqrt(max(1.0 - u / v, 1e-8));
     const auto prefactor = pow(distance, nu);
 
     for(auto k = 0u; k < this->num_params; k++) {

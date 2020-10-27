@@ -42,7 +42,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 {
     xt::import_numpy();
 
-#ifdef ENABLE_PSI_DEEP
     py::class_<PsiDeep>(m, "PsiDeep")
         .def(py::init<
             const complex_tensor<1u, PsiDeep::real_dtype>&,
@@ -87,7 +86,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     #endif // ENABLE_EXACT_SUMMATION
         ;
 
-#endif // ENABLE_PSI_DEEP
 
     py::class_<Operator>(m, "Operator")
         .def(py::init<
@@ -116,6 +114,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def(py::init(&make_MonteCarloSpins))
         .def(py::init<MonteCarloSpins&>())
         // .def("set_total_z_symmetry", &MonteCarloSpins::set_total_z_symmetry)
+        .def_property_readonly("gpu", [](const MonteCarloSpins& ensemble) {return ensemble.gpu;})
         .def_property_readonly("num_steps", &MonteCarloSpins::get_num_steps)
         .def_property_readonly("acceptance_rate", [](const MonteCarloSpins& mc){
             return float(mc.acceptances_ar.front()) / float(mc.acceptances_ar.front() + mc.rejections_ar.front());
@@ -126,6 +125,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def(py::init(&make_MonteCarloPaulis))
         .def(py::init<MonteCarloPaulis&>())
         // .def("set_total_z_symmetry", &MonteCarloPaulis::set_total_z_symmetry)
+        .def_property_readonly("gpu", [](const MonteCarloPaulis& ensemble) {return ensemble.gpu;})
         .def_property_readonly("num_steps", &MonteCarloPaulis::get_num_steps)
         .def_property_readonly("acceptance_rate", [](const MonteCarloPaulis& mc){
             return float(mc.acceptances_ar.front()) / float(mc.acceptances_ar.front() + mc.rejections_ar.front());
@@ -138,12 +138,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #ifdef ENABLE_SPINS
     py::class_<ExactSummationSpins>(m, "ExactSummationSpins")
         .def(py::init<unsigned int, bool>())
+        .def_property_readonly("gpu", [](const ExactSummationSpins& ensemble) {return ensemble.gpu;})
         // .def("set_total_z_symmetry", &ExactSummationSpins::set_total_z_symmetry)
         .def_property_readonly("num_steps", &ExactSummationSpins::get_num_steps);
 #endif // ENABLE_SPINS
 #ifdef ENABLE_PAULIS
     py::class_<ExactSummationPaulis>(m, "ExactSummationPaulis")
         .def(py::init<unsigned int, bool>())
+        .def_property_readonly("gpu", [](const ExactSummationPaulis& ensemble) {return ensemble.gpu;})
         // .def("set_total_z_symmetry", &ExactSummationPaulis::set_total_z_symmetry)
         .def_property_readonly("num_steps", &ExactSummationPaulis::get_num_steps);
 #endif // ENABLE_PAULIS
@@ -176,7 +178,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 
 
     py::class_<HilbertSpaceDistance>(m, "HilbertSpaceDistance")
-        .def(py::init<unsigned int, unsigned int, bool>())
+        .def(py::init<unsigned int, bool>())
 #ifdef ENABLE_MONTE_CARLO
 #ifdef ENABLE_SPINS
         .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, MonteCarloSpins>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
@@ -187,7 +189,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, MonteCarloPaulis>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
 #endif // ENABLE_PAULIS
 #endif // ENABLE_MONTE_CARLO
-#ifdef ENABLE_MONTE_EXACT_SUMMATION
+#ifdef ENABLE_EXACT_SUMMATION
 #ifdef ENABLE_SPINS
         .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, ExactSummationSpins>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
         .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, ExactSummationSpins>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
@@ -196,7 +198,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, ExactSummationPaulis>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
         .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, ExactSummationPaulis>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
 #endif // ENABLE_PAULIS
-#endif // ENABLE_MONTE_EXACT_SUMMATION
+#endif // ENABLE_EXACT_SUMMATION
     ;
 
 
