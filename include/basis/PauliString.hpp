@@ -76,9 +76,9 @@ struct PauliString {
     HDINLINE int network_unit_at(const unsigned int idx) const {
         // caution: this implementation has to be consistend with `PsiDeep::update_angles()`
 
-        return static_cast<int>(
+        return 2 * static_cast<int>(
             (*this)[idx / 3u] - 1u == (idx % 3u)
-        );
+        ) - 1;
     }
 
     HDINLINE bool contains(const int index) const {
@@ -231,7 +231,7 @@ struct PauliString {
         }
 
         if(num_epsilon & 1lu) {
-            factor *= complex_t(0.0, 1.0);
+            factor *= complex_t(0.0, -1.0);
         }
 
         return MatrixElement<PauliString>{factor, PauliString(this->a ^ x.a, this->b ^ x.b)};

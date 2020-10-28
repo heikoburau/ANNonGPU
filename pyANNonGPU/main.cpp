@@ -98,12 +98,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #ifdef ENABLE_SPINS
     py::class_<ann_on_gpu::Spins>(m, "Spins")
         .def(py::init<ann_on_gpu::Spins::dtype, const unsigned int>())
+        .def_static("enumerate", ann_on_gpu::Spins::enumerate)
         .def("array", &ann_on_gpu::Spins::array);
 #endif // ENABLE_SPINS
 
 #ifdef ENABLE_PAULIS
     py::class_<ann_on_gpu::PauliString>(m, "PauliString")
         .def(py::init<ann_on_gpu::PauliString::dtype, ann_on_gpu::PauliString::dtype>())
+        .def_static("enumerate", ann_on_gpu::PauliString::enumerate)
         .def("array", &ann_on_gpu::PauliString::array);
 #endif // ENABLE_PAULIS
 

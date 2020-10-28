@@ -1,4 +1,4 @@
-from pyANNonGPU import new_deep_neural_network, ExactSummationSpins
+from pyANNonGPU import new_deep_neural_network, ExactSummationSpins, ExactSummationPaulis
 from QuantumExpression import sigma_x, sigma_y, sigma_z
 import quantum_tools as qt
 
@@ -21,6 +21,7 @@ def pytest_generate_tests(metafunc):
         psi_list = [
             lambda gpu: new_deep_neural_network(2, [2], [2], a=0.1, gpu=gpu),
             lambda gpu: new_deep_neural_network(3, [9, 6], [1, 3], noise=1e-2, gpu=gpu),
+            lambda gpu: new_deep_neural_network(6, [12, 6], [6, 12], noise=1e-2, a=-0.2, gpu=gpu),
             lambda gpu: new_deep_neural_network(8, [16, 8, 4], [4, 2, 4], a=0.1, noise=1e-2, gpu=gpu),
         ]
         metafunc.parametrize("psi_deep", psi_list)
@@ -47,6 +48,7 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize(
             "ensemble",
             [
-                lambda L, gpu: ExactSummationSpins(L, gpu)
+                ExactSummationSpins,
+                ExactSummationPaulis
             ]
         )

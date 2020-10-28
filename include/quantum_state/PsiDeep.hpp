@@ -266,17 +266,22 @@ public:
         #include "cuda_kernel_defines.h"
 
         MULTI(j, this->layers[0].rhs_connectivity) {
-            auto unit_idx = 3u * pos + old_paulis[pos] - 1u;
+            // todo: try optimization
+            if(old_paulis[pos]) {
+                const auto unit_idx = 3u * pos + old_paulis[pos] - 1u;
 
-            angles[this->layers[0].rhs_connection(unit_idx, j)] -= (
-                real_dtype(1.0) * this->layers[0].rhs_weight(unit_idx, j)
-            );
+                angles[this->layers[0].rhs_connection(unit_idx, j)] -= (
+                    real_dtype(2.0) * this->layers[0].rhs_weight(unit_idx, j)
+                );
+            }
 
-            unit_idx = 3u * pos + new_paulis[pos] - 1u;
+            if(new_paulis[pos]) {
+                const auto unit_idx = 3u * pos + new_paulis[pos] - 1u;
 
-            angles[this->layers[0].rhs_connection(unit_idx, j)] += (
-                real_dtype(1.0) * this->layers[0].rhs_weight(unit_idx, j)
-            );
+                angles[this->layers[0].rhs_connection(unit_idx, j)] += (
+                    real_dtype(2.0) * this->layers[0].rhs_weight(unit_idx, j)
+                );
+            }
         }
     }
 #endif  // ENABLE_PAULIS

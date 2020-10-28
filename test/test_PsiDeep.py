@@ -1,22 +1,44 @@
-from pyANNonGPU import Spins, activation_function, ExactSummationSpins
+from pyANNonGPU import Spins, PauliString, activation_function
 from pytest import approx
+import numpy as np
 import cmath
 import random
 
 translational_invariance = False
 
 
-def test_psi_s(psi_deep, gpu):
+def test_psi_s(psi_deep, ensemble, gpu):
     psi = psi_deep(gpu)
-    N = psi.N
-    ensemble = ExactSummationSpins(N, gpu)
+
+    use_spins = ensemble.__name__.endswith("Spins")
+    if not use_spins and psi.N % 3 != 0:
+        return
+
+    N = psi.N if use_spins else psi.N // 3
+
+    ensemble = ensemble(N, gpu)
+
     psi_vector = psi.vector(ensemble)
 
     for i in range(10):
-        spins_idx = random.randint(0, 2**N - 1)
-        spins = Spins(spins_idx, 64).array(N)
+        if use_spins:
+            conf_idx = random.randint(0, 2**N - 1)
+            spins = Spins(conf_idx, 64).array(N)
+            activations = +spins
+            input_activations = +spins
+        else:
+            conf_idx = random.randint(0, 4**N - 1)
+            paulis = PauliString.enumerate(conf_idx).array(N)
 
-        activations = +spins
+            activations = -np.ones(psi.N)
+            for i, p in enumerate(paulis):
+                if p == 0:
+                    continue
+
+                activations[3 * i + p - 1] = 1
+
+            input_activations = +activations
+
         for w, b in zip(psi.W, psi.b):
             n, m = len(activations), len(b)
 
@@ -37,10 +59,10 @@ def test_psi_s(psi_deep, gpu):
                 for j in range(len(b))
             ]
 
-        print(spins)
+        print(input_activations)
         print(psi.input_biases)
-        log_psi_s_ref = psi.input_biases @ spins + psi.final_weights @ activations
+        log_psi_s_ref = psi.input_biases @ input_activations + psi.final_weights @ activations
 
         psi_s_ref = cmath.exp(log_psi_s_ref)
 
-        assert psi_vector[spins_idx] == approx(psi_s_ref)
+        assert psi_vector[conf_idx] == approx(psi_s_ref)

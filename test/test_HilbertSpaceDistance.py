@@ -1,4 +1,4 @@
-from pyANNonGPU import HilbertSpaceDistance, ExactSummationSpins, Operator
+from pyANNonGPU import HilbertSpaceDistance, Operator
 from QuantumExpression import PauliExpression
 from pytest import approx
 import numpy as np
@@ -7,24 +7,33 @@ import json
 from math import sqrt
 
 
-def test_distance1(psi_deep, hamiltonian, gpu):
+def test_distance1(psi_deep, ensemble, hamiltonian, gpu):
     psi = psi_deep(gpu)
 
-    N = psi.N
-    H = hamiltonian(N)
-    spin_ensemble = ExactSummationSpins(N, gpu)
+    use_spins = ensemble.__name__.endswith("Spins")
+    if not use_spins and psi.N % 3 != 0:
+        return
 
-    psi.normalize(spin_ensemble)
+    N = psi.N if use_spins else psi.N // 3
+
+    ensemble = ensemble(N, gpu)
+
+    H = hamiltonian(N)
+
+    psi.normalize(ensemble)
 
     t = 1e-3
     hs_distance = HilbertSpaceDistance(psi.num_params, gpu)
     op = Operator(1j * H * t, gpu)
-    distance_test = hs_distance(psi, psi, op, False, spin_ensemble)
+    distance_test = hs_distance(psi, psi, op, False, ensemble)
 
-    H_diag = np.linalg.eigh(H.matrix(N))
-    U_t = H_diag[1] @ (np.exp(1j * H_diag[0] * t) * H_diag[1]).T
-    psi_vector = psi.vector(spin_ensemble)
-    distance_ref = sqrt(1.0 - abs(np.vdot(psi_vector, U_t @ psi_vector))**2)
+    H_diag = np.linalg.eigh(H.matrix(N, "spins" if use_spins else "paulis"))
+    U_t = H_diag[1] @ (np.exp(1j * H_diag[0] * t) * H_diag[1]).T.conj()
+    psi_vector = psi.vector(ensemble)
+    distance_ref = sqrt(1.0 - abs(np.vdot(
+        psi_vector,
+        U_t @ psi_vector
+    ))**2)
 
     assert distance_test == approx(distance_ref, rel=1e-3, abs=1e-8)
 
@@ -54,29 +63,35 @@ def test_distance1(psi_deep, hamiltonian, gpu):
 #     assert distance_test == approx(distance_ref, rel=1e-1, abs=1e-8)
 
 
-def test_gradient1(psi_deep, single_sigma, gpu):
+def test_gradient1(psi_deep, ensemble, single_sigma, gpu):
     psi = psi_deep(gpu)
 
-    N = psi.N
-    expr = single_sigma(N)
-    spin_ensemble = ExactSummationSpins(N, gpu)
+    use_spins = ensemble.__name__.endswith("Spins")
+    if not use_spins and psi.N % 3 != 0:
+        return
 
-    psi.normalize(spin_ensemble)
+    N = psi.N if use_spins else psi.N // 3
+
+    ensemble = ensemble(N, gpu)
+
+    expr = single_sigma(N)
+
+    psi.normalize(ensemble)
     psi1 = +psi
 
     hs_distance = HilbertSpaceDistance(psi.num_params, gpu)
     op = Operator(expr, gpu)
 
-    gradient_test, _ = hs_distance.gradient(psi, psi, op, True, spin_ensemble, 1)
+    gradient_test, _ = hs_distance.gradient(psi, psi, op, True, ensemble, 1)
 
     eps = 1e-6
 
     def distance_diff(delta_params):
         psi1.params = psi.params + delta_params
-        plus_distance = hs_distance(psi, psi1, op, True, spin_ensemble)
+        plus_distance = hs_distance(psi, psi1, op, True, ensemble)
 
         psi1.params = psi.params - delta_params
-        minus_distance = hs_distance(psi, psi1, op, True, spin_ensemble)
+        minus_distance = hs_distance(psi, psi1, op, True, ensemble)
 
         return (plus_distance - minus_distance) / (2 * eps)
 
@@ -111,17 +126,22 @@ def test_gradient1(psi_deep, single_sigma, gpu):
     assert passed
 
 
-def test_gradient2(psi_deep, hamiltonian, gpu):
+def test_gradient2(psi_deep, ensemble, hamiltonian, gpu):
     psi_0 = psi_deep(gpu)
     psi_0.params = (2 * np.random.rand(psi_0.num_params)) * psi_0.params
     psi = psi_deep(gpu)
 
-    N = psi.N
-    spin_ensemble = ExactSummationSpins(N, gpu)
+    use_spins = ensemble.__name__.endswith("Spins")
+    if not use_spins and psi_0.N % 3 != 0:
+        return
 
-    psi_0.normalize(spin_ensemble)
+    N = psi_0.N if use_spins else psi_0.N // 3
 
-    psi.normalize(spin_ensemble)
+    ensemble = ensemble(N, gpu)
+
+    psi_0.normalize(ensemble)
+
+    psi.normalize(ensemble)
     psi_1 = +psi
 
     # print(psi.num_params)
@@ -129,16 +149,16 @@ def test_gradient2(psi_deep, hamiltonian, gpu):
     hs_distance = HilbertSpaceDistance(psi.num_params, gpu)
     op = Operator(PauliExpression(1), gpu)
 
-    gradient_test, distance = hs_distance.gradient(psi_0, psi_1, op, True, spin_ensemble, 1)
+    gradient_test, distance = hs_distance.gradient(psi_0, psi_1, op, True, ensemble, 1)
 
     eps = 1e-6
 
     def distance_diff(delta_params):
         psi_1.params = psi.params + delta_params
-        plus_distance = hs_distance(psi_0, psi_1, op, True, spin_ensemble)
+        plus_distance = hs_distance(psi_0, psi_1, op, True, ensemble)
 
         psi_1.params = psi.params - delta_params
-        minus_distance = hs_distance(psi_0, psi_1, op, True, spin_ensemble)
+        minus_distance = hs_distance(psi_0, psi_1, op, True, ensemble)
 
         return (plus_distance - minus_distance) / (2 * eps)
 

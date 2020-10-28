@@ -44,6 +44,8 @@ def new_deep_neural_network(
 
     if isinstance(a, (float, int, complex)):
         a = a * np.ones(N_linear)
+    else:
+        a = np.array(a)
 
     b = [noise * complex_noise(m) for m in M_linear]
     w = noise * complex_noise((C_linear[0], M_linear[0]))
