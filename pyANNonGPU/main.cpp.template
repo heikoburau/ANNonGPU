@@ -74,14 +74,10 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("W", &PsiDeep::get_W)
         .def_property_readonly("input_biases", [](const PsiDeep& psi) {return psi.input_biases.to_pytensor_1d();})
         .def_property_readonly("final_weights", [](const PsiDeep& psi) {return psi.final_weights.to_pytensor_1d();})
-#if defined(ENABLE_SPINS)
-        .def("_vector", [](const PsiDeep& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector_py(psi, exact_summation);})
-        .def("norm", [](const PsiDeep& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
-#endif
-#if defined(ENABLE_PAULIS)
-        .def("_vector", [](const PsiDeep& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector_py(psi, exact_summation);})
-        .def("norm", [](const PsiDeep& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
-#endif
+        //! begin template
+        .def("_vector", [](const PsiDeep& psi, ExactSummation_t<Basis>& exact_summation) {return psi_vector_py(psi, exact_summation);})
+        .def("norm", [](const PsiDeep& psi, ExactSummation_t<Basis>& exact_summation) {return psi_norm(psi, exact_summation);})
+        //! end template
         ;
 
 
@@ -154,64 +150,29 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 
     py::class_<ExpectationValue>(m, "ExpectationValue")
         .def(py::init<bool>())
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
-        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Spins>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<Spins>>)
-#endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
-        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<PauliString>>)
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
-        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Spins>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<Spins>>)
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
-        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<PauliString>>)
-#endif
+        //! begin template
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, Ensemble<Basis>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, Ensemble<Basis>>)
+        //! end template
     ;
 
 
     py::class_<HilbertSpaceDistance>(m, "HilbertSpaceDistance")
         .def(py::init<unsigned int, bool>())
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
-        .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, MonteCarlo_tt<Spins>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
-        .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, MonteCarlo_tt<Spins>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
-#endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
-        .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, MonteCarlo_tt<PauliString>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
-        .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, MonteCarlo_tt<PauliString>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
-        .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, ExactSummation_t<Spins>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
-        .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, ExactSummation_t<Spins>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
-        .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, ExactSummation_t<PauliString>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
-        .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, ExactSummation_t<PauliString>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
-#endif
+        //! begin template
+        .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, Ensemble<Basis>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
+        .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, Ensemble<Basis>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
+        //! end template
     ;
 
 
 //     py::class_<KullbackLeibler>(m, "KullbackLeibler")
 //         .def(py::init<unsigned int, bool>())
-// #ifdef ENABLE_MONTE_CARLO
-// #ifdef ENABLE_PSI_DEEP
 //         .def("__call__", &KullbackLeibler::value_with_op<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
 //         .def("gradient", &KullbackLeibler::gradient_with_op_py<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
 //         .def("__call__", &KullbackLeibler::value_2nd_order<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "op"_a, "op2"_a, "spin_ensemble"_a)
 //         .def("gradient", &KullbackLeibler::gradient_2nd_order_py<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "op"_a, "op2"_a, "spin_ensemble"_a, "nu"_a)
-// #endif // ENABLE_PSI_DEEP
-// #endif // ENABLE_MONTE_CARLO
-// #ifdef ENABLE_EXACT_SUMMATION
-// #ifdef ENABLE_PSI_DEEP
-//         .def("__call__", &KullbackLeibler::value_with_op<PsiDeep, PsiDeep, ExactSummation>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
-//         .def("gradient", &KullbackLeibler::gradient_with_op_py<PsiDeep, PsiDeep, ExactSummation>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
-//         .def("__call__", &KullbackLeibler::value_2nd_order<PsiDeep, PsiDeep, ExactSummation>, "psi"_a, "psi_prime"_a, "op"_a, "op2"_a, "spin_ensemble"_a)
-//         .def("gradient", &KullbackLeibler::gradient_2nd_order_py<PsiDeep, PsiDeep, ExactSummation>, "psi"_a, "psi_prime"_a, "op"_a, "op2"_a, "spin_ensemble"_a, "nu"_a)
-// #endif // ENABLE_PSI_DEEP
-// #endif // ENABLE_EXACT_SUMMATION
+
 //     ;
 
 

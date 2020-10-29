@@ -1,0 +1,28 @@
+{
+    "file_patterns": [
+        "source/**/*.cu.template",
+        "pyANNonGPU/main.cpp.template"
+    ],
+    "keywords": {
+        "Ensemble": [
+            {
+                "flag": "ENABLE_MONTE_CARLO",
+                "code": "MonteCarlo_tt"
+            },
+            {
+                "flag": "ENABLE_EXACT_SUMMATION",
+                "code": "ExactSummation_t"
+            }
+        ],
+        "Basis": [
+            {
+                "flag": "ENABLE_SPINS",
+                "code": "Spins"
+            },
+            {
+                "flag": "ENABLE_PAULIS",
+                "code": "PauliString"
+            }
+        ]
+    }
+}
