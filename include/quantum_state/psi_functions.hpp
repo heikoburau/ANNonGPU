@@ -29,7 +29,7 @@ T my_logcosh(const T z) {
     // return sqrt(1.0 + z*z) - 1.0;
 
     // return complex_t(0.0, -1.0) * log(cosh(z)) + complex_t(0.0, -0.346574);
-    return log(cosh(z));
+    // return log(cosh(z));
     // return tanh(z);
 
     // seems to be dangerous. Does not work for a SW-generator applied on an initial state.
@@ -48,15 +48,15 @@ T my_logcosh(const T z) {
 
     // return log((exp(z) - 1.0) / z);
 
-    // const auto sign = z.real() > scalar(0.0) ? scalar(1.0) : scalar(-1.0);
+    const auto sign = z.real() > scalar(0.0) ? scalar(1.0) : scalar(-1.0);
 
-    // // return sign * z + (1.81168 - sign * 1.22741 * z) / (2.61371 + z * (sign * 2.0 + z)) - 0.693147;
+    // return sign * z + (1.81168 - sign * 1.22741 * z) / (2.61371 + z * (sign * 2.0 + z)) - 0.693147;
 
-    // return sign * scalar(0.9003320053750442) * z + (
-    //     scalar(5.49914721954) - sign * scalar(2.16564366435) * z
-    // ) / (
-    //     scalar(9.19376335670885) + z * (sign * scalar(10.2180213465) + z * (scalar(7.771429504240965) + z * (sign * scalar(3.746646023906276) + z)))
-    // ) - scalar(0.598139);
+    return sign * scalar(0.9003320053750442) * z + (
+        scalar(5.49914721954) - sign * scalar(2.16564366435) * z
+    ) / (
+        scalar(9.19376335670885) + z * (sign * scalar(10.2180213465) + z * (scalar(7.771429504240965) + z * (sign * scalar(3.746646023906276) + z)))
+    ) - scalar(0.598139);
 }
 
 template<typename T>
