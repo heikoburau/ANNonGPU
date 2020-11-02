@@ -142,6 +142,26 @@ struct PauliString {
         return !(this->a ^ this->b);
     }
 
+#ifdef ENABLE_SPINS
+    HDINLINE bool is_diagonal_on_basis(Spins) const {
+        return this->is_diagonal();
+    }
+
+    HDINLINE bool applies_a_prefactor(Spins) const {
+        return this->is_sigma_y() | this->is_sigma_z();
+    }
+#endif // ENABLE_SPINS
+
+#ifdef ENABLE_PAULIS
+    HDINLINE bool is_diagonal_on_basis(PauliString) const {
+        return !this->is_non_trivial();
+    }
+
+    HDINLINE bool applies_a_prefactor(PauliString) const {
+        return this->is_non_trivial();
+    }
+#endif // ENABLE_PAULIS
+
     HDINLINE bool has_no_sigma_yz() const {
         return !(this->is_sigma_y() | this->is_sigma_z());
     }
@@ -177,6 +197,17 @@ struct PauliString {
         }
 
         return result;
+    }
+
+    HDINLINE PauliString rotate_left(const unsigned int shift, const unsigned int N) const {
+        return PauliString(
+            (
+                (this->a << shift) | (this->a >> (N - shift))
+            ) & ((1lu << N) - 1lu),
+            (
+                (this->b << shift) | (this->b >> (N - shift))
+            ) & ((1lu << N) - 1lu)
+        );
     }
 
     HDINLINE PauliString rotate_to_smallest(unsigned int length) const {

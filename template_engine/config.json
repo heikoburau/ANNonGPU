@@ -23,6 +23,34 @@
                 "flag": "ENABLE_PAULIS",
                 "code": "PauliString"
             }
+        ],
+        "AllPsi": [
+            {
+                "flag": null,
+                "code": "PsiDeep"
+            },
+            {
+                "flag": "ENABLE_PSI_CLASSICAL",
+                "code": "PsiClassicalFP<1u>"
+            },
+            {
+                "flag": "ENABLE_PSI_CLASSICAL",
+                "code": "PsiClassicalFP<2u>"
+            },
+            {
+                "flag": [
+                    "ENABLE_PSI_CLASSICAL",
+                    "ENABLE_PSI_CLASSICAL_ANN"
+                ],
+                "code": "PsiClassicalANN<1u>"
+            },
+            {
+                "flag": [
+                    "ENABLE_PSI_CLASSICAL",
+                    "ENABLE_PSI_CLASSICAL_ANN"
+                ],
+                "code": "PsiClassicalANN<2u>"
+            }
         ]
     }
 }

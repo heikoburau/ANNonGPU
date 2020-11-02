@@ -27,16 +27,16 @@
 //             const Spins spins,
 //             const complex_t log_psi,
 //             typename Psi_t::dtype* angles,
-//             typename Psi_t::dtype* activations,
+//             typename Psi_t::Payload& payload,
 //             const double weight
 //         ) {
 //             #include "cuda_kernel_defines.h"
 
 //             SHARED complex_t log_psi_prime;
-//             psi_prime_kernel.log_psi_s(log_psi_prime, spins, activations);
+//             psi_prime_kernel.log_psi_s(log_psi_prime, spins, payload);
 
 //             SHARED typename Psi_t::dtype local_energy;
-//             op.local_energy(local_energy, psi_kernel, spins, log_psi, angles, activations);
+//             op.local_energy(local_energy, psi_kernel, spins, log_psi, angles, payload);
 
 //             SHARED complex_t diff;
 
@@ -50,7 +50,7 @@
 //             if(compute_gradient) {
 //                 psi_prime_kernel.foreach_O_k(
 //                     spins,
-//                     activations,
+//                     payload,
 //                     [&](const unsigned int k, const complex_t& O_k_element) {
 //                         generic_atomicAdd(
 //                             &this_.O_k[k],

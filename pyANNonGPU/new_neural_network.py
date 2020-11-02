@@ -15,6 +15,7 @@ def complex_noise(shape):
 
 
 def new_deep_neural_network(
+    num_sites,
     N,
     M,
     C,
@@ -108,4 +109,4 @@ def new_deep_neural_network(
         final_weights = final_weights * np.ones(M_linear[-1])
     assert len(final_weights) == M_linear[-1]
 
-    return PsiDeep(a, b, connections, W, final_weights, 1.0, translational_invariance, gpu)
+    return PsiDeep(num_sites, a, b, connections, W, final_weights, 1.0, translational_invariance, gpu)

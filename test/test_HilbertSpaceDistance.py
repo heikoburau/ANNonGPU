@@ -22,20 +22,22 @@ def test_distance1(psi_deep, ensemble, hamiltonian, gpu):
 
     psi.normalize(ensemble)
 
-    t = 1e-3
+    t = 1e-2
     hs_distance = HilbertSpaceDistance(psi.num_params, gpu)
-    op = Operator(1j * H * t, gpu)
-    distance_test = hs_distance(psi, psi, op, False, ensemble)
+    op = Operator(1 + 1j * H * t, gpu)
+    distance_test = hs_distance(psi, psi, op, True, ensemble)
 
-    H_diag = np.linalg.eigh(H.matrix(N, "spins" if use_spins else "paulis"))
-    U_t = H_diag[1] @ (np.exp(1j * H_diag[0] * t) * H_diag[1]).T.conj()
     psi_vector = psi.vector(ensemble)
+
+    psi_prime_vector = (1 + 1j * H * t).matrix(N, "spins" if use_spins else "paulis") @ psi_vector
+    psi_prime_vector /= np.linalg.norm(psi_prime_vector)
+
     distance_ref = sqrt(1.0 - abs(np.vdot(
         psi_vector,
-        U_t @ psi_vector
+        psi_prime_vector
     ))**2)
 
-    assert distance_test == approx(distance_ref, rel=1e-3, abs=1e-8)
+    assert distance_test == approx(distance_ref, rel=1e-3, abs=1e-7)
 
 
 # def test_distance2(psi_all, hamiltonian, gpu):
@@ -140,8 +142,8 @@ def test_gradient2(psi_deep, ensemble, hamiltonian, gpu):
     ensemble = ensemble(N, gpu)
 
     psi_0.normalize(ensemble)
-
     psi.normalize(ensemble)
+
     psi_1 = +psi
 
     # print(psi.num_params)

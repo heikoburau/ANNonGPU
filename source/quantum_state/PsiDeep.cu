@@ -19,6 +19,7 @@ PsiDeepT<dtype>::PsiDeepT(const unsigned int N, const unsigned int M, const bool
     final_weights(M, gpu),
     gpu(gpu)
 {
+    this->num_sites = N;
     this->N = N;
     this->prefactor = 1.0;
     this->num_layers = 2u;
@@ -104,6 +105,7 @@ PsiDeepT<dtype>::PsiDeepT(const PsiDeepT<dtype>& other)
     final_weights(other.final_weights),
     gpu(other.gpu)
 {
+    this->num_sites = other.num_sites;
     this->N = other.N;
     this->prefactor = other.prefactor;
     this->num_layers = other.num_layers;
@@ -148,8 +150,6 @@ void PsiDeepT<dtype>::init_kernel() {
     }
     this->num_final_weights = this->layers.back().size;
     this->num_params += this->num_final_weights;
-
-    this->O_k_length = this->num_params;
 
     this->update_kernel();
 }

@@ -79,17 +79,15 @@ struct MonteCarlo_t {
         Init_Policy::call(configuration, psi, &rng_state);
         SYNC;
 
-        SHARED typename Psi_t::dtype        angles[Psi_t::max_width];
-        SHARED typename Psi_t::dtype        activations[Psi_t::max_width];
+        SHARED typename Psi_t::Payload      payload;
         SHARED typename Psi_t::dtype        log_psi;
-        SHARED typename Psi_t::real_dtype   log_psi_real;
 
-        psi.compute_angles(angles, configuration);
-        psi.log_psi_s_real(log_psi_real, configuration, angles, activations);
+        psi.init_payload(payload, configuration);
+        psi.log_psi_s(log_psi, configuration, payload);
 
         // thermalization
         SHARED_MEM_LOOP_BEGIN(i, this->num_thermalization_sweeps * psi.get_num_input_units()) {
-            this->mc_update(psi, log_psi_real, configuration, &rng_state, angles, activations);
+            this->mc_update(psi, log_psi, configuration, &rng_state, payload);
 
             SHARED_MEM_LOOP_END(i);
         }
@@ -101,19 +99,16 @@ struct MonteCarlo_t {
                 i,
                 this->num_sweeps * psi.get_num_input_units()
             ) {
-                this->mc_update(psi, log_psi_real, configuration, &rng_state, angles, activations);
+                this->mc_update(psi, log_psi, configuration, &rng_state, payload);
 
                 SHARED_MEM_LOOP_END(i);
             }
-
-            psi.log_psi_s(log_psi, configuration, angles, activations);
 
             function(
                 mc_step_within_chain * this->num_markov_chains + markov_index,
                 configuration,
                 log_psi,
-                angles,
-                activations,
+                payload,
                 this->weight
             );
 
@@ -129,29 +124,28 @@ struct MonteCarlo_t {
     HDINLINE
     void mc_update(
         const Psi_t& psi,
-        typename Psi_t::real_dtype& log_psi_real,
+        typename Psi_t::dtype& log_psi,
         Basis_t& configuration,
         void* rng_state,
-        typename Psi_t::dtype* angles,
-        typename Psi_t::dtype* activations
+        typename Psi_t::Payload& payload
     ) const {
         #include "cuda_kernel_defines.h"
-        using real_dtype = typename Psi_t::real_dtype;
 
-        SHARED Basis_t next_configuration;
+        SHARED Basis_t  next_configuration;
+        SHARED dtype    next_log_psi;
+
         this->update_policy(next_configuration, configuration, psi, rng_state);
-        psi.update_input_units(angles, configuration, next_configuration);
 
-        SHARED real_dtype next_log_psi_real;
-        psi.log_psi_s_real(next_log_psi_real, next_configuration, angles, activations);
+        psi.update_input_units(configuration, next_configuration, payload);
+        psi.log_psi_s(next_log_psi, next_configuration, payload);
 
         SHARED bool accepted;
         SHARED real_dtype ratio;
         SINGLE {
-            ratio = exp(real_dtype(2.0) * (next_log_psi_real - log_psi_real));
+            ratio = exp(real_dtype(2.0) * (next_log_psi.real() - log_psi.real()));
 
             if(ratio > real_dtype(1.0) || real_dtype(random_real(rng_state)) <= ratio) {
-                log_psi_real = next_log_psi_real;
+                log_psi = next_log_psi;
                 configuration = next_configuration;
                 accepted = true;
                 generic_atomicAdd(this->acceptances, 1u);
@@ -164,7 +158,7 @@ struct MonteCarlo_t {
         SYNC;
 
         if(!accepted) {
-            psi.update_input_units(angles, next_configuration, configuration);
+            psi.update_input_units(next_configuration, configuration, payload);
         }
 
     }

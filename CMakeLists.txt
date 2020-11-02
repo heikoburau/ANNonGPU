@@ -111,6 +111,16 @@ if (ENABLE_EXACT_SUMMATION)
   target_compile_definitions(ANNonGPU PUBLIC ENABLE_EXACT_SUMMATION)
 endif()
 
+option(ENABLE_PSI_CLASSICAL "enable PsiClassical" ON)
+if (ENABLE_PSI_CLASSICAL)
+  target_compile_definitions(ANNonGPU PUBLIC ENABLE_PSI_CLASSICAL)
+endif()
+
+option(ENABLE_PSI_CLASSICAL_ANN "enable PsiClassicalANN" OFF)
+if (ENABLE_PSI_CLASSICAL_ANN)
+  target_compile_definitions(ANNonGPU PUBLIC ENABLE_PSI_CLASSICAL_ANN)
+endif()
+
 # Compile and link ANNonGPU
 # =========================
 

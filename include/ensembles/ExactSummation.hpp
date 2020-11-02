@@ -39,8 +39,7 @@ struct ExactSummation_t {
         SHARED complex_t    log_psi;
         SHARED double       weight;
 
-        SHARED typename Psi_t::dtype angles[Psi_t::max_width];
-        SHARED typename Psi_t::dtype activations[Psi_t::max_width];
+        SHARED typename Psi_t::Payload payload;
 
         #ifdef __CUDA_ARCH__
         const auto conf_index = blockIdx.x;
@@ -57,8 +56,8 @@ struct ExactSummation_t {
 
             SYNC;
 
-            psi.compute_angles(angles, configuration);
-            psi.log_psi_s(log_psi, configuration, angles, activations);
+            psi.init_payload(payload, configuration);
+            psi.log_psi_s(log_psi, configuration, payload);
 
             SYNC;
 
@@ -68,7 +67,7 @@ struct ExactSummation_t {
 
             SYNC;
 
-            function(conf_index, configuration, log_psi, angles, activations, weight);
+            function(conf_index, configuration, log_psi, payload, weight);
         }
     }
 

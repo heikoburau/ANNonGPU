@@ -1,156 +1,166 @@
-// #include "network_functions/PsiOkVector.hpp"
-// #include "quantum_states.hpp"
-// #include "ensembles.hpp"
-// #include "types.h"
+// ***********************************************************
+// *       This is an automatically generated file.          *
+// *       For editing, please use the source file:          *
+// PsiOkVector.cu.template
+// ***********************************************************
 
-// namespace ann_on_gpu {
-
-
-// template<typename Psi_t>
-// void psi_O_k_vector(complex<double>* result, const Psi_t& psi, const Spins& spins) {
-//     complex_t* result_ptr;
-//     auto O_k_length = psi.num_params;
-//     auto psi_kernel = psi.kernel();
-
-//     // printf("O_k_length: %d\n", O_k_length);
-//     MALLOC(result_ptr, sizeof(complex_t) * O_k_length, psi.gpu);
-//     // MEMSET(result_ptr, 0, sizeof(complex_t) * O_k_length, psi.gpu);
-
-//     const auto functor = [=] __host__ __device__ () {
-//         #include "cuda_kernel_defines.h"
-
-//         SHARED typename Psi_t::dtype activations[Psi_t::max_width];
-
-//         psi_kernel.foreach_O_k(
-//             spins,
-//             activations,
-//             [&](const unsigned int k, const typename Psi_t::dtype& O_k_element) {
-//                 // printf("%d, %f, %f\n", k, O_k_element.real(), O_k_element.imag());
-//                 result_ptr[k] = precision_cast<complex_t>(O_k_element);
-//             }
-//         );
-//     };
-
-//     if(psi.gpu) {
-//         cuda_kernel<<<1, psi.get_width()>>>(functor);
-//     }
-//     else {
-//         functor();
-//     }
-
-//     MEMCPY_TO_HOST(result, result_ptr, sizeof(complex_t) * O_k_length, psi.gpu);
-//     FREE(result_ptr, psi.gpu);
-// }
+#include "network_functions/PsiOkVector.hpp"
+#include "quantum_states.hpp"
+#include "ensembles/ExactSummation.hpp"
 
 
-// template<typename Psi_t, typename SpinEnsemble>
-// void psi_O_k_vector(complex<double>* result, complex<double>* result_std, const Psi_t& psi, SpinEnsemble& spin_ensemble) {
-//     const auto O_k_length = psi.num_params;
-//     const auto psi_kernel = psi.kernel();
+namespace ann_on_gpu {
 
-//     complex_t* result_device;
-//     complex_t* result2_device;
+template<typename Psi_t, typename Ensemble>
+Array<complex_t> psi_O_k_vector(const Psi_t& psi, Ensemble& ensemble) {
+    Array<complex_t> result(psi.num_params, psi.gpu);
 
-//     MALLOC(result_device, sizeof(complex_t) * O_k_length, psi.gpu);
-//     MALLOC(result2_device, sizeof(complex_t) * O_k_length, psi.gpu);
-//     MEMSET(result_device, 0, sizeof(complex_t) * O_k_length, psi.gpu);
-//     MEMSET(result2_device, 0, sizeof(complex_t) * O_k_length, psi.gpu);
+    auto result_ptr = result.data();
+    auto psi_kernel = psi.kernel();
 
-//     spin_ensemble.foreach(
-//         psi,
-//         [=] __device__ __host__ (
-//             const unsigned int spin_index,
-//             const Spins spins,
-//             const complex_t log_psi,
-//             typename Psi_t::dtype* angles,
-//             typename Psi_t::dtype* activations,
-//             const double weight
-//         ) {
-//             psi_kernel.foreach_O_k(
-//                 spins,
-//                 activations,
-//                 [&](const unsigned int k, const complex_t& O_k_element) {
-//                     generic_atomicAdd(&result_device[k], weight * O_k_element);
-//                     const auto O_k_element2 = complex_t(
-//                         O_k_element.real() * O_k_element.real(), O_k_element.imag() * O_k_element.imag()
-//                     );
-//                     generic_atomicAdd(&result2_device[k], weight * O_k_element2);
-//                 }
-//             );
-//         }
-//     );
+    ensemble.foreach(
+        psi,
+        [=] __device__ __host__ (
+            const unsigned int index,
+            const typename Ensemble::Basis_t& configuration,
+            const typename Psi_t::dtype log_psi,
+            typename Psi_t::Payload& payload,
+            const typename Psi_t::real_dtype weight
+        ) {
+            psi_kernel.foreach_O_k(
+                configuration,
+                payload,
+                [&](const unsigned int k, const complex_t& O_k_element) {
+                    result_ptr[k] = O_k_element;
+                }
+            );
+        }
+    );
 
-//     MEMCPY_TO_HOST(result, result_device, sizeof(complex_t) * O_k_length, psi.gpu);
-//     MEMCPY_TO_HOST(result_std, result2_device, sizeof(complex_t) * O_k_length, psi.gpu);
-//     FREE(result_device, psi.gpu);
-//     FREE(result2_device, psi.gpu);
+    result.update_host();
 
-//     for(auto k = 0u; k < O_k_length; k++) {
-//         result[k] /= spin_ensemble.get_num_steps();
-//         result_std[k] /= spin_ensemble.get_num_steps();
+    return result;
+}
 
-//         result_std[k] = result_std[k] - complex<double>(
-//             result[k].real() * result[k].real(), result[k].imag() * result[k].imag()
-//         );
-//     }
-// }
+template<typename Psi_t, typename Basis_t>
+Array<complex_t> psi_O_k(const Psi_t& psi, const Basis_t& configuration) {
+    Array<complex_t> result(psi.num_params, psi.gpu);
 
+    auto result_ptr = result.data();
+    auto psi_kernel = psi.kernel();
+    auto conf = configuration;
 
-// template<typename Psi_t, typename SpinEnsemble>
-// pair<Array<complex_t>, Array<double>> psi_O_k_vector(const Psi_t& psi, SpinEnsemble& spin_ensemble) {
-//     const auto O_k_length = psi.num_params;
-//     const auto psi_kernel = psi.kernel();
+    const auto functor = [=] __host__ __device__ () {
+        #include "cuda_kernel_defines.h"
 
-//     Array<complex_t> result(O_k_length, psi.gpu);
-//     Array<double> result_std(O_k_length, psi.gpu);
+        SHARED typename Psi_t::Payload payload;
+        psi_kernel.init_payload(payload, conf);
 
-//     result.clear();
-//     result_std.clear();
+        psi_kernel.foreach_O_k(
+            conf,
+            payload,
+            [&](const unsigned int k, const typename Psi_t::dtype& O_k_element) {
+                result_ptr[k] = O_k_element;
+            }
+        );
+    };
 
-//     auto result_ptr = result.data();
-//     auto result_std_ptr = result_std.data();
+    if(psi.gpu) {
+        cuda_kernel<<<1, psi.get_width()>>>(functor);
+    }
+    else {
+        functor();
+    }
 
-//     spin_ensemble.foreach(
-//         psi,
-//         [=] __device__ __host__ (
-//             const unsigned int spin_index,
-//             const Spins spins,
-//             const complex_t log_psi,
-//             typename Psi_t::dtype* angles,
-//             typename Psi_t::dtype* activations,
-//             const double weight
-//         ) {
-//             psi_kernel.foreach_O_k(
-//                 spins,
-//                 activations,
-//                 [&](const unsigned int k, const complex_t& O_k_element) {
-//                     generic_atomicAdd(&result_ptr[k], weight * O_k_element);
-//                     generic_atomicAdd(&result_std_ptr[k], weight * (O_k_element * conj(O_k_element)).real());
-//                 }
-//             );
-//         }
-//     );
+    result.update_host();
 
-//     result.update_host();
-//     result_std.update_host();
+    return result;
+}
 
-//     for(auto k = 0u; k < O_k_length; k++) {
-//         result[k] /= spin_ensemble.get_num_steps();
-//         result_std[k] /= spin_ensemble.get_num_steps();
+template<typename Psi_t, typename Basis_t>
+std::complex<double> log_psi_s(const Psi_t& psi, const Basis_t& configuration) {
+    Array<complex_t> result(1u, psi.gpu);
 
-//         result_std[k] = sqrt((result_std[k] - result[k] * conj(result[k])).real());
-//     }
+    auto result_ptr = result.data();
+    auto psi_kernel = psi.kernel();
+    auto conf = configuration;
 
-//     return {result, result_std};
-// }
+    const auto functor = [=] __host__ __device__ () {
+        #include "cuda_kernel_defines.h"
 
-// #ifdef ENABLE_PSI_DEEP
-// template void psi_O_k_vector(complex<double>* result, const PsiDeep& psi, const Spins& spins);
-// #endif // ENABLE_PSI_DEEP
+        SHARED typename Psi_t::Payload payload;
+        SHARED typename Psi_t::dtype   log_psi;
 
-// #ifdef ENABLE_PSI_PAIR
-// // template void psi_O_k_vector(complex<double>* result, const PsiPair& psi, const Spins& spins);
-// #endif // ENABLE_PSI_PAIR
+        psi_kernel.init_payload(payload, conf);
+        psi_kernel.log_psi_s(log_psi, configuration, payload);
+
+        SINGLE {
+            *result_ptr = log_psi;
+        }
+    };
+
+    if(psi.gpu) {
+        cuda_kernel<<<1, psi.get_width()>>>(functor);
+    }
+    else {
+        functor();
+    }
+
+    result.update_host();
+
+    return result.front().to_std();
+}
 
 
-// } // namespace ann_on_gpu
+#if defined(ENABLE_SPINS)
+template std::complex<double> log_psi_s(const PsiDeep&, const Spins&);
+template Array<complex_t> psi_O_k_vector(const PsiDeep&, ExactSummation_t<Spins>&);
+template Array<complex_t> psi_O_k(const PsiDeep&, const Spins&);
+#endif
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+template std::complex<double> log_psi_s(const PsiClassicalFP<1u>&, const Spins&);
+template Array<complex_t> psi_O_k_vector(const PsiClassicalFP<1u>&, ExactSummation_t<Spins>&);
+template Array<complex_t> psi_O_k(const PsiClassicalFP<1u>&, const Spins&);
+#endif
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+template std::complex<double> log_psi_s(const PsiClassicalFP<2u>&, const Spins&);
+template Array<complex_t> psi_O_k_vector(const PsiClassicalFP<2u>&, ExactSummation_t<Spins>&);
+template Array<complex_t> psi_O_k(const PsiClassicalFP<2u>&, const Spins&);
+#endif
+#if defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+template std::complex<double> log_psi_s(const PsiClassicalANN<1u>&, const Spins&);
+template Array<complex_t> psi_O_k_vector(const PsiClassicalANN<1u>&, ExactSummation_t<Spins>&);
+template Array<complex_t> psi_O_k(const PsiClassicalANN<1u>&, const Spins&);
+#endif
+#if defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+template std::complex<double> log_psi_s(const PsiClassicalANN<2u>&, const Spins&);
+template Array<complex_t> psi_O_k_vector(const PsiClassicalANN<2u>&, ExactSummation_t<Spins>&);
+template Array<complex_t> psi_O_k(const PsiClassicalANN<2u>&, const Spins&);
+#endif
+#if defined(ENABLE_PAULIS)
+template std::complex<double> log_psi_s(const PsiDeep&, const PauliString&);
+template Array<complex_t> psi_O_k_vector(const PsiDeep&, ExactSummation_t<PauliString>&);
+template Array<complex_t> psi_O_k(const PsiDeep&, const PauliString&);
+#endif
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+template std::complex<double> log_psi_s(const PsiClassicalFP<1u>&, const PauliString&);
+template Array<complex_t> psi_O_k_vector(const PsiClassicalFP<1u>&, ExactSummation_t<PauliString>&);
+template Array<complex_t> psi_O_k(const PsiClassicalFP<1u>&, const PauliString&);
+#endif
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+template std::complex<double> log_psi_s(const PsiClassicalFP<2u>&, const PauliString&);
+template Array<complex_t> psi_O_k_vector(const PsiClassicalFP<2u>&, ExactSummation_t<PauliString>&);
+template Array<complex_t> psi_O_k(const PsiClassicalFP<2u>&, const PauliString&);
+#endif
+#if defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+template std::complex<double> log_psi_s(const PsiClassicalANN<1u>&, const PauliString&);
+template Array<complex_t> psi_O_k_vector(const PsiClassicalANN<1u>&, ExactSummation_t<PauliString>&);
+template Array<complex_t> psi_O_k(const PsiClassicalANN<1u>&, const PauliString&);
+#endif
+#if defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+template std::complex<double> log_psi_s(const PsiClassicalANN<2u>&, const PauliString&);
+template Array<complex_t> psi_O_k_vector(const PsiClassicalANN<2u>&, ExactSummation_t<PauliString>&);
+template Array<complex_t> psi_O_k(const PsiClassicalANN<2u>&, const PauliString&);
+#endif
+
+} // namespace ann_on_gpu

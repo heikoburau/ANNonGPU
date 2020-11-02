@@ -1,3 +1,9 @@
+// ***********************************************************
+// *       This is an automatically generated file.          *
+// *       For editing, please use the source file:          *
+// PsiAngles.cu.template
+// ***********************************************************
+
 #include "network_functions/PsiAngles.hpp"
 #include "quantum_states.hpp"
 #include "ensembles.hpp"
@@ -20,14 +26,13 @@ Array<complex_t> psi_angles(const Psi_t& psi, Ensemble& ensemble) {
         psi,
         [=] __device__ __host__ (
             const unsigned int index,
-            const typename Ensemble::Basis_t& basis_vector,
+            const typename Ensemble::Basis_t& configuration,
             const typename Psi_t::dtype log_psi,
-            typename Psi_t::dtype* angles,
-            typename Psi_t::dtype* activations,
+            typename Psi_t::Payload& payload,
             const typename Psi_t::real_dtype weight
         ) {
             MULTI(j, psi_kernel.get_num_angles()) {
-                result_data[index * psi_kernel.get_num_angles() + j] = angles[j];
+                result_data[index * psi_kernel.get_num_angles() + j] = payload.angles[j];
             }
         }
     );
@@ -38,16 +43,16 @@ Array<complex_t> psi_angles(const Psi_t& psi, Ensemble& ensemble) {
 }
 
 
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
+#if defined(ENABLE_SPINS) && defined(ENABLE_MONTE_CARLO)
 template Array<complex_t> psi_angles(const PsiDeep& psi, MonteCarlo_tt<Spins>& ensemble);
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_MONTE_CARLO)
 template Array<complex_t> psi_angles(const PsiDeep& psi, MonteCarlo_tt<PauliString>& ensemble);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
 template Array<complex_t> psi_angles(const PsiDeep& psi, ExactSummation_t<Spins>& ensemble);
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_EXACT_SUMMATION)
 template Array<complex_t> psi_angles(const PsiDeep& psi, ExactSummation_t<PauliString>& ensemble);
 #endif
 

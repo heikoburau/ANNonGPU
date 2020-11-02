@@ -288,6 +288,13 @@ struct Spins_t<1u> : public generic::Spins_t<1u> {
         this->configuration() = other.configurations[0];
     }
 
+    static HDINLINE Spins_t enumerate(const unsigned int index) {
+        Spins_t result;
+        result.configuration() = index;
+
+        return result;
+    }
+
     HDINLINE dtype& configuration() {
         return this->configurations[0];
     }

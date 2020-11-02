@@ -13,10 +13,6 @@
 #include <vector>
 #include <list>
 #include <complex>
-#include <memory>
-#include <cassert>
-#include <utility>
-#include <algorithm>
 
 #ifdef __PYTHONCC__
     #define FORCE_IMPORT_ARRAY
@@ -56,8 +52,13 @@ struct PsiDeepT {
 
     static constexpr unsigned int max_N = MAX_SPINS;
     static constexpr unsigned int max_layers = 4u;
-    static constexpr unsigned int max_deep_angles = MAX_SPINS;
     static constexpr unsigned int max_width = 2 * MAX_SPINS;
+    static constexpr unsigned int max_deep_angles = MAX_SPINS;
+
+    struct Payload {
+        dtype angles[max_width];
+        dtype activations[max_width];
+    };
 
     // TODO: Try to use stack-allocated arrays
     struct Layer {
@@ -86,10 +87,10 @@ struct PsiDeepT {
         }
     };
 
-    unsigned int N;
+    unsigned int   N;
+    unsigned int   num_sites;
 
     unsigned int   num_params;
-    unsigned int   O_k_length;
 
     double         prefactor;
 
@@ -106,13 +107,11 @@ struct PsiDeepT {
 
     bool           translational_invariance;
 
-public:
-
 #ifdef __CUDACC__
 
     template<typename Basis_t>
     HDINLINE
-    void compute_angles(dtype* angles, const Basis_t& basis_vector) const {
+    void compute_angles(dtype* angles, const Basis_t& configuration) const {
         const Layer& layer = this->layers[1];
 
         MULTI(j, layer.size) {
@@ -120,7 +119,7 @@ public:
 
             for(auto i = 0u; i < layer.lhs_connectivity; i++) {
                 angles[j] += layer.lhs_weight(i, j) * dtype(
-                    (double)basis_vector.network_unit_at(layer.lhs_connection(i, j)),
+                    (double)configuration.network_unit_at(layer.lhs_connection(i, j)),
                     0.0
                 );
             }
@@ -129,18 +128,23 @@ public:
         SYNC;
     }
 
+    template<typename Basis_t>
+    HDINLINE
+    void init_payload(Payload& payload, const Basis_t& configuration) const {
+        this->compute_angles(payload.angles, configuration);
+    }
+
     template<typename result_dtype>
     HDINLINE
     void forward_pass(
         result_dtype& result,  /* CAUTION: this parameter is assumed to be initialized */
-        const dtype* RESTRICT angles,
-        dtype* RESTRICT activations,
-        dtype* RESTRICT deep_angles) const
-    {
+        Payload& payload,
+        dtype* RESTRICT deep_angles
+    ) const {
         #include "cuda_kernel_defines.h"
 
         MULTI(i, this->layers[1].size) {
-            activations[i] = my_logcosh(angles[i]);
+            payload.activations[i] = my_logcosh(payload.angles[i]);
         }
 
         SHARED_MEM_LOOP_BEGIN_X0(layer_idx, 2u, this->num_layers) {
@@ -152,7 +156,7 @@ public:
                 for(auto i = 0u; i < layer.lhs_connectivity; i++) {
                     REGISTER(activation, j) += (
                         layer.lhs_weight(i, j) *
-                        activations[layer.lhs_connection(i, j)]
+                        payload.activations[layer.lhs_connection(i, j)]
                     );
                 }
                 REGISTER(activation, j) += layer.biases[j];
@@ -163,19 +167,19 @@ public:
             }
             SYNC;
             MULTI(k, layer.size) {
-                activations[k] = my_logcosh(REGISTER(activation, k));
+                payload.activations[k] = my_logcosh(REGISTER(activation, k));
             }
             SHARED_MEM_LOOP_END(layer_idx);
         }
         MULTI(j, this->num_final_weights) {
-            generic_atomicAdd(&result, activations[j] * this->final_weights[j]);
+            generic_atomicAdd(&result, payload.activations[j] * this->final_weights[j]);
         }
         SYNC;
     }
 
     template<typename result_dtype, typename Basis_t>
     HDINLINE
-    void log_psi_s_generic(result_dtype& result, const Basis_t& basis_vector, dtype* RESTRICT activations) const {
+    void log_psi_s(result_dtype& result, const Basis_t& configuration, Payload& payload) const {
         #include "cuda_kernel_defines.h"
         // CAUTION: 'result' has to be a shared variable.
 
@@ -184,61 +188,19 @@ public:
         }
         SYNC;
         MULTI(i, this->N) {
-            generic_atomicAdd(&result, result_dtype(basis_vector.network_unit_at(i)) * this->input_biases[i]);
+            generic_atomicAdd(&result, result_dtype(configuration.network_unit_at(i)) * this->input_biases[i]);
         }
 
-        this->compute_angles(activations, basis_vector);
-        this->forward_pass(result, activations, activations, nullptr);
-    }
-
-    template<typename result_dtype, typename Basis_t>
-    HDINLINE
-    void log_psi_s_generic(result_dtype& result, const Basis_t& basis_vector, dtype* RESTRICT angles, dtype* RESTRICT activations) const {
-        #include "cuda_kernel_defines.h"
-        // CAUTION: 'result' has to be a shared variable.
-
-        SINGLE {
-            result = result_dtype(0.0);
-        }
-        SYNC;
-        MULTI(i, this->N) {
-            generic_atomicAdd(&result, result_dtype(basis_vector.network_unit_at(i)) * this->input_biases[i]);
-        }
-
-        this->forward_pass(result, angles, activations, nullptr);
+        this->forward_pass(result, payload, nullptr);
     }
 
     template<typename Basis_t>
     HDINLINE
-    void log_psi_s(dtype& result, const Basis_t& basis_vector, dtype* RESTRICT activations) const {
-        log_psi_s_generic(result, basis_vector, activations);
-    }
-
-    template<typename Basis_t>
-    HDINLINE
-    void log_psi_s_real(real_dtype& result, const Basis_t& basis_vector, dtype* RESTRICT activations) const {
-        log_psi_s_generic(result, basis_vector, activations);
-    }
-
-    template<typename Basis_t>
-    HDINLINE
-    void log_psi_s(dtype& result, const Basis_t& basis_vector, dtype* RESTRICT angles, dtype* RESTRICT activations) const {
-        log_psi_s_generic(result, basis_vector, angles, activations);
-    }
-
-    template<typename Basis_t>
-    HDINLINE
-    void log_psi_s_real(real_dtype& result, const Basis_t& basis_vector, dtype* RESTRICT angles, dtype* RESTRICT activations) const {
-        log_psi_s_generic(result, basis_vector, angles, activations);
-    }
-
-    template<typename Basis_t>
-    HDINLINE
-    dtype psi_s(const Basis_t& basis_vector, dtype* RESTRICT activations) const {
+    dtype psi_s(const Basis_t& configuration, Payload& payload) const {
         #include "cuda_kernel_defines.h"
 
         SHARED dtype log_psi;
-        this->log_psi_s(log_psi, basis_vector, activations);
+        this->log_psi_s(log_psi, configuration, payload);
 
         return exp(log(this->prefactor) + log_psi);
     }
@@ -288,11 +250,11 @@ public:
 
     template<typename Basis_t>
     HDINLINE void update_input_units(
-        dtype* angles, const Basis_t& old_vector, const Basis_t& new_vector
+        const Basis_t& old_vector, const Basis_t& new_vector, Payload& payload
     ) const {
-        // 'updated_units' has to be shared
         #include "cuda_kernel_defines.h"
 
+        // 'updated_units' must be shared
         SHARED uint64_t     updated_units;
         SHARED unsigned int unit_position;
 
@@ -304,7 +266,7 @@ public:
 
         while(updated_units) {
             this->update_angles(
-                angles,
+                payload.angles,
                 unit_position,
                 old_vector,
                 new_vector
@@ -318,31 +280,12 @@ public:
         }
     }
 
-    // template<typename Function>
-    // HDINLINE
-    // void foreach_angle(const Spins& spins, dtype* RESTRICT activations, Function function) const {
-    //     #include "cuda_kernel_defines.h"
-
-    //     SHARED dtype deep_angles[max_deep_angles];
-    //     SHARED complex_t log_psi;
-    //     this->forward_pass(log_psi, spins, activations, deep_angles);
-
-    //     for(int layer_idx = int(this->num_layers) - 1; layer_idx > 0; layer_idx--) {
-    //         const Layer& layer = this->layers[layer_idx];
-
-    //         MULTI(j, layer.size) {
-    //             function(layer.begin_deep_angles + j, deep_angles[layer.begin_deep_angles + j]);
-    //         }
-    //     }
-    // }
-
     template<typename Basis_t, typename Function>
     HDINLINE
-    void foreach_O_k(const Basis_t& basis_vector, dtype* RESTRICT activations, Function function) const {
+    void foreach_O_k(const Basis_t& configuration, Payload& payload, Function function) const {
         #include "cuda_kernel_defines.h"
 
         SHARED dtype deep_angles[max_deep_angles];
-        SHARED dtype angles[max_width];
         SHARED dtype log_psi;
         SINGLE {
             log_psi = dtype(0.0);
@@ -353,13 +296,12 @@ public:
             function(
                 i,
                 get_real<dtype>(static_cast<real_dtype>(
-                    basis_vector.network_unit_at(i)
+                    configuration.network_unit_at(i)
                 ))
             );
         }
 
-        this->compute_angles(angles, basis_vector);
-        this->forward_pass(log_psi, angles, activations, deep_angles);
+        this->forward_pass(log_psi, payload, deep_angles);
 
         for(int layer_idx = int(this->num_layers) - 1; layer_idx > 0; layer_idx--) {
             const Layer& layer = this->layers[layer_idx];
@@ -368,9 +310,9 @@ public:
             // here, these are the back-propagated derivatives.
             if(layer_idx == this->num_layers - 1) {
                 MULTI(j, layer.size) {
-                    activations[j] = this->final_weights[j] * my_tanh(
+                    payload.activations[j] = this->final_weights[j] * my_tanh(
                         layer_idx == 1 ?
-                        angles[j] :
+                        payload.angles[j] :
                         deep_angles[
                             layer.begin_deep_angles + j
                         ]
@@ -386,24 +328,24 @@ public:
 
                     for(auto j = 0u; j < layer.rhs_connectivity; j++) {
                         REGISTER(unit_activation, i) += (
-                            layer.rhs_weight(i, j) * activations[
+                            layer.rhs_weight(i, j) * payload.activations[
                                 layer.rhs_connection(i, j)
                             ]
                         );
                     }
                     REGISTER(unit_activation, i) *= my_tanh(
                         layer_idx == 1 ?
-                        angles[i] :
+                        payload.angles[i] :
                         deep_angles[layer.begin_deep_angles + i]
                     );
                 }
                 SYNC;
                 MULTI(j, layer.size) {
-                    activations[j] = REGISTER(unit_activation, j);
+                    payload.activations[j] = REGISTER(unit_activation, j);
                 }
             }
             MULTI(j, layer.size) {
-                function(layer.begin_params + j, activations[j]);
+                function(layer.begin_params + j, payload.activations[j]);
 
                 for(auto i = 0u; i < layer.lhs_connectivity; i++) {
                     const auto lhs_unit_idx = layer.lhs_connection(i, j);
@@ -411,14 +353,14 @@ public:
 
                     function(
                         layer.begin_params + layer.size + i * layer.size + j,
-                        activations[j] * (
+                        payload.activations[j] * (
                             layer_idx == 1 ?
                             get_real<dtype>(static_cast<real_dtype>(
-                                basis_vector.network_unit_at(lhs_unit_idx)
+                                configuration.network_unit_at(lhs_unit_idx)
                             )) :
                             my_logcosh(  // TODO: reverse for-loop such that logcosh is only evaluated once
                                 layer_idx == 2 ?
-                                angles[lhs_unit_idx] :
+                                payload.angles[lhs_unit_idx] :
                                 deep_angles[
                                     this->layers[layer_idx - 1].begin_deep_angles + lhs_unit_idx
                                 ]
@@ -433,7 +375,7 @@ public:
                 this->num_params - this->num_final_weights + j,
                 my_logcosh(
                     this->num_layers == 2u ?
-                    angles[j] :
+                    payload.angles[j] :
                     deep_angles[this->layers[this->num_layers - 1].begin_deep_angles + j]
                 )
             );
@@ -451,16 +393,13 @@ public:
         return this->width;
     }
 
-    HDINLINE unsigned int get_num_units() const {
-        return this->num_units;
+    HDINLINE
+    unsigned int get_num_angles() const {
+        return this->layers[1].size;
     }
 
     HDINLINE unsigned int get_num_input_units() const {
         return this->N;
-    }
-
-    HDINLINE unsigned int get_num_angles() const {
-        return this->layers[1].size;
     }
 
     HDINLINE
@@ -477,6 +416,7 @@ template<typename dtype>
 struct PsiDeepT : public kernel::PsiDeepT<dtype> {
 
     using real_dtype = typename cuda_complex::get_real_type<dtype>::type;
+    using Kernel = kernel::PsiDeepT<dtype>;
 
     struct Layer {
         unsigned int        size;
@@ -498,6 +438,7 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype> {
 #ifdef __PYTHONCC__
 
     inline PsiDeepT(
+        const unsigned int num_sites,
         const xt::pytensor<typename std_dtype<dtype>::type, 1u>& input_biases,
         const vector<xt::pytensor<typename std_dtype<dtype>::type, 1u>> biases_list,
         const vector<xt::pytensor<unsigned int, 2u>>& lhs_connections_list,
@@ -507,6 +448,7 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype> {
         const bool translational_invariance,
         const bool gpu
     ) : input_biases(input_biases, gpu), final_weights(final_weights, gpu) {
+        this->num_sites = num_sites;
         this->N = input_biases.shape()[0];
         this->prefactor = prefactor;
         this->num_layers = lhs_weights_list.size() + 1u; // num hidden layers + input layer

@@ -25,8 +25,7 @@ double psi_norm(const Psi_t& psi, Ensemble& exact_summation) {
             const unsigned int spin_index,
             typename Ensemble::Basis_t& conf,
             const complex_t log_psi,
-            typename Psi_t::dtype* angles,
-            typename Psi_t::dtype* activations,
+            typename Psi_t::Payload& payload,
             const double weight
         ) {
             #include "cuda_kernel_defines.h"

@@ -6,6 +6,7 @@ import json
 def to_json(self):
     obj = dict(
         type="PsiDeep",
+        num_sites=self.num_sites,
         a=self.a,
         b=self.b,
         connections=self.connections,
@@ -31,6 +32,7 @@ def from_json(json_obj, gpu):
     )
 
     return PsiDeep(
+        obj["num_sites"],
         obj["a"],
         obj["b"],
         obj["connections"],

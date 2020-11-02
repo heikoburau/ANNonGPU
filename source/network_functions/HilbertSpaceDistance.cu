@@ -1,3 +1,9 @@
+// ***********************************************************
+// *       This is an automatically generated file.          *
+// *       For editing, please use the source file:          *
+// HilbertSpaceDistance.cu.template
+// ***********************************************************
+
 #include "network_functions/HilbertSpaceDistance.hpp"
 #include "ensembles.hpp"
 #include "quantum_states.hpp"
@@ -27,8 +33,7 @@ void kernel::HilbertSpaceDistance::compute_averages(
             const unsigned int spin_index,
             const typename Ensemble::Basis_t& configuration,
             const typename Psi_t::dtype& log_psi,
-            typename Psi_t::dtype* angles,
-            typename Psi_t::dtype* activations,
+            typename Psi_t::Payload& payload,
             const double weight
         ) {
             #include "cuda_kernel_defines.h"
@@ -36,20 +41,23 @@ void kernel::HilbertSpaceDistance::compute_averages(
             using real_dtype = typename Psi_t::real_dtype;
 
             SHARED dtype local_energy;
-            operator_.local_energy(local_energy, psi_kernel, configuration, log_psi, angles, activations);
+            operator_.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
 
-            SHARED dtype log_psi_prime;
-            psi_prime_kernel.log_psi_s(log_psi_prime, configuration, activations);
+            SHARED dtype                            log_psi_prime;
+            SHARED typename Psi_t_prime::Payload    payload_prime;
+
+            psi_prime_kernel.init_payload(payload_prime, configuration);
+            psi_prime_kernel.log_psi_s(log_psi_prime, configuration, payload_prime);
+
             SHARED dtype       omega;
             SHARED real_dtype  probability_ratio;
 
-            SINGLE
-            {
+            SINGLE {
                 if(is_unitary) {
                     omega = exp(conj(log_psi_prime - log_psi)) * local_energy;
                     generic_atomicAdd(
                         this_.next_state_norm_avg,
-                        weight * (local_energy * conj(local_energy)).real()
+                        weight * abs2(local_energy)
                     );
                 }
                 else {
@@ -68,7 +76,7 @@ void kernel::HilbertSpaceDistance::compute_averages(
             if(compute_gradient) {
                 psi_prime_kernel.foreach_O_k(
                     configuration,
-                    activations,
+                    payload_prime,
                     [&](const unsigned int k, const dtype& O_k_element) {
                         generic_atomicAdd(&this_.omega_O_k_avg[k], weight * precision_cast<complex_t>(omega * conj(O_k_element)));
                         generic_atomicAdd(&this_.probability_ratio_O_k_avg[k], weight * precision_cast<complex_t>(probability_ratio * conj(O_k_element)));
@@ -161,11 +169,11 @@ double HilbertSpaceDistance::gradient(
 }
 
 
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
+#if defined(ENABLE_SPINS) && defined(ENABLE_MONTE_CARLO)
 template double HilbertSpaceDistance::distance(const PsiDeep& psi, const PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, MonteCarlo_tt<Spins>& ensemble);
 template double HilbertSpaceDistance::gradient(complex<double>* result, const PsiDeep& psi, const PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, MonteCarlo_tt<Spins>& ensemble, const float nu);
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_MONTE_CARLO)
 template double HilbertSpaceDistance::distance(const PsiDeep& psi, const PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, MonteCarlo_tt<PauliString>& ensemble);
 template double HilbertSpaceDistance::gradient(complex<double>* result, const PsiDeep& psi, const PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, MonteCarlo_tt<PauliString>& ensemble, const float nu);
 #endif
@@ -173,7 +181,7 @@ template double HilbertSpaceDistance::gradient(complex<double>* result, const Ps
 template double HilbertSpaceDistance::distance(const PsiDeep& psi, const PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, ExactSummation_t<Spins>& ensemble);
 template double HilbertSpaceDistance::gradient(complex<double>* result, const PsiDeep& psi, const PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, ExactSummation_t<Spins>& ensemble, const float nu);
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_EXACT_SUMMATION)
 template double HilbertSpaceDistance::distance(const PsiDeep& psi, const PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, ExactSummation_t<PauliString>& ensemble);
 template double HilbertSpaceDistance::gradient(complex<double>* result, const PsiDeep& psi, const PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, ExactSummation_t<PauliString>& ensemble, const float nu);
 #endif

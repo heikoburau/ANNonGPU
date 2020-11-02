@@ -19,10 +19,10 @@ def pytest_generate_tests(metafunc):
 
     if 'psi_deep' in metafunc.fixturenames:
         psi_list = [
-            lambda gpu: new_deep_neural_network(2, [2], [2], a=0.1, gpu=gpu),
-            lambda gpu: new_deep_neural_network(3, [9, 6], [1, 3], noise=1e-2, gpu=gpu),
-            lambda gpu: new_deep_neural_network(6, [12, 6], [6, 12], noise=1e-2, a=-0.2, gpu=gpu),
-            lambda gpu: new_deep_neural_network(8, [16, 8, 4], [4, 2, 4], a=0.1, noise=1e-2, gpu=gpu),
+            lambda gpu: new_deep_neural_network(2, 2, [2], [2], a=0.1, gpu=gpu),
+            lambda gpu: new_deep_neural_network(3, 3, [9, 6], [1, 3], noise=1e-2, gpu=gpu),
+            lambda gpu: new_deep_neural_network(2, 6, [12, 6], [6, 12], noise=1e-2, a=-0.2, gpu=gpu),
+            lambda gpu: new_deep_neural_network(3, 8, [16, 8, 4], [4, 2, 4], a=0.1, noise=1e-3, gpu=gpu),
         ]
         metafunc.parametrize("psi_deep", psi_list)
 
@@ -49,6 +49,6 @@ def pytest_generate_tests(metafunc):
             "ensemble",
             [
                 ExactSummationSpins,
-                ExactSummationPaulis
+                # ExactSummationPaulis
             ]
         )

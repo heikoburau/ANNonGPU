@@ -23,10 +23,9 @@ Array<complex_t> psi_vector(const Psi_t& psi, Ensemble& ensemble) {
         psi,
         [=] __host__ __device__ (
             const unsigned int conf_index,
-            const typename Ensemble::Basis_t& basis_vector,
+            const typename Ensemble::Basis_t& configuration,
             const complex_t log_psi,
-            typename Psi_t::dtype* angles,
-            typename Psi_t::dtype* activations,
+            typename Psi_t::Payload& payload,
             const double weight
         ) {
             #include "cuda_kernel_defines.h"

@@ -23,16 +23,15 @@ complex<double> ExpectationValue::operator()(
         psi,
         [=] __device__ __host__ (
             const unsigned int index,
-            const typename Ensemble::Basis_t& basis_vector,
+            const typename Ensemble::Basis_t& configuration,
             const typename Psi_t::dtype log_psi,
-            typename Psi_t::dtype* angles,
-            typename Psi_t::dtype* activations,
+            typename Psi_t::Payload& payload,
             const typename Psi_t::real_dtype weight
         ) {
             #include "cuda_kernel_defines.h"
 
             SHARED typename Psi_t::dtype local_energy;
-            op_kernel.local_energy(local_energy, psi_kernel, basis_vector, log_psi, angles, activations);
+            op_kernel.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
 
             SINGLE {
                 generic_atomicAdd(A_local_ptr, weight * local_energy);
@@ -62,16 +61,15 @@ pair<double, complex<double>> ExpectationValue::fluctuation(
         psi,
         [=] __device__ __host__ (
             const unsigned int spin_index,
-            const typename Ensemble::Basis_t& basis_vector,
+            const typename Ensemble::Basis_t& configuration,
             const typename Psi_t::dtype log_psi,
-            typename Psi_t::dtype* angles,
-            typename Psi_t::dtype* activations,
+            typename Psi_t::Payload& payload,
             const typename Psi_t::real_dtype weight
         ) {
             #include "cuda_kernel_defines.h"
 
             SHARED typename Psi_t::dtype local_energy;
-            op_kernel.local_energy(local_energy, psi_kernel, basis_vector, log_psi, angles, activations);
+            op_kernel.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
 
             SINGLE {
                 generic_atomicAdd(A_local_ptr, weight * local_energy);
@@ -90,8 +88,8 @@ pair<double, complex<double>> ExpectationValue::fluctuation(
 }
 
 //! begin template
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiDeep& psi, Ensemble<Basis>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiDeep&, Ensemble<Basis>&);
+template complex<double> ExpectationValue::operator()(const Operator&, const AllPsi& psi, Ensemble<Basis>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const AllPsi&, Ensemble<Basis>&);
 //! end template
 
 } // namespace ann_on_gpu

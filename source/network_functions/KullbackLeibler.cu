@@ -24,14 +24,16 @@ void kernel::KullbackLeibler::compute_averages(
             const unsigned int spin_index,
             const typename Ensemble::Basis_t& configuration,
             const complex_t log_psi,
-            typename Psi_t::dtype* angles,
-            typename Psi_t::dtype* activations,
+            typename Psi_t::Payload& payload,
             const double weight
         ) {
             #include "cuda_kernel_defines.h"
 
-            SHARED complex_t log_psi_prime;
-            psi_prime_kernel.log_psi_s(log_psi_prime, configuration, activations);
+            SHARED typename Psi_t::dtype    log_psi_prime;
+            SHARED typename Psi_t::Payload  payload_prime;
+
+            psi_prime_kernel.init_payload(payload_prime, configuration);
+            psi_prime_kernel.log_psi_s(log_psi_prime, configuration, payload_prime);
 
             SINGLE
             {
@@ -42,7 +44,7 @@ void kernel::KullbackLeibler::compute_averages(
             if(compute_gradient) {
                 psi_prime_kernel.foreach_O_k(
                     configuration,
-                    activations,
+                    payload_prime,
                     [&](const unsigned int k, const complex_t& O_k_element) {
                         generic_atomicAdd(
                             &this_.O_k[k],

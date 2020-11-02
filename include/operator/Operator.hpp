@@ -31,13 +31,115 @@ struct Operator {
 
     template<typename Psi_t, typename Basis_t>
     HDINLINE
+    void nth_local_energy(
+        typename Psi_t::dtype& result,
+        unsigned int n,
+        const Psi_t& psi,
+        const Basis_t& configuration,
+        const typename Psi_t::dtype& log_psi,
+        typename Psi_t::Payload& payload
+    ) const {
+        #include "cuda_kernel_defines.h"
+        using dtype = typename Psi_t::dtype;
+        // CAUTION: 'result' is not initialized.
+        // CAUTION: 'result' is only updated by the first thread.
+
+        SHARED MatrixElement<Basis_t> matrix_element;
+
+        SINGLE {
+            matrix_element = this->pauli_strings[n].apply(configuration);
+            matrix_element.coefficient *= this->coefficients[n];
+        }
+        SYNC;
+
+        if(configuration != matrix_element.vector) {
+            // off-diagonal string
+            psi.update_input_units(configuration, matrix_element.vector, payload);
+
+            SHARED typename Psi_t::dtype log_psi_prime;
+            psi.log_psi_s(log_psi_prime, matrix_element.vector, payload);
+            SINGLE {
+                result += matrix_element.coefficient * exp(log_psi_prime - log_psi);
+            }
+
+            psi.update_input_units(matrix_element.vector, configuration, payload);
+        }
+        else {
+            // diagonal string
+            SINGLE {
+                result += matrix_element.coefficient;
+            }
+        }
+
+        SYNC;
+    }
+
+    template<typename Psi_t, typename Basis_t>
+    HDINLINE
+    void nth_local_energy_symmetric(
+        typename Psi_t::dtype& result,
+        const unsigned int n,
+        const Psi_t& psi,
+        const Basis_t& configuration,
+        const typename Psi_t::dtype& log_psi,
+        typename Psi_t::Payload& payload
+    ) const {
+        // 'symmetric' means that the result will be invariant under translation of the given configuration.
+        // A symmetric psi is implied, therefore only a single call to psi(s) is performed if any.
+
+        #include "cuda_kernel_defines.h"
+        using dtype = typename Psi_t::dtype;
+
+        if(this->pauli_strings[n].applies_a_prefactor(configuration)) {
+            SINGLE {
+                result = typename Psi_t::dtype(0.0);
+            }
+            SYNC;
+            MULTI(i, psi.num_sites) {
+                generic_atomicAdd(
+                    &result,
+                    this->pauli_strings[n].apply(
+                        configuration.rotate_left(i, psi.num_sites)
+                    ).coefficient
+                );
+            }
+        }
+        else {
+            SINGLE {
+                result = typename Psi_t::dtype(1.0);
+            }
+        }
+
+        if(!this->pauli_strings[n].is_diagonal_on_basis(configuration)) {
+            SHARED Basis_t configuration_prime;
+
+            SINGLE {
+                configuration_prime = this->pauli_strings[n].apply(configuration).vector;
+            }
+            SYNC;
+
+            psi.update_input_units(configuration, configuration_prime, payload);
+
+            SHARED typename Psi_t::dtype log_psi_prime;
+            psi.log_psi_s(log_psi_prime, configuration_prime, payload);
+            SINGLE {
+                result *= exp(log_psi_prime - log_psi);
+            }
+
+            psi.update_input_units(configuration_prime, configuration, payload);
+        }
+
+        SYNC;
+    }
+
+    template<typename Psi_t, typename Basis_t>
+    HDINLINE
     void local_energy(
         typename Psi_t::dtype& result,
         const Psi_t& psi,
-        const Basis_t& basis_vector,
+        const Basis_t& configuration,
         const typename Psi_t::dtype& log_psi,
-        typename Psi_t::dtype* angles,
-        typename Psi_t::dtype* activations
+        typename Psi_t::Payload& payload
     ) const {
         #include "cuda_kernel_defines.h"
         using dtype = typename Psi_t::dtype;
@@ -47,27 +149,16 @@ struct Operator {
             result = typename Psi_t::dtype(0.0);
         }
 
-        SHARED MatrixElement<Basis_t>   matrix_element;
-        SHARED typename Psi_t::dtype    angles_prime[Psi_t::max_width];
-
         SHARED_MEM_LOOP_BEGIN(n, this->num_strings) {
 
-            MULTI(j, psi.get_num_angles()) {
-                angles_prime[j] = angles[j];
-            }
-            SINGLE {
-                matrix_element = this->pauli_strings[n].apply(basis_vector);
-                matrix_element.coefficient *= this->coefficients[n];
-            }
-
-            psi.update_input_units(angles_prime, basis_vector, matrix_element.vector);
-            SYNC;
-
-            SHARED typename Psi_t::dtype log_psi_prime;
-            psi.log_psi_s(log_psi_prime, matrix_element.vector, angles_prime, activations);
-            SINGLE {
-                result += matrix_element.coefficient * exp(log_psi_prime - log_psi);
-            }
+            this->nth_local_energy(
+                result,
+                n,
+                psi,
+                configuration,
+                log_psi,
+                payload
+            );
 
             SHARED_MEM_LOOP_END(n);
         }

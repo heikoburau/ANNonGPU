@@ -44,6 +44,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 
     py::class_<PsiDeep>(m, "PsiDeep")
         .def(py::init<
+            const unsigned int,
             const complex_tensor<1u, PsiDeep::real_dtype>&,
             const vector<complex_tensor<1u, PsiDeep::real_dtype>>&,
             const vector<xt::pytensor<unsigned int, 2u>>&,
@@ -54,6 +55,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             const bool
         >())
         .def("copy", &PsiDeep::copy)
+        .def_readwrite("num_sites", &PsiDeep::num_sites)
         .def_readwrite("prefactor", &PsiDeep::prefactor)
         .def_readwrite("translational_invariance", &PsiDeep::translational_invariance)
         .def_readwrite("N_i", &PsiDeep::N_i)
@@ -174,6 +176,18 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 //         .def("gradient", &KullbackLeibler::gradient_2nd_order_py<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "op"_a, "op2"_a, "spin_ensemble"_a, "nu"_a)
 
 //     ;
+
+    //! begin template
+    m.def("log_psi_s", [](const AllPsi& psi, const Basis& basis) {
+        return log_psi_s(psi, basis);
+    });
+    m.def("psi_O_k_vector", [](const AllPsi& psi, ExactSummation_t<Basis>& ensemble) {
+        return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("psi_O_k", [](const AllPsi& psi, const Basis& basis) {
+        return psi_O_k(psi, basis).to_pytensor_1d();
+    });
+    //! end template
 
 
     py::class_<RNGStates>(m, "RNGStates")

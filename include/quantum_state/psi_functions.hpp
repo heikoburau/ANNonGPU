@@ -29,7 +29,7 @@ T my_logcosh(const T z) {
     // return sqrt(1.0 + z*z) - 1.0;
 
     // return complex_t(0.0, -1.0) * log(cosh(z)) + complex_t(0.0, -0.346574);
-    // return log(cosh(z));
+    return log(cosh(z));
     // return tanh(z);
 
     // seems to be dangerous. Does not work for a SW-generator applied on an initial state.
@@ -98,24 +98,24 @@ T my_tanh(const T z) {
     // const auto exp_z = exp(z);
     // return -1.0 / z + exp_z / (exp_z - 1.0);
 
-    // const auto sign = z.real() > scalar(0.0) ? scalar(1.0) : scalar(-1.0);
-    // // const auto denominator = 2.61371 + z * (sign * 2.0 + z);
-    // // return (
-    // //     z * (6.83146 + z * (sign * 10.4548 + z * (4.0 + sign * z)))
-    // // ) / (denominator * denominator);
-
-    // const auto denominator = scalar(9.19376335670885) + z * (sign * scalar(10.218021346543315) + z * (scalar(7.771429504240965) + z * (sign * scalar(3.746646023906276) + z)));
+    const auto sign = z.real() > scalar(0.0) ? scalar(1.0) : scalar(-1.0);
+    // const auto denominator = 2.61371 + z * (sign * 2.0 + z);
     // return (
-    //     z * (
-    //         scalar(83.68563506532087) + z * (
-    //             sign * scalar(177.6769746361748) + z * (
-    //                 scalar(199.24474920889975) + z * (
-    //                     sign * scalar(146.36284300074402) + z * (
-    //                         scalar(70.82878897882324) + z * (
-    //                             sign * scalar(26.632014683761202) + z * (
-    //                                 scalar(6.746450656267947) + sign * scalar(0.9003320053750442) * z
-    //     )))))))
+    //     z * (6.83146 + z * (sign * 10.4548 + z * (4.0 + sign * z)))
     // ) / (denominator * denominator);
+
+    const auto denominator = scalar(9.19376335670885) + z * (sign * scalar(10.218021346543315) + z * (scalar(7.771429504240965) + z * (sign * scalar(3.746646023906276) + z)));
+    return (
+        z * (
+            scalar(83.68563506532087) + z * (
+                sign * scalar(177.6769746361748) + z * (
+                    scalar(199.24474920889975) + z * (
+                        sign * scalar(146.36284300074402) + z * (
+                            scalar(70.82878897882324) + z * (
+                                sign * scalar(26.632014683761202) + z * (
+                                    scalar(6.746450656267947) + sign * scalar(0.9003320053750442) * z
+        )))))))
+    ) / (denominator * denominator);
 }
 
 

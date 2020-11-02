@@ -17,7 +17,13 @@ keywords = config["keywords"]
 root = Path(sys.argv[2])
 
 
-def generate_output(line_iter):
+def generate_output(line_iter, file_path):
+    yield "// ***********************************************************\n"
+    yield "// *       This is an automatically generated file.          *\n"
+    yield "// *       For editing, please use the source file:          *\n"
+    yield "// " + file_path.name + "\n"
+    yield "// ***********************************************************\n\n"
+
     while True:
         try:
             line = next(line_iter)
@@ -46,7 +52,18 @@ def expand_template(template):
     }
 
     for instances in product(*matching_keywords.values()):
-        yield r"#if " + " && ".join(f"defined({instance['flag']})" for instance in instances) + "\n"
+        flags = set()
+        for instance in instances:
+            if instance["flag"] is None:
+                continue
+
+            if isinstance(instance["flag"], (list, tuple)):
+                flags.update(instance["flag"])
+            else:
+                flags.add(instance["flag"])
+
+        if flags:
+            yield r"#if " + " && ".join(f"defined({flag})" for flag in flags) + "\n"
 
         for line in template:
             for keyword, instance in zip(matching_keywords, instances):
@@ -54,7 +71,8 @@ def expand_template(template):
 
             yield line
 
-        yield "#endif\n"
+        if flags:
+            yield "#endif\n"
 
 
 for file_pattern in file_patterns:
@@ -64,7 +82,7 @@ for file_pattern in file_patterns:
         with open(file_path) as f:
             lines = f.readlines()
 
-        output = list(generate_output(iter(lines)))
+        output = list(generate_output(iter(lines), file_path))
 
         with open(str(file_path)[:-len(file_path.suffix)], 'w') as f:
             f.writelines(output)
