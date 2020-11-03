@@ -18,66 +18,66 @@ def complex_noise(shape):
     return real_noise(shape) + 1j * real_noise(shape)
 
 
-# def test_psi_s(psi_deep, ensemble, gpu):
-#     psi = psi_deep(gpu)
+def test_psi_s(psi_deep, ensemble, gpu):
+    psi = psi_deep(gpu)
 
-#     use_spins = ensemble.__name__.endswith("Spins")
-#     if not use_spins and psi.N % 3 != 0:
-#         return
+    use_spins = ensemble.__name__.endswith("Spins")
+    if not use_spins and psi.N % 3 != 0:
+        return
 
-#     N = psi.N if use_spins else psi.N // 3
-#     psi.num_sites = N
+    N = psi.N if use_spins else psi.N // 3
+    psi.num_sites = N
 
-#     ensemble = ensemble(N, gpu)
+    ensemble = ensemble(N, gpu)
 
-#     psi_vector = psi.vector(ensemble)
+    psi_vector = psi.vector(ensemble)
 
-#     for i in range(10):
-#         if use_spins:
-#             conf_idx = random.randint(0, 2**N - 1)
-#             spins = Spins(conf_idx, 64).array(N)
-#             activations = +spins
-#             input_activations = +spins
-#         else:
-#             conf_idx = random.randint(0, 4**N - 1)
-#             paulis = PauliString.enumerate(conf_idx).array(N)
+    for i in range(10):
+        if use_spins:
+            conf_idx = random.randint(0, 2**N - 1)
+            spins = Spins(conf_idx, 64).array(N)
+            activations = +spins
+            input_activations = +spins
+        else:
+            conf_idx = random.randint(0, 4**N - 1)
+            paulis = PauliString.enumerate(conf_idx).array(N)
 
-#             activations = -np.ones(psi.N)
-#             for i, p in enumerate(paulis):
-#                 if p == 0:
-#                     continue
+            activations = -np.ones(psi.N)
+            for i, p in enumerate(paulis):
+                if p == 0:
+                    continue
 
-#                 activations[3 * i + p - 1] = 1
+                activations[3 * i + p - 1] = 1
 
-#             input_activations = +activations
+            input_activations = +activations
 
-#         for w, b in zip(psi.W, psi.b):
-#             n, m = len(activations), len(b)
+        for w, b in zip(psi.W, psi.b):
+            n, m = len(activations), len(b)
 
-#             if m > n:
-#                 delta = 1
-#             elif n % m == 0:
-#                 delta = n // m
-#             else:
-#                 delta = w.shape[0]
+            if m > n:
+                delta = 1
+            elif n % m == 0:
+                delta = n // m
+            else:
+                delta = w.shape[0]
 
-#             activations = [
-#                 activation_function(
-#                     sum(
-#                         w[i, j] * activations[(j * delta + i) % n]
-#                         for i in range(w.shape[0])
-#                     ) + b[j]
-#                 )
-#                 for j in range(len(b))
-#             ]
+            activations = [
+                activation_function(
+                    sum(
+                        w[i, j] * activations[(j * delta + i) % n]
+                        for i in range(w.shape[0])
+                    ) + b[j]
+                )
+                for j in range(len(b))
+            ]
 
-#         print(input_activations)
-#         print(psi.input_biases)
-#         log_psi_s_ref = psi.input_biases @ input_activations + psi.final_weights @ activations
+        print(input_activations)
+        print(psi.input_biases)
+        log_psi_s_ref = psi.input_biases @ input_activations + psi.final_weights @ activations
 
-#         psi_s_ref = cmath.exp(log_psi_s_ref)
+        psi_s_ref = cmath.exp(log_psi_s_ref)
 
-#         assert psi_vector[conf_idx] == approx(psi_s_ref)
+        assert psi_vector[conf_idx] == approx(psi_s_ref)
 
 
 def test_psi_classical_s(psi_classical, ensemble, gpu):
@@ -107,11 +107,6 @@ def test_psi_classical_s(psi_classical, ensemble, gpu):
 
         log_psi = log_psi_s(psi_ref, conf)
 
-        # print("le", expr)
-        # for i_prime, value in enumerate(expr @ conf_vector):
-        #     print(i_prime, value)
-        # print("")
-
         return sum(
             value.conj() * np.exp(
                 log_psi_s(psi_ref, Basis.enumerate(i_prime)) - log_psi
@@ -123,7 +118,10 @@ def test_psi_classical_s(psi_classical, ensemble, gpu):
 
         return sum((1 if a_i == 1 else 0) * 2**i for i, a_i in enumerate(a))
 
-    H_local_list = psi.H_local
+    H_local = psi.H_local
+    if psi.order > 1:
+        M_2 = psi.M_2
+        M_1_squared = psi.M_1_squared
 
     # print("params", params)
 
@@ -135,7 +133,7 @@ def test_psi_classical_s(psi_classical, ensemble, gpu):
         log_psi_s_ref = log_psi_s(psi_ref, conf)
 
         # print("conf:", conf_array)
-        # for h in H_local_list:
+        # for h in H_local:
         #     print("h:", h)
         #     E_loc = 0
         #     for shift in range(psi.num_sites):
@@ -154,63 +152,84 @@ def test_psi_classical_s(psi_classical, ensemble, gpu):
 
             log_psi_s_ref += sum(
                 params[i] * local_energy(h, conf_idx_shifted, psi)
-                for i, h in enumerate(H_local_list)
+                for i, h in enumerate(H_local)
             ) / psi.num_sites
+
+            if psi.order > 1:
+                log_psi_s_ref += sum(
+                    params[len(H_local) + i] * local_energy(h, conf_idx_shifted, psi)
+                    for i, h in enumerate(M_2)
+                ) / psi.num_sites
+
+        if psi.order > 1:
+            m_1_local_energies = [
+                local_energy(h, conf_idx, psi)
+                for i, h in enumerate(M_1_squared)
+            ]
+
+            k = len(H_local) + len(M_2)
+            for i in range(len(m_1_local_energies)):
+                for j in range(i + 1):
+                    log_psi_s_ref += params[k] * (
+                        m_1_local_energies[i] *
+                        m_1_local_energies[j]
+                    )
+                    k += 1
 
         assert log_psi_s(psi, conf) == approx(log_psi_s_ref)
 
 
-# def test_O_k(psi_all, ensemble, gpu):
-#     psi = psi_all(gpu)
+def test_O_k(psi_all, ensemble, gpu):
+    psi = psi_all(gpu)
 
-#     use_spins = ensemble.__name__.endswith("Spins")
-#     if not use_spins and psi.N % 3 != 0:
-#         return
+    use_spins = ensemble.__name__.endswith("Spins")
+    if not use_spins and psi.N % 3 != 0:
+        return
 
-#     ensemble = ensemble(psi.num_sites, gpu)
+    ensemble = ensemble(psi.num_sites, gpu)
 
-#     eps = 1e-4
+    eps = 1e-4
 
-#     def psi_plus_eps(psi, k, eps):
-#         psi_plus = +psi
-#         params = psi_plus.params
-#         params[k] += eps
-#         psi_plus.params = params
+    def psi_plus_eps(psi, k, eps):
+        psi_plus = +psi
+        params = psi_plus.params
+        params[k] += eps
+        psi_plus.params = params
 
-#         return psi_plus
+        return psi_plus
 
-#     for i in range(10):
-#         if use_spins:
-#             conf_idx = random.randint(0, 2**psi.num_sites - 1)
-#             conf = Spins.enumerate(conf_idx)
-#         else:
-#             conf_idx = random.randint(0, 4**psi.num_sites - 1)
-#             conf = PauliString.enumerate(conf_idx)
+    for i in range(10):
+        if use_spins:
+            conf_idx = random.randint(0, 2**psi.num_sites - 1)
+            conf = Spins.enumerate(conf_idx)
+        else:
+            conf_idx = random.randint(0, 4**psi.num_sites - 1)
+            conf = PauliString.enumerate(conf_idx)
 
-#         O_k_vector_ref = np.array([
-#             (
-#                 log_psi_s(psi_plus_eps(psi, k, eps), conf) -
-#                 log_psi_s(psi_plus_eps(psi, k, -eps), conf)
-#             ) / (2 * eps)
-#             for k in range(psi.num_params)
-#         ])
+        O_k_vector_ref = np.array([
+            (
+                log_psi_s(psi_plus_eps(psi, k, eps), conf) -
+                log_psi_s(psi_plus_eps(psi, k, -eps), conf)
+            ) / (2 * eps)
+            for k in range(psi.num_params)
+        ])
 
-#         O_k_vector_test = psi_O_k(psi, conf)
+        O_k_vector_test = psi_O_k(psi, conf)
 
-#         passed = np.allclose(O_k_vector_ref, O_k_vector_test, rtol=1e-3, atol=1e-4)
+        passed = np.allclose(O_k_vector_ref, O_k_vector_test, rtol=1e-3, atol=1e-4)
 
-#         print(O_k_vector_test - O_k_vector_ref)
+        print(O_k_vector_test - O_k_vector_ref)
 
-#         if not passed:
-#             with open(Path().home() / "test_O_k_vector.json", "w") as f:
-#                 json.dump(
-#                     {
-#                         "O_k_vector_test.real": O_k_vector_test.real.tolist(),
-#                         "O_k_vector_test.imag": O_k_vector_test.imag.tolist(),
-#                         "O_k_vector_ref.real": O_k_vector_ref.real.tolist(),
-#                         "O_k_vector_ref.imag": O_k_vector_ref.imag.tolist(),
-#                     },
-#                     f
-#                 )
+        if not passed:
+            with open(Path().home() / "test_O_k_vector.json", "w") as f:
+                json.dump(
+                    {
+                        "O_k_vector_test.real": O_k_vector_test.real.tolist(),
+                        "O_k_vector_test.imag": O_k_vector_test.imag.tolist(),
+                        "O_k_vector_ref.real": O_k_vector_ref.real.tolist(),
+                        "O_k_vector_ref.imag": O_k_vector_ref.imag.tolist(),
+                    },
+                    f
+                )
 
-#         assert passed
+        assert passed

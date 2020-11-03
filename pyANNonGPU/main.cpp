@@ -116,6 +116,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_readonly("psi_ref", &PsiClassicalFP<1u>::psi_ref)
         .def_readonly("gpu", &PsiClassicalFP<1u>::gpu)
         .def_readonly("num_params", &PsiClassicalFP<1u>::num_params)
+        .def_property_readonly("order", [](const PsiClassicalFP<1u>& psi) {return psi.get_order();})
         .def_property(
             "params",
             [](const PsiClassicalFP<1u>& psi) {return psi.params.to_pytensor_1d();},
@@ -155,6 +156,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_readonly("psi_ref", &PsiClassicalFP<2u>::psi_ref)
         .def_readonly("gpu", &PsiClassicalFP<2u>::gpu)
         .def_readonly("num_params", &PsiClassicalFP<2u>::num_params)
+        .def_property_readonly("order", [](const PsiClassicalFP<2u>& psi) {return psi.get_order();})
         .def_property(
             "params",
             [](const PsiClassicalFP<2u>& psi) {return psi.params.to_pytensor_1d();},
@@ -194,6 +196,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_readonly("psi_ref", &PsiClassicalANN<1u>::psi_ref)
         .def_readonly("gpu", &PsiClassicalANN<1u>::gpu)
         .def_readonly("num_params", &PsiClassicalANN<1u>::num_params)
+        .def_property_readonly("order", [](const PsiClassicalANN<1u>& psi) {return psi.get_order();})
         .def_property(
             "params",
             [](const PsiClassicalANN<1u>& psi) {return psi.params.to_pytensor_1d();},
@@ -233,6 +236,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_readonly("psi_ref", &PsiClassicalANN<2u>::psi_ref)
         .def_readonly("gpu", &PsiClassicalANN<2u>::gpu)
         .def_readonly("num_params", &PsiClassicalANN<2u>::num_params)
+        .def_property_readonly("order", [](const PsiClassicalANN<2u>& psi) {return psi.get_order();})
         .def_property(
             "params",
             [](const PsiClassicalANN<2u>& psi) {return psi.params.to_pytensor_1d();},
@@ -327,19 +331,19 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 
     py::class_<ExpectationValue>(m, "ExpectationValue")
         .def(py::init<bool>())
-#if defined(ENABLE_SPINS) && defined(ENABLE_MONTE_CARLO)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
         .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Spins>>)
         .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<Spins>>)
 #endif
-#if defined(ENABLE_PAULIS) && defined(ENABLE_MONTE_CARLO)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
         .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<PauliString>>)
 #endif
-#if defined(ENABLE_SPINS) && defined(ENABLE_EXACT_SUMMATION)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
         .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Spins>>)
         .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<Spins>>)
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_EXACT_SUMMATION)
         .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
         .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<PauliString>>)
 #endif
@@ -348,19 +352,19 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 
     py::class_<HilbertSpaceDistance>(m, "HilbertSpaceDistance")
         .def(py::init<unsigned int, bool>())
-#if defined(ENABLE_SPINS) && defined(ENABLE_MONTE_CARLO)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
         .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, MonteCarlo_tt<Spins>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
         .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, MonteCarlo_tt<Spins>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
 #endif
-#if defined(ENABLE_PAULIS) && defined(ENABLE_MONTE_CARLO)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
         .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, MonteCarlo_tt<PauliString>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
         .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, MonteCarlo_tt<PauliString>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
 #endif
-#if defined(ENABLE_SPINS) && defined(ENABLE_EXACT_SUMMATION)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
         .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, ExactSummation_t<Spins>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
         .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, ExactSummation_t<Spins>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_EXACT_SUMMATION)
         .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, ExactSummation_t<PauliString>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
         .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, ExactSummation_t<PauliString>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
 #endif
@@ -387,7 +391,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_O_k(psi, basis).to_pytensor_1d();
     });
 #endif
-#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_SPINS)
     m.def("log_psi_s", [](const PsiFullyPolarized& psi, const Spins& basis) {
         return log_psi_s(psi, basis);
     });
@@ -398,7 +402,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_O_k(psi, basis).to_pytensor_1d();
     });
 #endif
-#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_SPINS)
     m.def("log_psi_s", [](const PsiClassicalFP<1u>& psi, const Spins& basis) {
         return log_psi_s(psi, basis);
     });
@@ -409,7 +413,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_O_k(psi, basis).to_pytensor_1d();
     });
 #endif
-#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_SPINS)
     m.def("log_psi_s", [](const PsiClassicalFP<2u>& psi, const Spins& basis) {
         return log_psi_s(psi, basis);
     });
@@ -420,7 +424,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_O_k(psi, basis).to_pytensor_1d();
     });
 #endif
-#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL_ANN)
     m.def("log_psi_s", [](const PsiClassicalANN<1u>& psi, const Spins& basis) {
         return log_psi_s(psi, basis);
     });
@@ -431,7 +435,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_O_k(psi, basis).to_pytensor_1d();
     });
 #endif
-#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL_ANN)
     m.def("log_psi_s", [](const PsiClassicalANN<2u>& psi, const Spins& basis) {
         return log_psi_s(psi, basis);
     });
@@ -453,7 +457,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_O_k(psi, basis).to_pytensor_1d();
     });
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
     m.def("log_psi_s", [](const PsiFullyPolarized& psi, const PauliString& basis) {
         return log_psi_s(psi, basis);
     });
@@ -464,7 +468,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_O_k(psi, basis).to_pytensor_1d();
     });
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
     m.def("log_psi_s", [](const PsiClassicalFP<1u>& psi, const PauliString& basis) {
         return log_psi_s(psi, basis);
     });
@@ -475,7 +479,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_O_k(psi, basis).to_pytensor_1d();
     });
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
     m.def("log_psi_s", [](const PsiClassicalFP<2u>& psi, const PauliString& basis) {
         return log_psi_s(psi, basis);
     });
@@ -486,7 +490,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_O_k(psi, basis).to_pytensor_1d();
     });
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
     m.def("log_psi_s", [](const PsiClassicalANN<1u>& psi, const PauliString& basis) {
         return log_psi_s(psi, basis);
     });
@@ -497,7 +501,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_O_k(psi, basis).to_pytensor_1d();
     });
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
     m.def("log_psi_s", [](const PsiClassicalANN<2u>& psi, const PauliString& basis) {
         return log_psi_s(psi, basis);
     });

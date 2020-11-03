@@ -335,6 +335,10 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, order, typename Psi
         return *this;
     }
 
+    inline unsigned int get_order() const {
+        return order;
+    }
+
 #endif // __PYTHONCC__
 
     void init_kernel();

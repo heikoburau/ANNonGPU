@@ -13,7 +13,7 @@ namespace ann_on_gpu {
 
 template<typename Psi_t, typename Ensemble>
 Array<complex_t> psi_O_k_vector(const Psi_t& psi, Ensemble& ensemble) {
-    Array<complex_t> result(psi.num_params, ensemble.gpu);
+    Array<complex_t> result(psi.num_params, psi.gpu);
 
     auto result_ptr = result.data();
     auto psi_kernel = psi.kernel();
@@ -98,12 +98,12 @@ template Array<complex_t> psi_O_k(const PsiClassicalFP<1u>&, const Spins&);
 template Array<complex_t> psi_O_k_vector(const PsiClassicalFP<2u>&, ExactSummation_t<Spins>&);
 template Array<complex_t> psi_O_k(const PsiClassicalFP<2u>&, const Spins&);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_SPINS)
+#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL_ANN)
 
 template Array<complex_t> psi_O_k_vector(const PsiClassicalANN<1u>&, ExactSummation_t<Spins>&);
 template Array<complex_t> psi_O_k(const PsiClassicalANN<1u>&, const Spins&);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_SPINS)
+#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL_ANN)
 
 template Array<complex_t> psi_O_k_vector(const PsiClassicalANN<2u>&, ExactSummation_t<Spins>&);
 template Array<complex_t> psi_O_k(const PsiClassicalANN<2u>&, const Spins&);
@@ -128,12 +128,12 @@ template Array<complex_t> psi_O_k(const PsiClassicalFP<1u>&, const PauliString&)
 template Array<complex_t> psi_O_k_vector(const PsiClassicalFP<2u>&, ExactSummation_t<PauliString>&);
 template Array<complex_t> psi_O_k(const PsiClassicalFP<2u>&, const PauliString&);
 #endif
-#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 
 template Array<complex_t> psi_O_k_vector(const PsiClassicalANN<1u>&, ExactSummation_t<PauliString>&);
 template Array<complex_t> psi_O_k(const PsiClassicalANN<1u>&, const PauliString&);
 #endif
-#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 
 template Array<complex_t> psi_O_k_vector(const PsiClassicalANN<2u>&, ExactSummation_t<PauliString>&);
 template Array<complex_t> psi_O_k(const PsiClassicalANN<2u>&, const PauliString&);

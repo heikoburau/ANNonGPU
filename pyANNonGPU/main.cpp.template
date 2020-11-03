@@ -106,6 +106,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_readonly("psi_ref", &ClPsi::psi_ref)
         .def_readonly("gpu", &ClPsi::gpu)
         .def_readonly("num_params", &ClPsi::num_params)
+        .def_property_readonly("order", [](const ClPsi& psi) {return psi.get_order();})
         .def_property(
             "params",
             [](const ClPsi& psi) {return psi.params.to_pytensor_1d();},
