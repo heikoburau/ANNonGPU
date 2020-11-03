@@ -31,6 +31,10 @@
             },
             {
                 "flag": "ENABLE_PSI_CLASSICAL",
+                "code": "PsiFullyPolarized"
+            },
+            {
+                "flag": "ENABLE_PSI_CLASSICAL",
                 "code": "PsiClassicalFP<1u>"
             },
             {
@@ -50,6 +54,34 @@
                     "ENABLE_PSI_CLASSICAL_ANN"
                 ],
                 "code": "PsiClassicalANN<2u>"
+            }
+        ],
+        "ClPsi": [
+            {
+                "flag": "ENABLE_PSI_CLASSICAL",
+                "code": "PsiClassicalFP<1u>",
+                "name": "PsiClassicalFP_1"
+            },
+            {
+                "flag": "ENABLE_PSI_CLASSICAL",
+                "code": "PsiClassicalFP<2u>",
+                "name": "PsiClassicalFP_2"
+            },
+            {
+                "flag": [
+                    "ENABLE_PSI_CLASSICAL",
+                    "ENABLE_PSI_CLASSICAL_ANN"
+                ],
+                "code": "PsiClassicalANN<1u>",
+                "name": "PsiClassicalANN_1"
+            },
+            {
+                "flag": [
+                    "ENABLE_PSI_CLASSICAL",
+                    "ENABLE_PSI_CLASSICAL_ANN"
+                ],
+                "code": "PsiClassicalANN<2u>",
+                "name": "PsiClassicalANN_2"
             }
         ]
     }

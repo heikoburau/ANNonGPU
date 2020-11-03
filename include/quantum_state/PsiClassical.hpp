@@ -10,6 +10,15 @@
 #include "Array.hpp"
 #include "types.h"
 
+#ifdef __PYTHONCC__
+    #define FORCE_IMPORT_ARRAY
+    #include "xtensor-python/pytensor.hpp"
+
+    using namespace std::complex_literals;
+
+    #include "QuantumExpression/QuantumExpression.hpp"
+#endif // __PYTHONCC__
+
 
 namespace ann_on_gpu {
 
@@ -165,7 +174,11 @@ struct PsiClassical_t {
 
         this->compute_local_energies(configuration, payload);
 
+        // printf("num_params: %d\n", this->num_params);
+
         LOOP(k, this->num_params) {
+            // printf("local energy: %f, %f\n", this->get_O_k(k, payload).real(), this->get_O_k(k, payload).imag());
+            // printf("param %d: %f, %f\n", k, this->params[k].real(), this->params[k].imag());
             generic_atomicAdd(&result, this->params[k] * this->get_O_k(k, payload));
         }
     }
@@ -236,7 +249,7 @@ struct PsiClassical_t {
         return *this;
     }
 
-    #endif // __CUDACC__
+#endif // __CUDACC__
 
     HDINLINE
     unsigned int get_width() const {
@@ -258,14 +271,14 @@ struct PsiClassical_t {
 
 
 
-template<typename dtype, unsigned int order, typename PsiRef>
-struct PsiClassical_t : public kernel::PsiClassical_t<dtype, order, typename PsiRef::Kernel> {
-
+template<typename dtype, unsigned int order, typename PsiRef_t>
+struct PsiClassical_t : public kernel::PsiClassical_t<dtype, order, typename PsiRef_t::Kernel> {
+    using PsiRef = PsiRef_t;
     using real_dtype = typename cuda_complex::get_real_type<dtype>::type;
 
-    Operator&       H_local_op;
-    Operator&       M_2_op;
-    Operator&       M_1_squared_op;
+    Operator        H_local_op;
+    Operator        M_2_op;
+    Operator        M_1_squared_op;
     Array<dtype>    params;
     PsiRef          psi_ref;
     bool            gpu;
@@ -285,7 +298,7 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, order, typename Psi
     {
         this->num_sites = other.num_sites;
         this->prefactor = other.prefactor;
-        this->gpu = gpu;
+        this->gpu = other.gpu;
 
         this->init_kernel();
     }
@@ -294,18 +307,18 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, order, typename Psi
 
     inline PsiClassical_t(
         const unsigned int num_sites,
-        const Operator& H_local_op,
-        const Operator& M_2_op,
-        const Operator& M_1_squared_op,
+        const quantum_expression::PauliExpression& H_local_expr,
+        const quantum_expression::PauliExpression& M_2_expr,
+        const quantum_expression::PauliExpression& M_1_squared_expr,
         const xt::pytensor<typename std_dtype<dtype>::type, 1u>& params,
         const PsiRef& psi_ref,
         const double prefactor,
         const bool gpu
     )
         :
-        H_local_op(H_local_op),
-        M_2_op(M_2_op),
-        M_1_squared_op(M_1_squared_op),
+        H_local_op(Operator(H_local_expr, gpu)),
+        M_2_op(Operator(M_2_expr, gpu)),
+        M_1_squared_op(Operator(M_1_squared_expr, gpu)),
         params(params, gpu),
         psi_ref(psi_ref),
         ids_i(gpu),

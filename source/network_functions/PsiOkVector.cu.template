@@ -71,43 +71,9 @@ Array<complex_t> psi_O_k(const Psi_t& psi, const Basis_t& configuration) {
     return result;
 }
 
-template<typename Psi_t, typename Basis_t>
-std::complex<double> log_psi_s(const Psi_t& psi, const Basis_t& configuration) {
-    Array<complex_t> result(1u, psi.gpu);
-
-    auto result_ptr = result.data();
-    auto psi_kernel = psi.kernel();
-    auto conf = configuration;
-
-    const auto functor = [=] __host__ __device__ () {
-        #include "cuda_kernel_defines.h"
-
-        SHARED typename Psi_t::Payload payload;
-        SHARED typename Psi_t::dtype   log_psi;
-
-        psi_kernel.init_payload(payload, conf);
-        psi_kernel.log_psi_s(log_psi, configuration, payload);
-
-        SINGLE {
-            *result_ptr = log_psi;
-        }
-    };
-
-    if(psi.gpu) {
-        cuda_kernel<<<1, psi.get_width()>>>(functor);
-    }
-    else {
-        functor();
-    }
-
-    result.update_host();
-
-    return result.front().to_std();
-}
-
 
 //! begin template
-template std::complex<double> log_psi_s(const AllPsi&, const Basis&);
+
 template Array<complex_t> psi_O_k_vector(const AllPsi&, ExactSummation_t<Basis>&);
 template Array<complex_t> psi_O_k(const AllPsi&, const Basis&);
 //! end template

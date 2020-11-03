@@ -67,7 +67,15 @@ def expand_template(template):
 
         for line in template:
             for keyword, instance in zip(matching_keywords, instances):
+                modifiers = {name: code for name, code in instance.items() if name not in ("flag", "code")}
+
+                for i, name in enumerate(modifiers):
+                    line = line.replace(keyword + f"{{name}}", f"#{i}")
+
                 line = line.replace(keyword, instance["code"])
+
+                for i, code in enumerate(modifiers.values()):
+                    line = line.replace(f"#{i}", code)
 
             yield line
 

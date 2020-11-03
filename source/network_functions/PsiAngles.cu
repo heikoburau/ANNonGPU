@@ -43,7 +43,7 @@ Array<complex_t> psi_angles(const Psi_t& psi, Ensemble& ensemble) {
 }
 
 
-#if defined(ENABLE_SPINS) && defined(ENABLE_MONTE_CARLO)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
 template Array<complex_t> psi_angles(const PsiDeep& psi, MonteCarlo_tt<Spins>& ensemble);
 #endif
 #if defined(ENABLE_PAULIS) && defined(ENABLE_MONTE_CARLO)
@@ -52,7 +52,7 @@ template Array<complex_t> psi_angles(const PsiDeep& psi, MonteCarlo_tt<PauliStri
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
 template Array<complex_t> psi_angles(const PsiDeep& psi, ExactSummation_t<Spins>& ensemble);
 #endif
-#if defined(ENABLE_PAULIS) && defined(ENABLE_EXACT_SUMMATION)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
 template Array<complex_t> psi_angles(const PsiDeep& psi, ExactSummation_t<PauliString>& ensemble);
 #endif
 

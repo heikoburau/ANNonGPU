@@ -14,17 +14,12 @@ namespace ann_on_gpu {
 using namespace std;
 
 
+template<typename Psi_t, typename Basis_t>
+std::complex<double> log_psi_s(const Psi_t& psi, const Basis_t& configuration);
+
+
 template<typename Psi_t, typename Ensemble>
 Array<complex_t> psi_vector(const Psi_t& psi, Ensemble& ensemble);
 
-
-#ifdef __PYTHONCC__
-
-template<typename Psi_t, typename Ensemble>
-inline xt::pytensor<complex<double>, 1u> psi_vector_py(const Psi_t& psi, Ensemble& ensemble) {
-    return psi_vector(psi, ensemble).to_pytensor_1d();
-}
-
-#endif
 
 } // namespace ann_on_gpu

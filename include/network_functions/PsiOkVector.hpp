@@ -6,9 +6,6 @@
 
 namespace ann_on_gpu {
 
-template<typename Psi_t, typename Basis_t>
-std::complex<double> log_psi_s(const Psi_t& psi, const Basis_t& configuration);
-
 
 template<typename Psi_t, typename Basis_t>
 Array<complex_t> psi_O_k(const Psi_t& psi, const Basis_t& configuration);

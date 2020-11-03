@@ -47,5 +47,21 @@ PauliExpression Operator::to_expr() const {
     return result;
 }
 
+vector<PauliExpression> Operator::to_expr_list() const {
+    vector<PauliExpression> result;
+
+    for(auto i = 0u; i < this->coefficients_ar.size(); i++) {
+        const auto coefficient = this->coefficients_ar[i];
+        const auto pauli_string = this->pauli_strings_ar[i];
+
+        result.push_back(PauliExpression(
+            FastPauliString(pauli_string.a, pauli_string.b),
+            coefficient.to_std()
+        ));
+    }
+
+    return result;
+}
+
 
 } // namespace ann_on_gpu

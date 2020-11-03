@@ -25,6 +25,9 @@ struct PsiFullyPolarized_t {
     struct Payload {};
 
     unsigned int   num_sites;
+    unsigned int   num_params;
+    double         prefactor;
+    bool           gpu;
 
 #ifdef __CUDACC__
 
@@ -79,11 +82,21 @@ struct PsiFullyPolarized_t {
         return *this;
     }
 
+    template<typename Basis_t, typename Function>
+    HDINLINE
+    void foreach_O_k(const Basis_t& configuration, Payload& payload, Function function) const {
+    }
+
 #endif // __CUDACC__
 
     HDINLINE
     unsigned int get_width() const {
         return this->num_sites;
+    }
+
+    HDINLINE
+    double probability_s(const double log_psi_s_real) const {
+        return exp(2.0 * log_psi_s_real);
     }
 };
 
@@ -102,12 +115,18 @@ struct PsiFullyPolarized_t : public kernel::PsiFullyPolarized_t<dtype> {
     inline PsiFullyPolarized_t(const PsiFullyPolarized_t& other)
     {
         this->num_sites = other.num_sites;
+        this->prefactor = 1.0;
+        this->num_params = 0u;
+        this->gpu = false;
     }
 
 #ifdef __PYTHONCC__
 
     inline PsiFullyPolarized_t(unsigned int num_sites) {
         this->num_sites = num_sites;
+        this->prefactor = 1.0;
+        this->num_params = 0u;
+        this->gpu = false;
     }
 
     PsiFullyPolarized_t copy() const {

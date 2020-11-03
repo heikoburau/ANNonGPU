@@ -1,4 +1,11 @@
+#ifdef ENABLE_PSI_CLASSICAL
+
 #include "quantum_state/PsiClassical.hpp"
+#include "quantum_state/PsiFullyPolarized.hpp"
+
+#ifdef ENABLE_PSI_CLASSICAL_ANN
+#include "quantum_state/PsiDeep.hpp"
+#endif // ENABLE_PSI_CLASSICAL_ANN
 
 
 namespace ann_on_gpu {
@@ -6,7 +13,7 @@ namespace ann_on_gpu {
 
 template<typename dtype, unsigned int order, typename PsiRef>
 void PsiClassical_t<dtype, order, PsiRef>::init_kernel() {
-    this->kernel().params = this->params.kernel();
+    this->kernel().params = this->params.data();
     this->num_params = this->params.size();
 
     this->kernel().H_local = this->H_local_op.kernel();
@@ -43,4 +50,15 @@ void PsiClassical_t<dtype, order, PsiRef>::init_kernel() {
 }
 
 
+template struct PsiClassical_t<complex_t, 1u, PsiFullyPolarized>;
+template struct PsiClassical_t<complex_t, 2u, PsiFullyPolarized>;
+
+#ifdef ENABLE_PSI_CLASSICAL_ANN
+template struct PsiClassical_t<complex_t, 1u, PsiDeep>;
+template struct PsiClassical_t<complex_t, 2u, PsiDeep>;
+#endif // ENABLE_PSI_CLASSICAL_ANN
+
+
 } // namespace ann_on_gpu
+
+#endif // ENABLE_PSI_CLASSICAL

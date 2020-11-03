@@ -98,15 +98,15 @@ struct Operator {
             MULTI(i, psi.num_sites) {
                 generic_atomicAdd(
                     &result,
-                    this->pauli_strings[n].apply(
+                    this->coefficients[n] * this->pauli_strings[n].apply(
                         configuration.rotate_left(i, psi.num_sites)
-                    ).coefficient
+                    ).coefficient * (1.0 / psi.num_sites)
                 );
             }
         }
         else {
             SINGLE {
-                result = typename Psi_t::dtype(1.0);
+                result = this->coefficients[n];
             }
         }
 
@@ -128,6 +128,10 @@ struct Operator {
 
             psi.update_input_units(configuration_prime, configuration, payload);
         }
+
+        // printf("conf: %lu\n", configuration.configuration());
+        // printf("h: %lu, %lu\n", this->pauli_strings[n].a, this->pauli_strings[n].b);
+        // printf("E_loc: %f, %f\n", result.real(), result.imag());
 
         SYNC;
     }
@@ -186,6 +190,7 @@ struct Operator : public kernel::Operator {
     );
 
     ::quantum_expression::PauliExpression to_expr() const;
+    vector<::quantum_expression::PauliExpression> to_expr_list() const;
 };
 
 } // namespace ann_on_gpu

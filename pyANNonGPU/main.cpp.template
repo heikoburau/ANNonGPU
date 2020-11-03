@@ -76,12 +76,59 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("W", &PsiDeep::get_W)
         .def_property_readonly("input_biases", [](const PsiDeep& psi) {return psi.input_biases.to_pytensor_1d();})
         .def_property_readonly("final_weights", [](const PsiDeep& psi) {return psi.final_weights.to_pytensor_1d();})
+        #ifdef ENABLE_EXACT_SUMMATION
         //! begin template
-        .def("_vector", [](const PsiDeep& psi, ExactSummation_t<Basis>& exact_summation) {return psi_vector_py(psi, exact_summation);})
+        .def("_vector", [](const PsiDeep& psi, ExactSummation_t<Basis>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const PsiDeep& psi, ExactSummation_t<Basis>& exact_summation) {return psi_norm(psi, exact_summation);})
         //! end template
+        #endif // ENABLE_EXACT_SUMMATION
         ;
 
+    //! begin template
+    py::class_<ClPsi>(m, "ClPsi{name}")
+        .def(py::init<
+            const unsigned int,
+            const quantum_expression::PauliExpression&,
+            const quantum_expression::PauliExpression&,
+            const quantum_expression::PauliExpression&,
+            const complex_tensor<1u>&,
+            const typename ClPsi::PsiRef&,
+            const double,
+            const bool
+        >())
+        .def("copy", &ClPsi::copy)
+        .def("__pos__", &ClPsi::copy)
+        .def_readwrite("num_sites", &ClPsi::num_sites)
+        .def_property_readonly("H_local", [](const ClPsi& psi){return psi.H_local_op.to_expr_list();})
+        .def_property_readonly("M_2", [](const ClPsi& psi){return psi.M_2_op.to_expr_list();})
+        .def_property_readonly("M_1_squared", [](const ClPsi& psi){return psi.M_1_squared_op.to_expr_list();})
+        .def_readwrite("prefactor", &ClPsi::prefactor)
+        .def_readonly("psi_ref", &ClPsi::psi_ref)
+        .def_readonly("gpu", &ClPsi::gpu)
+        .def_readonly("num_params", &ClPsi::num_params)
+        .def_property(
+            "params",
+            [](const ClPsi& psi) {return psi.params.to_pytensor_1d();},
+            [](ClPsi& psi, const complex_tensor<1u>& new_params) {psi.params = new_params;}
+        )
+        #ifdef ENABLE_EXACT_SUMMATION
+        #ifdef ENABLE_SPINS
+        .def("vector", [](const ClPsi& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
+        .def("norm", [](const ClPsi& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
+        #endif // ENABLE_SPINS
+        #ifdef ENABLE_PAULIS
+        .def("vector", [](const ClPsi& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
+        .def("norm", [](const ClPsi& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
+        #endif // ENABLE_PAULIS
+        #endif // ENABLE_EXACT_SUMMATION
+        ;
+    //! end template
+
+#ifdef ENABLE_PSI_CLASSICAL
+    py::class_<PsiFullyPolarized>(m, "PsiFullyPolarized")
+        .def(py::init<unsigned int>())
+        .def_readwrite("num_sites", &PsiFullyPolarized::num_sites);
+#endif // ENABLE_PSI_CLASSICAL
 
     py::class_<Operator>(m, "Operator")
         .def(py::init<
@@ -89,6 +136,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             const bool
         >())
         .def_property_readonly("expr", &Operator::to_expr)
+        .def_property_readonly("expr_list", &Operator::to_expr_list)
         .def_readonly("num_strings", &Operator::num_strings);
 
 #ifdef ENABLE_SPINS
