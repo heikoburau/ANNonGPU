@@ -173,11 +173,11 @@ double HilbertSpaceDistance::gradient(
 template double HilbertSpaceDistance::distance(const PsiDeep& psi, const PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, MonteCarlo_tt<Spins>& ensemble);
 template double HilbertSpaceDistance::gradient(complex<double>* result, const PsiDeep& psi, const PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, MonteCarlo_tt<Spins>& ensemble, const float nu);
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_MONTE_CARLO)
 template double HilbertSpaceDistance::distance(const PsiDeep& psi, const PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, MonteCarlo_tt<PauliString>& ensemble);
 template double HilbertSpaceDistance::gradient(complex<double>* result, const PsiDeep& psi, const PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, MonteCarlo_tt<PauliString>& ensemble, const float nu);
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
+#if defined(ENABLE_SPINS) && defined(ENABLE_EXACT_SUMMATION)
 template double HilbertSpaceDistance::distance(const PsiDeep& psi, const PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, ExactSummation_t<Spins>& ensemble);
 template double HilbertSpaceDistance::gradient(complex<double>* result, const PsiDeep& psi, const PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, ExactSummation_t<Spins>& ensemble, const float nu);
 #endif

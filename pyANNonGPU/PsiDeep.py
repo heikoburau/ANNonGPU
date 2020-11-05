@@ -12,7 +12,6 @@ def to_json(self):
         connections=self.connections,
         W=self.W,
         final_weights=self.final_weights,
-        translational_invariance=self.translational_invariance,
         prefactor=self.prefactor,
     )
 
@@ -39,7 +38,6 @@ def from_json(json_obj, gpu):
         obj["W"],
         obj["final_weights"],
         obj["prefactor"],
-        obj["translational_invariance"],
         gpu
     )
 

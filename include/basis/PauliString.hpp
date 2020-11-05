@@ -199,7 +199,7 @@ struct PauliString {
         return result;
     }
 
-    HDINLINE PauliString rotate_left(const unsigned int shift, const unsigned int N) const {
+    HDINLINE PauliString roll(const unsigned int shift, const unsigned int N) const {
         return PauliString(
             (
                 (this->a << shift) | (this->a >> (N - shift))

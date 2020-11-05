@@ -347,7 +347,7 @@ struct Spins_t<1u> : public generic::Spins_t<1u> {
     }
 
     // todo: fix for N = 64
-    HDINLINE Spins_t<1u> rotate_left(const unsigned int shift, const unsigned int N) const {
+    HDINLINE Spins_t<1u> roll(const unsigned int shift, const unsigned int N) const {
         return Spins_t<1u>(
             (this->configuration() << shift) | (this->configuration() >> (N - shift)),
             N
@@ -384,7 +384,7 @@ struct Spins_t<1u> : public generic::Spins_t<1u> {
     HDINLINE Spins_t<1u> shift_horizontal(
         const unsigned int shift, const unsigned int nrows, const unsigned int ncols
     ) const {
-        const auto tmp = this->rotate_left(shift, nrows * ncols);
+        const auto tmp = this->roll(shift, nrows * ncols);
         return Spins_t<1u>(
             (
                 tmp.select_left_columns(nrows - shift, nrows, ncols).configuration() |

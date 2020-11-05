@@ -51,13 +51,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             const vector<complex_tensor<2u, PsiDeep::real_dtype>>&,
             const complex_tensor<1u, PsiDeep::real_dtype>&,
             const double,
-            const bool,
             const bool
         >())
         .def("copy", &PsiDeep::copy)
         .def_readwrite("num_sites", &PsiDeep::num_sites)
         .def_readwrite("prefactor", &PsiDeep::prefactor)
-        .def_readwrite("translational_invariance", &PsiDeep::translational_invariance)
         .def_readwrite("N_i", &PsiDeep::N_i)
         .def_readwrite("N_j", &PsiDeep::N_j)
         .def_readonly("gpu", &PsiDeep::gpu)
@@ -70,6 +68,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
                 psi.set_params(Array<typename PsiDeep::dtype>(new_params, false));
             }
         )
+        .def_property_readonly("symmetric", [](const PsiDeep& psi){return psi.is_symmetric();})
         .def_property_readonly("a", [](const PsiDeep& psi) {return psi.input_biases.to_pytensor_1d();})
         .def_property_readonly("b", &PsiDeep::get_b)
         .def_property_readonly("connections", &PsiDeep::get_connections)
@@ -90,7 +89,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             const unsigned int,
             const quantum_expression::PauliExpression&,
             const quantum_expression::PauliExpression&,
-            const quantum_expression::PauliExpression&,
             const complex_tensor<1u>&,
             const typename ClPsi::PsiRef&,
             const double,
@@ -100,8 +98,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("__pos__", &ClPsi::copy)
         .def_readwrite("num_sites", &ClPsi::num_sites)
         .def_property_readonly("H_local", [](const ClPsi& psi){return psi.H_local_op.to_expr_list();})
-        .def_property_readonly("M_2", [](const ClPsi& psi){return psi.M_2_op.to_expr_list();})
-        .def_property_readonly("M_1_squared", [](const ClPsi& psi){return psi.M_1_squared_op.to_expr_list();})
+        .def_property_readonly("H_2_local", [](const ClPsi& psi){return psi.H_2_local_op.to_expr_list();})
         .def_readwrite("prefactor", &ClPsi::prefactor)
         .def_readonly("psi_ref", &ClPsi::psi_ref)
         .def_readonly("gpu", &ClPsi::gpu)

@@ -12,8 +12,8 @@ namespace ann_on_gpu {
 
 using namespace cuda_complex;
 
-template<typename dtype>
-PsiDeepT<dtype>::PsiDeepT(const unsigned int N, const unsigned int M, const bool gpu)
+template<typename dtype, bool symmetric>
+PsiDeepT<dtype, symmetric>::PsiDeepT(const unsigned int N, const unsigned int M, const bool gpu)
     :
     input_biases(N, gpu),
     final_weights(M, gpu),
@@ -25,7 +25,6 @@ PsiDeepT<dtype>::PsiDeepT(const unsigned int N, const unsigned int M, const bool
     this->num_layers = 2u;
     this->width = this->N;
     this->num_units = 0u;
-    this->translational_invariance = false;
 
     Array<unsigned int> rhs_connections_array(0, false);
     Array<dtype> rhs_weights_array(0, false);
@@ -97,8 +96,8 @@ PsiDeepT<dtype>::PsiDeepT(const unsigned int N, const unsigned int M, const bool
     this->init_kernel();
 }
 
-template<typename dtype>
-PsiDeepT<dtype>::PsiDeepT(const PsiDeepT<dtype>& other)
+template<typename dtype, bool symmetric>
+PsiDeepT<dtype, symmetric>::PsiDeepT(const PsiDeepT<dtype, symmetric>& other)
     :
     layers(other.layers),
     input_biases(other.input_biases),
@@ -111,20 +110,19 @@ PsiDeepT<dtype>::PsiDeepT(const PsiDeepT<dtype>& other)
     this->num_layers = other.num_layers;
     this->width = other.width;
     this->num_units = other.num_units;
-    this->translational_invariance = other.translational_invariance;
     this->num_final_weights = other.num_final_weights;
 
     this->init_kernel();
 }
 
 
-template<typename dtype>
-void PsiDeepT<dtype>::init_kernel() {
+template<typename dtype, bool symmetric>
+void PsiDeepT<dtype, symmetric>::init_kernel() {
     this->num_params = this->N; // initial biases
     auto angle_idx = 0u;
     for(auto layer_idx = 0u; layer_idx < this->num_layers; layer_idx++) {
         const auto& layer = *next(this->layers.begin(), layer_idx);
-        auto& kernel_layer = kernel::PsiDeepT<dtype>::layers[layer_idx];
+        auto& kernel_layer = kernel::PsiDeepT<dtype, symmetric>::layers[layer_idx];
         kernel_layer.size = layer.size;
         kernel_layer.lhs_connectivity = layer.lhs_connectivity;
 
@@ -139,8 +137,8 @@ void PsiDeepT<dtype>::init_kernel() {
         }
     }
     for(auto layer_idx = 0u; layer_idx < this->num_layers; layer_idx++) {
-        auto& layer = kernel::PsiDeepT<dtype>::layers[layer_idx];
-        auto next_layer = kernel::PsiDeepT<dtype>::layers + layer_idx + 1;
+        auto& layer = kernel::PsiDeepT<dtype, symmetric>::layers[layer_idx];
+        auto next_layer = kernel::PsiDeepT<dtype, symmetric>::layers + layer_idx + 1;
 
         layer.rhs_connectivity = (
             layer_idx + 1 < this->num_layers ?
@@ -155,11 +153,11 @@ void PsiDeepT<dtype>::init_kernel() {
 }
 
 
-template<typename dtype>
-void PsiDeepT<dtype>::update_kernel() {
+template<typename dtype, bool symmetric>
+void PsiDeepT<dtype, symmetric>::update_kernel() {
     for(auto layer_idx = 0u; layer_idx < this->num_layers; layer_idx++) {
         Layer& layer = *next(this->layers.begin(), layer_idx);
-        auto& kernel_layer = kernel::PsiDeepT<dtype>::layers[layer_idx];
+        auto& kernel_layer = kernel::PsiDeepT<dtype, symmetric>::layers[layer_idx];
 
         kernel_layer.lhs_connections = layer.lhs_connections.data();
         kernel_layer.rhs_connections = layer.rhs_connections.data();
@@ -167,13 +165,13 @@ void PsiDeepT<dtype>::update_kernel() {
         kernel_layer.rhs_weights = layer.rhs_weights.data();
         kernel_layer.biases = layer.biases.data();
     }
-    kernel::PsiDeepT<dtype>::input_biases = PsiDeepT<dtype>::input_biases.data();
-    kernel::PsiDeepT<dtype>::final_weights = PsiDeepT<dtype>::final_weights.data();
+    kernel::PsiDeepT<dtype, symmetric>::input_biases = PsiDeepT<dtype, symmetric>::input_biases.data();
+    kernel::PsiDeepT<dtype, symmetric>::final_weights = PsiDeepT<dtype, symmetric>::final_weights.data();
 }
 
 
-template<typename dtype>
-pair<Array<unsigned int>, Array<dtype>> PsiDeepT<dtype>::compile_rhs_connections_and_weights(
+template<typename dtype, bool symmetric>
+pair<Array<unsigned int>, Array<dtype>> PsiDeepT<dtype, symmetric>::compile_rhs_connections_and_weights(
     const unsigned int prev_size,
     const unsigned int size,
     const unsigned int lhs_connectivity,
@@ -207,8 +205,8 @@ pair<Array<unsigned int>, Array<dtype>> PsiDeepT<dtype>::compile_rhs_connections
 }
 
 
-template<typename dtype>
-Array<dtype> PsiDeepT<dtype>::get_params() const {
+template<typename dtype, bool symmetric>
+Array<dtype> PsiDeepT<dtype, symmetric>::get_params() const {
     Array<dtype> result(this->num_params, false);
 
     for(auto i = 0u; i < this->N; i++) {
@@ -231,8 +229,8 @@ Array<dtype> PsiDeepT<dtype>::get_params() const {
 }
 
 
-template<typename dtype>
-void PsiDeepT<dtype>::set_params(const Array<dtype>& new_params) {
+template<typename dtype, bool symmetric>
+void PsiDeepT<dtype, symmetric>::set_params(const Array<dtype>& new_params) {
     for(auto i = 0u; i < this->N; i++) {
         this->input_biases[i] = new_params[i];
     }
@@ -267,6 +265,6 @@ void PsiDeepT<dtype>::set_params(const Array<dtype>& new_params) {
 
 
 // template struct PsiDeepT<cuda_complex::complex<float>>;
-template struct PsiDeepT<cuda_complex::complex<double>>;
+template struct PsiDeepT<cuda_complex::complex<double>, true>;
 
 } // namespace ann_on_gpu

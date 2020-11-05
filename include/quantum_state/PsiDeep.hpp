@@ -37,7 +37,27 @@ using namespace cuda_complex;
 #define RESTRICT
 #endif
 
-template<typename dtype_t>
+namespace PsiDeep {
+
+    template<typename dtype, unsigned int, bool>
+    struct Payload_t {};
+
+    template<typename dtype, unsigned int max_width>
+    struct Payload_t<dtype, max_width, false> {
+        dtype angles[max_width];
+        dtype activations[max_width];
+    };
+
+    template<typename dtype, unsigned int max_width>
+    struct Payload_t<dtype, max_width, true> {
+        dtype angles[0];
+        dtype activations[max_width];
+    };
+
+} // namespace PsiDeep
+
+
+template<typename dtype_t, bool symmetric>
 struct PsiDeepT {
     // network structure:
     //
@@ -55,10 +75,8 @@ struct PsiDeepT {
     static constexpr unsigned int max_width = 2 * MAX_SPINS;
     static constexpr unsigned int max_deep_angles = MAX_SPINS;
 
-    struct Payload {
-        dtype angles[max_width];
-        dtype activations[max_width];
-    };
+
+    using Payload = PsiDeep::Payload_t<dtype, max_width, symmetric>;
 
     // TODO: Try to use stack-allocated arrays
     struct Layer {
@@ -105,8 +123,6 @@ struct PsiDeepT {
     unsigned int   N_i;
     unsigned int   N_j;
 
-    bool           translational_invariance;
-
 #ifdef __CUDACC__
 
     template<typename Basis_t>
@@ -131,20 +147,23 @@ struct PsiDeepT {
     template<typename Basis_t>
     HDINLINE
     void init_payload(Payload& payload, const Basis_t& configuration) const {
-        this->compute_angles(payload.angles, configuration);
+        if(!symmetric) {
+            this->compute_angles(payload.angles, configuration);
+        }
     }
 
     template<typename result_dtype>
     HDINLINE
     void forward_pass(
         result_dtype& result,  /* CAUTION: this parameter is assumed to be initialized */
-        Payload& payload,
+        dtype* RESTRICT angles,
+        dtype* RESTRICT activations,
         dtype* RESTRICT deep_angles
     ) const {
         #include "cuda_kernel_defines.h"
 
         MULTI(i, this->layers[1].size) {
-            payload.activations[i] = my_logcosh(payload.angles[i]);
+            activations[i] = my_logcosh(angles[i]);
         }
 
         SHARED_MEM_LOOP_BEGIN_X0(layer_idx, 2u, this->num_layers) {
@@ -156,7 +175,7 @@ struct PsiDeepT {
                 for(auto i = 0u; i < layer.lhs_connectivity; i++) {
                     REGISTER(activation, j) += (
                         layer.lhs_weight(i, j) *
-                        payload.activations[layer.lhs_connection(i, j)]
+                        activations[layer.lhs_connection(i, j)]
                     );
                 }
                 REGISTER(activation, j) += layer.biases[j];
@@ -167,12 +186,12 @@ struct PsiDeepT {
             }
             SYNC;
             MULTI(k, layer.size) {
-                payload.activations[k] = my_logcosh(REGISTER(activation, k));
+                activations[k] = my_logcosh(REGISTER(activation, k));
             }
             SHARED_MEM_LOOP_END(layer_idx);
         }
         MULTI(j, this->num_final_weights) {
-            generic_atomicAdd(&result, payload.activations[j] * this->final_weights[j]);
+            generic_atomicAdd(&result, activations[j] * this->final_weights[j]);
         }
         SYNC;
     }
@@ -183,15 +202,44 @@ struct PsiDeepT {
         #include "cuda_kernel_defines.h"
         // CAUTION: 'result' has to be a shared variable.
 
+        SHARED Basis_t shifted_configuration;
+
         SINGLE {
             result = result_dtype(0.0);
+
+            if(symmetric) {
+                shifted_configuration = configuration;
+            }
         }
         SYNC;
-        MULTI(i, this->N) {
-            generic_atomicAdd(&result, result_dtype(configuration.network_unit_at(i)) * this->input_biases[i]);
-        }
 
-        this->forward_pass(result, payload, nullptr);
+        if(symmetric) {
+            SHARED_MEM_LOOP_BEGIN(n, this->num_sites) {
+                MULTI(i, this->N) {
+                    generic_atomicAdd(&result, result_dtype(shifted_configuration.network_unit_at(i)) * this->input_biases[i]);
+                }
+
+                this->compute_angles(payload.activations, shifted_configuration);
+                this->forward_pass(result, payload.activations, payload.activations, nullptr);
+
+                SINGLE {
+                    shifted_configuration = shifted_configuration.roll(1, this->num_sites);
+                }
+
+                SHARED_MEM_LOOP_END(n);
+            }
+            SINGLE {
+                result *= 1.0 / this->num_sites;
+            }
+            SYNC; // might be not neccessary
+        }
+        else {
+            MULTI(i, this->N) {
+                generic_atomicAdd(&result, result_dtype(configuration.network_unit_at(i)) * this->input_biases[i]);
+            }
+
+            this->forward_pass(result, payload.angles, payload.activations, nullptr);
+        }
     }
 
     template<typename Basis_t>
@@ -301,7 +349,7 @@ struct PsiDeepT {
             );
         }
 
-        this->forward_pass(log_psi, payload, deep_angles);
+        this->forward_pass(log_psi, payload.angles, payload.activations, deep_angles);
 
         for(int layer_idx = int(this->num_layers) - 1; layer_idx > 0; layer_idx--) {
             const Layer& layer = this->layers[layer_idx];
@@ -412,11 +460,11 @@ struct PsiDeepT {
 } // namespace kernel
 
 
-template<typename dtype>
-struct PsiDeepT : public kernel::PsiDeepT<dtype> {
+template<typename dtype, bool symmetric>
+struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
 
     using real_dtype = typename cuda_complex::get_real_type<dtype>::type;
-    using Kernel = kernel::PsiDeepT<dtype>;
+    using Kernel = kernel::PsiDeepT<dtype, symmetric>;
 
     struct Layer {
         unsigned int        size;
@@ -445,7 +493,6 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype> {
         const vector<xt::pytensor<typename std_dtype<dtype>::type, 2u>>& lhs_weights_list,
         const xt::pytensor<typename std_dtype<dtype>::type, 1u>& final_weights,
         const double prefactor,
-        const bool translational_invariance,
         const bool gpu
     ) : input_biases(input_biases, gpu), final_weights(final_weights, gpu) {
         this->num_sites = num_sites;
@@ -454,7 +501,6 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype> {
         this->num_layers = lhs_weights_list.size() + 1u; // num hidden layers + input layer
         this->width = this->N;
         this->num_units = 0u;
-        this->translational_invariance = translational_invariance;
         this->gpu = gpu;
 
         Array<unsigned int> rhs_connections_array(0, false);
@@ -608,6 +654,10 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype> {
     Array<dtype> get_params() const;
     void set_params(const Array<dtype>& new_params);
 
+    inline bool is_symmetric() const {
+        return symmetric;
+    }
+
     void init_kernel();
     void update_kernel();
 
@@ -621,7 +671,7 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype> {
 };
 
 
-using PsiDeep = PsiDeepT<complex_t>;
+using PsiDeep = PsiDeepT<complex_t, true>;
 // using PsiDeep = PsiDeepT<cuda_complex::complex<double>>;
 
 } // namespace ann_on_gpu
