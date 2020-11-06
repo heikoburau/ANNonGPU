@@ -123,10 +123,12 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         #ifdef ENABLE_SPINS
         .def("vector", [](const PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
+        .def("normalize", [](PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
         #endif // ENABLE_SPINS
         #ifdef ENABLE_PAULIS
         .def("vector", [](const PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
+        .def("normalize", [](PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
         #endif // ENABLE_PAULIS
         #endif // ENABLE_EXACT_SUMMATION
         ;
@@ -161,10 +163,12 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         #ifdef ENABLE_SPINS
         .def("vector", [](const PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
+        .def("normalize", [](PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
         #endif // ENABLE_SPINS
         #ifdef ENABLE_PAULIS
         .def("vector", [](const PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
+        .def("normalize", [](PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
         #endif // ENABLE_PAULIS
         #endif // ENABLE_EXACT_SUMMATION
         ;
@@ -199,10 +203,12 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         #ifdef ENABLE_SPINS
         .def("vector", [](const PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
+        .def("normalize", [](PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
         #endif // ENABLE_SPINS
         #ifdef ENABLE_PAULIS
         .def("vector", [](const PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
+        .def("normalize", [](PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
         #endif // ENABLE_PAULIS
         #endif // ENABLE_EXACT_SUMMATION
         ;
@@ -237,10 +243,12 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         #ifdef ENABLE_SPINS
         .def("vector", [](const PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
+        .def("normalize", [](PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
         #endif // ENABLE_SPINS
         #ifdef ENABLE_PAULIS
         .def("vector", [](const PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
+        .def("normalize", [](PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
         #endif // ENABLE_PAULIS
         #endif // ENABLE_EXACT_SUMMATION
         ;
@@ -326,17 +334,97 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Spins>>)
         .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<Spins>>)
 #endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
         .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
         .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Spins>>)
         .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<Spins>>)
 #endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+#endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
         .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
         .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
 #endif
     ;
 

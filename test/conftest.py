@@ -19,10 +19,10 @@ def pytest_generate_tests(metafunc):
 
     if 'psi_deep' in metafunc.fixturenames:
         psi_list = [
-            lambda gpu: new_deep_neural_network(2, 2, [2], [2], a=0.1, gpu=gpu),
+            # lambda gpu: new_deep_neural_network(2, 2, [2], [2], a=0.1, gpu=gpu),
             lambda gpu: new_deep_neural_network(3, 3, [9, 6], [1, 3], noise=1e-2, gpu=gpu),
-            lambda gpu: new_deep_neural_network(2, 6, [12, 6], [6, 12], noise=1e-2, a=-0.2, gpu=gpu),
-            lambda gpu: new_deep_neural_network(3, 9, [18, 9, 3], [2, 2, 3], a=0.1, noise=1e-3, gpu=gpu),
+            # lambda gpu: new_deep_neural_network(2, 6, [12, 6], [6, 12], noise=1e-2, a=-0.2, gpu=gpu),
+            # lambda gpu: new_deep_neural_network(3, 9, [18, 9, 3], [2, 2, 3], a=0.1, noise=1e-3, gpu=gpu),
         ]
         metafunc.parametrize("psi_deep", psi_list)
 
@@ -66,6 +66,18 @@ def pytest_generate_tests(metafunc):
             "hamiltonian",
             [
                 lambda L: qt.disordered_Heisenberg_chain(L, 1, 0.2, 1)
+            ]
+        )
+
+    if 'all_operators' in metafunc.fixturenames:
+        metafunc.parametrize(
+            "all_operators",
+            [
+                lambda L: sigma_x(L // 2),
+                lambda L: sigma_y(L // 2),
+                lambda L: sigma_z(L // 2),
+                lambda L: qt.disordered_Heisenberg_chain(L, 1, 0.2, 1),
+                lambda L: qt.disordered_Heisenberg_chain(L // 2, 0.5, 0.3, 0.7)
             ]
         )
 

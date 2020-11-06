@@ -671,7 +671,12 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
 };
 
 
+#ifdef PSI_DEEP_SYMMETRIC
 using PsiDeep = PsiDeepT<complex_t, true>;
+#else
+using PsiDeep = PsiDeepT<complex_t, false>;
+#endif // PSI_DEEP_SYMMETRIC
+
 // using PsiDeep = PsiDeepT<cuda_complex::complex<double>>;
 
 } // namespace ann_on_gpu

@@ -265,6 +265,11 @@ void PsiDeepT<dtype, symmetric>::set_params(const Array<dtype>& new_params) {
 
 
 // template struct PsiDeepT<cuda_complex::complex<float>>;
+
+#ifdef PSI_DEEP_SYMMETRIC
 template struct PsiDeepT<cuda_complex::complex<double>, true>;
+#else
+template struct PsiDeepT<cuda_complex::complex<double>, false>;
+#endif // PSI_DEEP_SYMMETRIC
 
 } // namespace ann_on_gpu

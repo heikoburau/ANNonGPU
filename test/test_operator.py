@@ -16,19 +16,22 @@ def fubini_study(psi, phi):
 
 def test_operator(psi_deep, single_sigma, ensemble, gpu):
     psi_0 = psi_deep(gpu)
-
-    use_spins = ensemble.__name__.endswith("Spins")
-    if not use_spins and psi_0.N % 3 != 0:
+    if psi_0.symmetric:
         return
 
-    L = psi_0.N if use_spins else psi_0.N // 3
+    num_sites = psi_0.num_sites
 
-    op = single_sigma(L)
-    ensemble = ensemble(L, gpu)
+    use_spins = ensemble.__name__.endswith("Spins")
+    if not use_spins and psi_0.N != 3 * num_sites:
+        return
+
+    ensemble = ensemble(num_sites, gpu)
+
+    op = single_sigma(num_sites)
     psi_0.normalize(ensemble)
 
-    print("L:", L)
-    print("operator:", op)
+    # print("L:", num_sites)
+    # print("operator:", op)
 
     learning = LearningByGradientDescent(psi_0.num_params, ensemble)
 
@@ -37,7 +40,7 @@ def test_operator(psi_deep, single_sigma, ensemble, gpu):
     psi_out = learning.optimize_for(psi_0, psi_0, U, True, eta=1e-2)
 
     assert fubini_study(
-        U.matrix(L, "spins" if use_spins else "paulis") @ psi_0.vector(ensemble),
+        U.matrix(num_sites, "spins" if use_spins else "paulis") @ psi_0.vector(ensemble),
         psi_out.vector(ensemble)
     ) < 1e-2
 
@@ -46,6 +49,6 @@ def test_operator(psi_deep, single_sigma, ensemble, gpu):
     psi_out = learning.optimize_for(psi_0, psi_0, U, True, eta=1e-2)
 
     assert fubini_study(
-        U.matrix(L, "spins" if use_spins else "paulis") @ psi_0.vector(ensemble),
+        U.matrix(num_sites, "spins" if use_spins else "paulis") @ psi_0.vector(ensemble),
         psi_out.vector(ensemble)
     ) < 1e-2

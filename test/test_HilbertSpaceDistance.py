@@ -10,26 +10,27 @@ from math import sqrt
 def test_distance1(psi_deep, ensemble, hamiltonian, gpu):
     psi = psi_deep(gpu)
 
+    num_sites = psi.num_sites
+
     use_spins = ensemble.__name__.endswith("Spins")
-    if not use_spins and psi.N % 3 != 0:
+    if not use_spins and psi.N != 3 * num_sites:
         return
 
-    N = psi.N if use_spins else psi.N // 3
+    ensemble = ensemble(num_sites, gpu)
 
-    ensemble = ensemble(N, gpu)
-
-    H = hamiltonian(N)
+    H = hamiltonian(num_sites)
 
     psi.normalize(ensemble)
 
     t = 1e-2
+    U = 1 + 1j * H * t
     hs_distance = HilbertSpaceDistance(psi.num_params, gpu)
-    op = Operator(1 + 1j * H * t, gpu)
+    op = Operator(U, gpu)
     distance_test = hs_distance(psi, psi, op, True, ensemble)
 
     psi_vector = psi.vector(ensemble)
 
-    psi_prime_vector = (1 + 1j * H * t).matrix(N, "spins" if use_spins else "paulis") @ psi_vector
+    psi_prime_vector = U.matrix(num_sites, "spins" if use_spins else "paulis") @ psi_vector
     psi_prime_vector /= np.linalg.norm(psi_prime_vector)
 
     distance_ref = sqrt(1.0 - abs(np.vdot(
@@ -67,16 +68,18 @@ def test_distance1(psi_deep, ensemble, hamiltonian, gpu):
 
 def test_gradient1(psi_deep, ensemble, single_sigma, gpu):
     psi = psi_deep(gpu)
-
-    use_spins = ensemble.__name__.endswith("Spins")
-    if not use_spins and psi.N % 3 != 0:
+    if psi.symmetric:
         return
 
-    N = psi.N if use_spins else psi.N // 3
+    num_sites = psi.num_sites
 
-    ensemble = ensemble(N, gpu)
+    use_spins = ensemble.__name__.endswith("Spins")
+    if not use_spins and psi.N != 3 * num_sites:
+        return
 
-    expr = single_sigma(N)
+    ensemble = ensemble(num_sites, gpu)
+
+    expr = single_sigma(num_sites)
 
     psi.normalize(ensemble)
     psi1 = +psi
@@ -130,16 +133,19 @@ def test_gradient1(psi_deep, ensemble, single_sigma, gpu):
 
 def test_gradient2(psi_deep, ensemble, hamiltonian, gpu):
     psi_0 = psi_deep(gpu)
+    if psi_0.symmetric:
+        return
+
     psi_0.params = (2 * np.random.rand(psi_0.num_params)) * psi_0.params
     psi = psi_deep(gpu)
 
+    num_sites = psi.num_sites
+
     use_spins = ensemble.__name__.endswith("Spins")
-    if not use_spins and psi_0.N % 3 != 0:
+    if not use_spins and psi.N != 3 * num_sites:
         return
 
-    N = psi_0.N if use_spins else psi_0.N // 3
-
-    ensemble = ensemble(N, gpu)
+    ensemble = ensemble(num_sites, gpu)
 
     psi_0.normalize(ensemble)
     psi.normalize(ensemble)
