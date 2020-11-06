@@ -52,15 +52,17 @@ def expand_template(template):
     }
 
     for instances in product(*matching_keywords.values()):
-        flags = set()
+        # use dict as a proxy for an ordered set
+        flags = {}
         for instance in instances:
             if instance["flag"] is None:
                 continue
 
             if isinstance(instance["flag"], (list, tuple)):
-                flags.update(instance["flag"])
+                for flag in instance["flag"]:
+                    flags[flag] = None
             else:
-                flags.add(instance["flag"])
+                flags[instance["flag"]] = None
 
         if flags:
             yield r"#if " + " && ".join(f"defined({flag})" for flag in flags) + "\n"

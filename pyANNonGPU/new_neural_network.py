@@ -108,4 +108,8 @@ def new_deep_neural_network(
         final_weights = final_weights * np.ones(M_linear[-1])
     assert len(final_weights) == M_linear[-1]
 
+    assert (num_sites == len(a)) or (3 * num_sites == len(a)), (
+        f"mismatch between num_sites = {num_sites} and len(a) = {len(a)}."
+    )
+
     return PsiDeep(num_sites, a, b, connections, W, final_weights, 1.0, gpu)

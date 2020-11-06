@@ -227,6 +227,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     m.def("log_psi_s", [](const AllPsi& psi, const Basis& basis) {
         return log_psi_s(psi, basis);
     });
+    m.def("psi_vector", [](const AllPsi& psi, ExactSummation_t<Basis>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
     m.def("psi_O_k_vector", [](const AllPsi& psi, ExactSummation_t<Basis>& ensemble) {
         return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
     });

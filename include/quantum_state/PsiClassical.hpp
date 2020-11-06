@@ -41,7 +41,7 @@ struct PsiClassical_t {
 
     static constexpr unsigned int max_sites = MAX_SPINS / 2u;
     static constexpr unsigned int max_local_terms = 4u;
-    static constexpr unsigned int max_local_energies = max_local_terms * max_sites / 2u;
+    static constexpr unsigned int max_local_energies = max_local_terms * max_sites;
 
     struct Payload {
         // todo: add configuration to detect whether re-calculation is neccessary at all.
@@ -78,16 +78,10 @@ struct PsiClassical_t {
 
     // data for the squared first moment
     struct M_1_squared {
-        // Hamiltonian, complete.
-        // (symmetric, pure-x Pauli-strings may be replaced by a single representative,
-        //  for the Spin basis, since PsiRef is symmetric.)
-        // Operator        terms;
-
         // N * (N + 1) / 2 index pairs for evaluating the double-sum of (m_1)^2.
         unsigned int    num_ll_pairs;
         unsigned int*   ids_l;
         unsigned int*   ids_l_prime;
-
 
         unsigned int    begin_params;
     };
@@ -108,10 +102,6 @@ struct PsiClassical_t {
     template<typename Basis_t>
     HDINLINE
     void init_payload(Payload& payload, const Basis_t& configuration) const {
-        LOOP(i, this->num_local_energies) {
-            payload.local_energies[i] = complex_t(0.0);
-        }
-
         this->psi_ref.init_payload(payload.ref_payload, configuration);
         this->psi_ref.log_psi_s(payload.log_psi_ref, configuration, payload.ref_payload);
 
@@ -131,6 +121,13 @@ struct PsiClassical_t {
     template<typename Basis_t>
     HDINLINE
     void compute_1st_order_local_energies(const Basis_t& configuration, Payload& payload) const {
+        LOOP(i, this->num_local_energies) {
+            payload.local_energies[i] = complex_t(0.0);
+        }
+        MULTI(j, this->H_local.num_strings) {
+            payload.local_energy_H_full[j] = complex_t(0.0);
+        }
+
         SHARED_MEM_LOOP_BEGIN(n, this->H_local.num_strings) {
             SHARED_MEM_LOOP_BEGIN(m, this->num_sites) {
                 this->H_local.nth_local_energy(
@@ -185,9 +182,17 @@ struct PsiClassical_t {
 
         SINGLE {
             result = payload.log_psi_ref;
+            // printf("payload.log_psi_ref: %f, %f\n", payload.log_psi_ref.real(), payload.log_psi_ref.imag());
         }
 
         LOOP(k, this->num_params) {
+            // printf(
+            //     "O_k: %f, %f\n",
+            //     this->get_O_k(k, payload).real(),
+            //     this->get_O_k(k, payload).imag()
+            // );
+
+
             generic_atomicAdd(&result, this->params[k] * this->get_O_k(k, payload));
         }
 
@@ -213,7 +218,7 @@ struct PsiClassical_t {
     }
 
     HDINLINE
-    complex_t get_O_k(const unsigned int k, Payload& payload) const {
+    complex_t get_O_k(const unsigned int k, const Payload& payload) const {
         if(k < this->H_local.num_strings) {
             return payload.local_energy_H_full[k];
         }

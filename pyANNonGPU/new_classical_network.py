@@ -49,6 +49,8 @@ def new_classical_network(
                 num_sites, H_local, H_2_local, params, psi_ref, prefactor, gpu
             )
 
+        assert num_sites == psi_ref.num_sites
+
         return pyANNonGPU.PsiClassicalANN_2(
             num_sites, H_local, H_2_local, params, psi_ref, prefactor, gpu
         )
@@ -70,7 +72,6 @@ def new_2nd_order_vCN_from_H_local(
         distance = num_sites // 2
 
     H = sum(H_local_fun(l) for l in range(distance))
-    H.assign(1)
     H_2_local = (H**2).translationally_invariant(distance)
     H_2_local.assign(1)
     H_2_local -= H_2_local[PauliExpression(1).pauli_string]

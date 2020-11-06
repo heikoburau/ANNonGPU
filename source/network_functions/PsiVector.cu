@@ -86,23 +86,23 @@ std::complex<double> log_psi_s(const Psi_t& psi, const Basis_t& configuration) {
 template std::complex<double> log_psi_s(const PsiDeep&, const Spins&);
 template Array<complex_t> psi_vector(const PsiDeep& psi, ExactSummation_t<Spins>& ensemble);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_SPINS)
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template std::complex<double> log_psi_s(const PsiFullyPolarized&, const Spins&);
 template Array<complex_t> psi_vector(const PsiFullyPolarized& psi, ExactSummation_t<Spins>& ensemble);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_SPINS)
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template std::complex<double> log_psi_s(const PsiClassicalFP<1u>&, const Spins&);
 template Array<complex_t> psi_vector(const PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& ensemble);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_SPINS)
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template std::complex<double> log_psi_s(const PsiClassicalFP<2u>&, const Spins&);
 template Array<complex_t> psi_vector(const PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& ensemble);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_SPINS)
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template std::complex<double> log_psi_s(const PsiClassicalANN<1u>&, const Spins&);
 template Array<complex_t> psi_vector(const PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& ensemble);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_SPINS)
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template std::complex<double> log_psi_s(const PsiClassicalANN<2u>&, const Spins&);
 template Array<complex_t> psi_vector(const PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& ensemble);
 #endif
@@ -110,23 +110,23 @@ template Array<complex_t> psi_vector(const PsiClassicalANN<2u>& psi, ExactSummat
 template std::complex<double> log_psi_s(const PsiDeep&, const PauliString&);
 template Array<complex_t> psi_vector(const PsiDeep& psi, ExactSummation_t<PauliString>& ensemble);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template std::complex<double> log_psi_s(const PsiFullyPolarized&, const PauliString&);
 template Array<complex_t> psi_vector(const PsiFullyPolarized& psi, ExactSummation_t<PauliString>& ensemble);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template std::complex<double> log_psi_s(const PsiClassicalFP<1u>&, const PauliString&);
 template Array<complex_t> psi_vector(const PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>& ensemble);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template std::complex<double> log_psi_s(const PsiClassicalFP<2u>&, const PauliString&);
 template Array<complex_t> psi_vector(const PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>& ensemble);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template std::complex<double> log_psi_s(const PsiClassicalANN<1u>&, const PauliString&);
 template Array<complex_t> psi_vector(const PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>& ensemble);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template std::complex<double> log_psi_s(const PsiClassicalANN<2u>&, const PauliString&);
 template Array<complex_t> psi_vector(const PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>& ensemble);
 #endif

@@ -29,7 +29,7 @@ T my_logcosh(const T z) {
     // return sqrt(1.0 + z*z) - 1.0;
 
     // return complex_t(0.0, -1.0) * log(cosh(z)) + complex_t(0.0, -0.346574);
-    return log(cosh(z));
+    // return log(cosh(z));
     // return tanh(z);
 
     // seems to be dangerous. Does not work for a SW-generator applied on an initial state.
@@ -83,7 +83,7 @@ T my_tanh(const T z) {
 
     // return z / sqrt(1.0 + z*z);
 
-    return tanh(z);
+    // return tanh(z);
 
     // const auto e_z = exp(z);
     // return e_z + (1.0 + e_z);

@@ -51,37 +51,37 @@ double psi_norm(const Psi_t& psi, Ensemble& exact_summation) {
 #if defined(ENABLE_SPINS)
 template double psi_norm(const PsiDeep& psi, ExactSummation_t<Spins>&);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_SPINS)
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template double psi_norm(const PsiFullyPolarized& psi, ExactSummation_t<Spins>&);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_SPINS)
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template double psi_norm(const PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>&);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_SPINS)
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template double psi_norm(const PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>&);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_SPINS)
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template double psi_norm(const PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>&);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_SPINS)
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template double psi_norm(const PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_PAULIS)
 template double psi_norm(const PsiDeep& psi, ExactSummation_t<PauliString>&);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template double psi_norm(const PsiFullyPolarized& psi, ExactSummation_t<PauliString>&);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template double psi_norm(const PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>&);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template double psi_norm(const PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>&);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template double psi_norm(const PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>&);
 #endif
-#if defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template double psi_norm(const PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>&);
 #endif
 
