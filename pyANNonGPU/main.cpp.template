@@ -2,6 +2,7 @@
 #include "network_functions/ExpectationValue.hpp"
 #include "network_functions/HilbertSpaceDistance.hpp"
 #include "network_functions/KullbackLeibler.hpp"
+#include "network_functions/TDVP.hpp"
 #include "network_functions/PsiVector.hpp"
 #include "network_functions/PsiNorm.hpp"
 #include "network_functions/PsiOkVector.hpp"
@@ -224,6 +225,15 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 //         .def("gradient", &KullbackLeibler::gradient_2nd_order_py<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "op"_a, "op2"_a, "spin_ensemble"_a, "nu"_a)
 
 //     ;
+
+
+    py::class_<TDVP>(m, "TDVP")
+        .def(py::init<unsigned int, bool>())
+        //! begin template
+        .def("eval", &TDVP::eval<ClPsi, Ensemble<Basis>>)
+        //! end template
+        ;
+
 
     //! begin template
     m.def("log_psi_s", [](const AllPsi& psi, const Basis& basis) {

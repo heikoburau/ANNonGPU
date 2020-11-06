@@ -8,6 +8,7 @@
 #include "network_functions/ExpectationValue.hpp"
 #include "network_functions/HilbertSpaceDistance.hpp"
 #include "network_functions/KullbackLeibler.hpp"
+#include "network_functions/TDVP.hpp"
 #include "network_functions/PsiVector.hpp"
 #include "network_functions/PsiNorm.hpp"
 #include "network_functions/PsiOkVector.hpp"
@@ -458,6 +459,60 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 //         .def("gradient", &KullbackLeibler::gradient_2nd_order_py<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "op"_a, "op2"_a, "spin_ensemble"_a, "nu"_a)
 
 //     ;
+
+
+    py::class_<TDVP>(m, "TDVP")
+        .def(py::init<unsigned int, bool>())
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("eval", &TDVP::eval<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("eval", &TDVP::eval<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("eval", &TDVP::eval<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("eval", &TDVP::eval<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("eval", &TDVP::eval<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("eval", &TDVP::eval<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("eval", &TDVP::eval<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("eval", &TDVP::eval<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("eval", &TDVP::eval<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("eval", &TDVP::eval<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("eval", &TDVP::eval<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("eval", &TDVP::eval<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("eval", &TDVP::eval<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("eval", &TDVP::eval<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("eval", &TDVP::eval<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("eval", &TDVP::eval<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+#endif
+        ;
+
 
 #if defined(ENABLE_SPINS)
     m.def("log_psi_s", [](const PsiDeep& psi, const Spins& basis) {

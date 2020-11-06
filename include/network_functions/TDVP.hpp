@@ -1,0 +1,31 @@
+#pragma once
+
+#include "operator/Operator.hpp"
+#include "Array.hpp"
+#include "types.h"
+
+
+namespace ann_on_gpu {
+
+
+struct TDVP {
+    Array<complex_t> E_local_ar;
+    Array<complex_t> O_k_ar;
+
+    Array<complex_t> S_matrix;
+    Array<complex_t> F_vector;
+
+    inline TDVP(unsigned int num_params, bool gpu)
+    :
+    E_local_ar(num_params, gpu),
+    O_k_ar(num_params, gpu),
+    S_matrix(num_params * num_params, gpu),
+    F_vector(num_params, gpu)
+    {}
+
+    template<typename Psi_t, typename Ensemble>
+    void eval(const Operator& op, const Psi_t& psi, Ensemble& ensemble);
+};
+
+
+} // namespace ann_on_gpu
