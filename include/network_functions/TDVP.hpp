@@ -9,6 +9,8 @@ namespace ann_on_gpu {
 
 
 struct TDVP {
+    const unsigned int num_params;
+
     Array<complex_t> E_local_ar;
     Array<complex_t> O_k_ar;
 
@@ -17,6 +19,7 @@ struct TDVP {
 
     inline TDVP(unsigned int num_params, bool gpu)
     :
+    num_params(num_params),
     E_local_ar(num_params, gpu),
     O_k_ar(num_params, gpu),
     S_matrix(num_params * num_params, gpu),

@@ -463,6 +463,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 
     py::class_<TDVP>(m, "TDVP")
         .def(py::init<unsigned int, bool>())
+        .def_property_readonly("S_matrix", [](const TDVP& tdvp){return tdvp.S_matrix.to_pytensor_2d({tdvp.num_params, tdvp.num_params});})
+        .def_property_readonly("F_vector", [](const TDVP& tdvp){return tdvp.F_vector.to_pytensor_1d();})
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
 #endif
