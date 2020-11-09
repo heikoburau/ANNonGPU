@@ -57,7 +57,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("copy", &PsiDeep::copy)
         .def_readwrite("num_sites", &PsiDeep::num_sites)
         .def_readwrite("prefactor", &PsiDeep::prefactor)
-        .def_readwrite("log_prefactor", &PsiDeep::log_prefactor)
+        .def_property(
+            "log_prefactor",
+            [](const PsiDeep& psi) {return psi.log_prefactor.to_std();},
+            [](PsiDeep& psi, complex<double> value) {psi.log_prefactor = complex_t(value);}
+        )
         .def_readwrite("N_i", &PsiDeep::N_i)
         .def_readwrite("N_j", &PsiDeep::N_j)
         .def_readonly("gpu", &PsiDeep::gpu)
@@ -84,7 +88,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         //! end template
         #endif // ENABLE_EXACT_SUMMATION
         //! begin template
-        .def("calibrate", [](PsiDeep& psi, Ensemble<Basis>& ensemble){psi.log_prefactor = -log_psi(psi, ensemble);})
+        .def("calibrate", [](PsiDeep& psi, Ensemble<Basis>& ensemble){
+            psi.prefactor = 1.0;
+            psi.log_prefactor = complex_t(0.0);
+            psi.prefactor /= psi_norm(psi, ensemble);
+            psi.log_prefactor = -log_psi(psi, ensemble);
+            psi.prefactor /= psi_norm(psi, ensemble);
+        })
         //! end template
         ;
 
@@ -105,7 +115,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("H_local", [](const ClPsi& psi){return psi.H_local_op.to_expr_list();})
         .def_property_readonly("H_2_local", [](const ClPsi& psi){return psi.H_2_local_op.to_expr_list();})
         .def_readwrite("prefactor", &ClPsi::prefactor)
-        .def_readonly("psi_ref", &ClPsi::psi_ref)
+        .def_readwrite("psi_ref", &ClPsi::psi_ref)
         .def_readonly("gpu", &ClPsi::gpu)
         .def_readonly("num_params", &ClPsi::num_params)
         .def_property_readonly("order", [](const ClPsi& psi) {return psi.get_order();})
@@ -114,6 +124,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             [](const ClPsi& psi) {return psi.params.to_pytensor_1d();},
             [](ClPsi& psi, const complex_tensor<1u>& new_params) {psi.params = new_params;}
         )
+        .def("update_psi_ref_kernel", &ClPsi::update_psi_ref_kernel)
         #ifdef ENABLE_EXACT_SUMMATION
         #ifdef ENABLE_SPINS
         .def("vector", [](const ClPsi& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
@@ -221,14 +232,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     ;
 
 
-//     py::class_<KullbackLeibler>(m, "KullbackLeibler")
-//         .def(py::init<unsigned int, bool>())
-//         .def("__call__", &KullbackLeibler::value_with_op<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
-//         .def("gradient", &KullbackLeibler::gradient_with_op_py<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
-//         .def("__call__", &KullbackLeibler::value_2nd_order<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "op"_a, "op2"_a, "spin_ensemble"_a)
-//         .def("gradient", &KullbackLeibler::gradient_2nd_order_py<PsiDeep, PsiDeep, MonteCarloLoop>, "psi"_a, "psi_prime"_a, "op"_a, "op2"_a, "spin_ensemble"_a, "nu"_a)
-
-//     ;
+    py::class_<KullbackLeibler>(m, "KullbackLeibler")
+        .def(py::init<unsigned int, bool>())
+        //! begin template
+        .def("__call__", &KullbackLeibler::value<ClPsi, PsiDeep, Ensemble<Basis>>)
+        .def("gradient", &KullbackLeibler::gradient_py<ClPsi, PsiDeep, Ensemble<Basis>>)
+        //! end template
+    ;
 
 
     py::class_<TDVP>(m, "TDVP")

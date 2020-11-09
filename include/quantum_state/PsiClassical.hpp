@@ -261,15 +261,15 @@ struct PsiClassical_t {
         }
     }
 
-    PsiClassical_t& kernel() {
-        return *this;
-    }
-
     const PsiClassical_t& kernel() const {
         return *this;
     }
 
 #endif // __CUDACC__
+
+    PsiClassical_t& kernel() {
+        return *this;
+    }
 
     HDINLINE
     unsigned int get_width() const {
@@ -319,6 +319,10 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, order, typename Psi
         this->gpu = other.gpu;
 
         this->init_kernel();
+    }
+
+    inline void update_psi_ref_kernel() {
+        this->kernel().psi_ref = this->psi_ref.kernel();
     }
 
 #ifdef __PYTHONCC__

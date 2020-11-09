@@ -68,55 +68,12 @@ public:
         const Psi_t& psi, const Psi_t_prime& psi_prime, Ensemble& spin_ensemble
     );
 
-    // template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
-    // double value(
-    //     const Psi_t& psi, const Psi_t_prime& psi_prime, const Operator& operator_,
-    //     const bool is_unitary, Ensemble& spin_ensemble
-    // );
-
-    // template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
-    // double value(
-    //     const Psi_t& psi, const Psi_t_prime& psi_prime,
-    //     const Operator& op, const Operator& op2,
-    //     Ensemble& spin_ensemble
-    // );
-
     template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
     double gradient(
         complex<double>* result, const Psi_t& psi, const Psi_t_prime& psi_prime, Ensemble& spin_ensemble, const double nu
     );
 
-    // template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
-    // double gradient(
-    //     complex<double>* result, const Psi_t& psi, const Psi_t_prime& psi_prime,
-    //     const Operator& operator_, const bool is_unitary, Ensemble& spin_ensemble, const double nu
-    // );
-
-    // template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
-    // double gradient(
-    //     complex<double>* result, const Psi_t& psi, const Psi_t_prime& psi_prime,
-    //     const Operator& op, const Operator& op2,
-    //     Ensemble& spin_ensemble, const double nu
-    // );
-
 #ifdef __PYTHONCC__
-
-    // template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
-    // double value_with_op(
-    //     const Psi_t& psi, const Psi_t_prime& psi_prime, const Operator& operator_,
-    //     const bool is_unitary, Ensemble& spin_ensemble
-    // ) {
-    //     return this->value(psi, psi_prime, operator_, is_unitary, spin_ensemble);
-    // }
-
-    // template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
-    // double value_2nd_order(
-    //     const Psi_t& psi, const Psi_t_prime& psi_prime,
-    //     const Operator& op, const Operator& op2,
-    //     Ensemble& spin_ensemble
-    // ) {
-    //     return this->value(psi, psi_prime, op, op2, spin_ensemble);
-    // }
 
     template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
     pair<xt::pytensor<complex<double>, 1u>, double> gradient_py(
@@ -128,31 +85,6 @@ public:
 
         return {grad, value};
     }
-
-    // template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
-    // pair<xt::pytensor<complex<double>, 1u>, double> gradient_with_op_py(
-    //     const Psi_t& psi, const Psi_t_prime& psi_prime, const Operator& operator_,
-    //     const bool is_unitary, Ensemble& spin_ensemble, const double nu
-    // ) {
-    //     xt::pytensor<complex<double>, 1u> grad(std::array<long int, 1u>({(long int)psi_prime.num_params}));
-
-    //     const double value = this->gradient(grad.data(), psi, psi_prime, operator_, is_unitary, spin_ensemble, nu);
-
-    //     return {grad, value};
-    // }
-
-    // template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
-    // pair<xt::pytensor<complex<double>, 1u>, double> gradient_2nd_order_py(
-    //     const Psi_t& psi, const Psi_t_prime& psi_prime,
-    //     const Operator& op, const Operator& op2,
-    //     Ensemble& spin_ensemble, const double nu
-    // ) {
-    //     xt::pytensor<complex<double>, 1u> grad(std::array<long int, 1u>({(long int)psi_prime.num_params}));
-
-    //     const double value = this->gradient(grad.data(), psi, psi_prime, op, op2, spin_ensemble, nu);
-
-    //     return {grad, value};
-    // }
 
 #endif // __PYTHONCC__
 

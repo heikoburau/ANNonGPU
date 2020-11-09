@@ -77,17 +77,16 @@ struct PsiFullyPolarized_t {
         const Basis_t& old_vector, const Basis_t& new_vector, Payload& payload
     ) const {}
 
-
-    PsiFullyPolarized_t kernel() const {
-        return *this;
-    }
-
     template<typename Basis_t, typename Function>
     HDINLINE
     void foreach_O_k(const Basis_t& configuration, Payload& payload, Function function) const {
     }
 
 #endif // __CUDACC__
+
+    PsiFullyPolarized_t kernel() const {
+        return *this;
+    }
 
     HDINLINE
     unsigned int get_width() const {

@@ -210,6 +210,7 @@ struct PsiDeepT {
 
             if(symmetric) {
                 shifted_configuration = configuration;
+                result *= this->num_sites;
             }
         }
         SYNC;
@@ -302,6 +303,9 @@ struct PsiDeepT {
         const Basis_t& old_vector, const Basis_t& new_vector, Payload& payload
     ) const {
         #include "cuda_kernel_defines.h"
+        if(symmetric) {
+            return;
+        }
 
         // 'updated_units' must be shared
         SHARED uint64_t     updated_units;
@@ -431,11 +435,15 @@ struct PsiDeepT {
         }
     }
 
-    PsiDeepT kernel() const {
+#endif // __CUDACC__
+
+    const PsiDeepT& kernel() const {
         return *this;
     }
 
-#endif // __CUDACC__
+    PsiDeepT& kernel() {
+        return *this;
+    }
 
     HDINLINE
     unsigned int get_width() const {

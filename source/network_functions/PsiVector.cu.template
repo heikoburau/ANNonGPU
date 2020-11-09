@@ -60,7 +60,7 @@ std::complex<double> log_psi(const Psi_t& psi, Ensemble& ensemble) {
             #include "cuda_kernel_defines.h"
 
             SINGLE {
-                generic_atomicAdd(result_ptr, log_psi);
+                generic_atomicAdd(result_ptr, weight * log_psi);
             }
         }
     );
