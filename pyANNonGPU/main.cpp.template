@@ -57,6 +57,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("copy", &PsiDeep::copy)
         .def_readwrite("num_sites", &PsiDeep::num_sites)
         .def_readwrite("prefactor", &PsiDeep::prefactor)
+        .def_readwrite("log_prefactor", &PsiDeep::log_prefactor)
         .def_readwrite("N_i", &PsiDeep::N_i)
         .def_readwrite("N_j", &PsiDeep::N_j)
         .def_readonly("gpu", &PsiDeep::gpu)
@@ -82,6 +83,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("norm", [](const PsiDeep& psi, ExactSummation_t<Basis>& exact_summation) {return psi_norm(psi, exact_summation);})
         //! end template
         #endif // ENABLE_EXACT_SUMMATION
+        //! begin template
+        .def("calibrate", [](PsiDeep& psi, Ensemble<Basis>& ensemble){psi.log_prefactor = -log_psi(psi, ensemble);})
+        //! end template
         ;
 
     //! begin template

@@ -63,6 +63,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("copy", &PsiDeep::copy)
         .def_readwrite("num_sites", &PsiDeep::num_sites)
         .def_readwrite("prefactor", &PsiDeep::prefactor)
+        .def_readwrite("log_prefactor", &PsiDeep::log_prefactor)
         .def_readwrite("N_i", &PsiDeep::N_i)
         .def_readwrite("N_j", &PsiDeep::N_j)
         .def_readonly("gpu", &PsiDeep::gpu)
@@ -92,6 +93,18 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("norm", [](const PsiDeep& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
 #endif
         #endif // ENABLE_EXACT_SUMMATION
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
+        .def("calibrate", [](PsiDeep& psi, MonteCarlo_tt<Spins>& ensemble){psi.log_prefactor = -log_psi(psi, ensemble);})
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
+        .def("calibrate", [](PsiDeep& psi, MonteCarlo_tt<PauliString>& ensemble){psi.log_prefactor = -log_psi(psi, ensemble);})
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
+        .def("calibrate", [](PsiDeep& psi, ExactSummation_t<Spins>& ensemble){psi.log_prefactor = -log_psi(psi, ensemble);})
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
+        .def("calibrate", [](PsiDeep& psi, ExactSummation_t<PauliString>& ensemble){psi.log_prefactor = -log_psi(psi, ensemble);})
+#endif
         ;
 
 #if defined(ENABLE_PSI_CLASSICAL)

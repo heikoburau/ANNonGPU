@@ -111,6 +111,7 @@ struct PsiDeepT {
     unsigned int   num_params;
 
     double         prefactor;
+    dtype          log_prefactor;
 
     dtype*         RESTRICT input_biases;
     Layer          layers[max_layers];
@@ -205,7 +206,7 @@ struct PsiDeepT {
         SHARED Basis_t shifted_configuration;
 
         SINGLE {
-            result = result_dtype(0.0);
+            result = result_dtype(this->log_prefactor);
 
             if(symmetric) {
                 shifted_configuration = configuration;
@@ -498,6 +499,7 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
         this->num_sites = num_sites;
         this->N = input_biases.shape()[0];
         this->prefactor = prefactor;
+        this->log_prefactor = dtype(0.0);
         this->num_layers = lhs_weights_list.size() + 1u; // num hidden layers + input layer
         this->width = this->N;
         this->num_units = 0u;
