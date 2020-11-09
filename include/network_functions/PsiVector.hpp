@@ -17,6 +17,9 @@ using namespace std;
 template<typename Psi_t, typename Basis_t>
 std::complex<double> log_psi_s(const Psi_t& psi, const Basis_t& configuration);
 
+template<typename Psi_t, typename Ensemble>
+std::complex<double> log_psi(const Psi_t& psi, Ensemble& ensemble);
+
 
 template<typename Psi_t, typename Ensemble>
 Array<complex_t> psi_vector(const Psi_t& psi, Ensemble& ensemble);

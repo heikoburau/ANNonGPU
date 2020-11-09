@@ -41,6 +41,34 @@ Array<complex_t> psi_vector(const Psi_t& psi, Ensemble& ensemble) {
     return result;
 }
 
+template<typename Psi_t, typename Ensemble>
+std::complex<double> log_psi(const Psi_t& psi, Ensemble& ensemble) {
+    Array<complex_t> result(1u, ensemble.gpu);
+
+    result.clear();
+    auto result_ptr = result.data();
+
+    ensemble.foreach(
+        psi,
+        [=] __host__ __device__ (
+            const unsigned int conf_index,
+            const typename Ensemble::Basis_t& configuration,
+            const complex_t& log_psi,
+            typename Psi_t::Payload& payload,
+            const double weight
+        ) {
+            #include "cuda_kernel_defines.h"
+
+            SINGLE {
+                generic_atomicAdd(result_ptr, log_psi);
+            }
+        }
+    );
+    result.update_host();
+
+    return result.front().to_std();
+}
+
 template<typename Psi_t, typename Basis_t>
 std::complex<double> log_psi_s(const Psi_t& psi, const Basis_t& configuration) {
     Array<complex_t> result(1u, psi.gpu);
@@ -78,7 +106,8 @@ std::complex<double> log_psi_s(const Psi_t& psi, const Basis_t& configuration) {
 
 //! begin template
 template std::complex<double> log_psi_s(const AllPsi&, const Basis&);
-template Array<complex_t> psi_vector(const AllPsi& psi, ExactSummation_t<Basis>& ensemble);
+template std::complex<double> log_psi(const AllPsi& psi, Ensemble<Basis>& ensemble);
+template Array<complex_t> psi_vector(const AllPsi& psi, Ensemble<Basis>& ensemble);
 //! end template
 
 
