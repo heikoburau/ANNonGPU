@@ -1,4 +1,4 @@
-from pyANNonGPU import PsiDeep, Spins, activation_function, psi_O_k, log_psi_s #, PauliString
+from pyANNonGPU import PsiDeep, Spins, activation_function, psi_O_k, log_psi_s, ExactSummationSpins #, PauliString
 
 from pytest import approx
 import numpy as np
@@ -18,7 +18,7 @@ def complex_noise(shape):
     return real_noise(shape) + 1j * real_noise(shape)
 
 
-def test_psi_deep_s(psi_deep, ensemble, gpu):
+def __test_psi_deep_s(psi_deep, ensemble, gpu):
     psi = psi_deep(gpu)
 
     use_spins = ensemble.__name__.endswith("Spins")
@@ -94,12 +94,13 @@ def test_psi_classical_s(psi_classical, gpu):
     params = 0.1 * complex_noise(psi.num_params)
     # params = np.ones(psi.num_params)
     psi.params = params
+    psi.calibrate(ExactSummationSpins(num_sites, gpu))
 
     local_dim = 2 if use_spins else 4
 
     psi_ref = psi.psi_ref
 
-    Basis = Spins# if use_spins else PauliString
+    Basis = Spins  # if use_spins else PauliString
 
     def local_energy(expr, conf_idx):
         conf_vector = np.zeros(local_dim**num_sites, dtype=complex)
@@ -156,6 +157,10 @@ def test_psi_classical_s(psi_classical, gpu):
                 for h in H_2_local
             ])
 
+            # print("len(H_local_energies):", len(H_local_energies))
+            # print("len(H_2_local_energies):", len(H_2_local_energies))
+            # print("H_2_local_energies:", H_2_local_energies)
+
             log_psi_s_ref += (
                 params[len(H_local_energies): len(H_local_energies) + len(H_2_local_energies)] @
                 H_2_local_energies
@@ -186,7 +191,7 @@ def test_psi_classical_s(psi_classical, gpu):
         assert log_psi_s(psi, conf) == approx(log_psi_s_ref)
 
 
-def test_O_k(psi_all, gpu):
+def __test_O_k(psi_all, gpu):
     psi = psi_all(gpu)
 
     if isinstance(psi, PsiDeep) and psi.symmetric:

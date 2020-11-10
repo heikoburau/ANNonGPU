@@ -85,23 +85,16 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         //! begin template
         .def("_vector", [](const PsiDeep& psi, ExactSummation_t<Basis>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const PsiDeep& psi, ExactSummation_t<Basis>& exact_summation) {return psi_norm(psi, exact_summation);})
+        .def("calibrate", &PsiDeep::calibrate<ExactSummation_t<Basis>>)
         //! end template
         #endif // ENABLE_EXACT_SUMMATION
-        //! begin template
-        .def("calibrate", [](PsiDeep& psi, Ensemble<Basis>& ensemble){
-            psi.prefactor = 1.0;
-            psi.log_prefactor = complex_t(0.0);
-            psi.prefactor /= psi_norm(psi, ensemble);
-            psi.log_prefactor = -log_psi(psi, ensemble);
-            psi.prefactor /= psi_norm(psi, ensemble);
-        })
-        //! end template
         ;
 
     //! begin template
     py::class_<ClPsi>(m, "ClPsi{name}")
         .def(py::init<
             const unsigned int,
+            const quantum_expression::PauliExpression&,
             const quantum_expression::PauliExpression&,
             const quantum_expression::PauliExpression&,
             const complex_tensor<1u>&,
@@ -115,7 +108,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("H_local", [](const ClPsi& psi){return psi.H_local_op.to_expr_list();})
         .def_property_readonly("H_2_local", [](const ClPsi& psi){return psi.H_2_local_op.to_expr_list();})
         .def_readwrite("prefactor", &ClPsi::prefactor)
-        .def_readwrite("psi_ref", &ClPsi::psi_ref)
+        .def_property(
+            "psi_ref",
+            [](const ClPsi& psi) {return psi.psi_ref;},
+            [](ClPsi& psi, const ClPsi::PsiRef& psi_ref) {psi.psi_ref = psi_ref; psi.update_psi_ref_kernel();}
+        )
         .def_readonly("gpu", &ClPsi::gpu)
         .def_readonly("num_params", &ClPsi::num_params)
         .def_property_readonly("order", [](const ClPsi& psi) {return psi.get_order();})
@@ -130,11 +127,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("vector", [](const ClPsi& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const ClPsi& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("normalize", [](ClPsi& psi, ExactSummation_t<Spins>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
+        .def("calibrate", &ClPsi::calibrate<ExactSummation_t<Spins>>)
         #endif // ENABLE_SPINS
         #ifdef ENABLE_PAULIS
         .def("vector", [](const ClPsi& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const ClPsi& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("normalize", [](ClPsi& psi, ExactSummation_t<PauliString>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
+        .def("calibrate", &ClPsi::calibrate<ExactSummation_t<PauliString>>)
         #endif // ENABLE_PAULIS
         #endif // ENABLE_EXACT_SUMMATION
         ;

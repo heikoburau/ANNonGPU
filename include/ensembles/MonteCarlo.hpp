@@ -131,6 +131,9 @@ struct MonteCarlo_t {
     ) const {
         #include "cuda_kernel_defines.h"
 
+        using dtype = typename Psi_t::dtype;
+        using real_dtype = typename Psi_t::real_dtype;
+
         SHARED Basis_t  next_configuration;
         SHARED dtype    next_log_psi;
 

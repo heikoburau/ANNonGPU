@@ -91,54 +91,21 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #if defined(ENABLE_SPINS)
         .def("_vector", [](const PsiDeep& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const PsiDeep& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
+        .def("calibrate", &PsiDeep::calibrate<ExactSummation_t<Spins>>)
 #endif
 #if defined(ENABLE_PAULIS)
         .def("_vector", [](const PsiDeep& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const PsiDeep& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
+        .def("calibrate", &PsiDeep::calibrate<ExactSummation_t<PauliString>>)
 #endif
         #endif // ENABLE_EXACT_SUMMATION
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
-        .def("calibrate", [](PsiDeep& psi, MonteCarlo_tt<Spins>& ensemble){
-            psi.prefactor = 1.0;
-            psi.log_prefactor = complex_t(0.0);
-            psi.prefactor /= psi_norm(psi, ensemble);
-            psi.log_prefactor = -log_psi(psi, ensemble);
-            psi.prefactor /= psi_norm(psi, ensemble);
-        })
-#endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
-        .def("calibrate", [](PsiDeep& psi, MonteCarlo_tt<PauliString>& ensemble){
-            psi.prefactor = 1.0;
-            psi.log_prefactor = complex_t(0.0);
-            psi.prefactor /= psi_norm(psi, ensemble);
-            psi.log_prefactor = -log_psi(psi, ensemble);
-            psi.prefactor /= psi_norm(psi, ensemble);
-        })
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
-        .def("calibrate", [](PsiDeep& psi, ExactSummation_t<Spins>& ensemble){
-            psi.prefactor = 1.0;
-            psi.log_prefactor = complex_t(0.0);
-            psi.prefactor /= psi_norm(psi, ensemble);
-            psi.log_prefactor = -log_psi(psi, ensemble);
-            psi.prefactor /= psi_norm(psi, ensemble);
-        })
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
-        .def("calibrate", [](PsiDeep& psi, ExactSummation_t<PauliString>& ensemble){
-            psi.prefactor = 1.0;
-            psi.log_prefactor = complex_t(0.0);
-            psi.prefactor /= psi_norm(psi, ensemble);
-            psi.log_prefactor = -log_psi(psi, ensemble);
-            psi.prefactor /= psi_norm(psi, ensemble);
-        })
-#endif
         ;
 
 #if defined(ENABLE_PSI_CLASSICAL)
     py::class_<PsiClassicalFP<1u>>(m, "PsiClassicalFP_1")
         .def(py::init<
             const unsigned int,
+            const quantum_expression::PauliExpression&,
             const quantum_expression::PauliExpression&,
             const quantum_expression::PauliExpression&,
             const complex_tensor<1u>&,
@@ -152,7 +119,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("H_local", [](const PsiClassicalFP<1u>& psi){return psi.H_local_op.to_expr_list();})
         .def_property_readonly("H_2_local", [](const PsiClassicalFP<1u>& psi){return psi.H_2_local_op.to_expr_list();})
         .def_readwrite("prefactor", &PsiClassicalFP<1u>::prefactor)
-        .def_readwrite("psi_ref", &PsiClassicalFP<1u>::psi_ref)
+        .def_property(
+            "psi_ref",
+            [](const PsiClassicalFP<1u>& psi) {return psi.psi_ref;},
+            [](PsiClassicalFP<1u>& psi, const PsiClassicalFP<1u>::PsiRef& psi_ref) {psi.psi_ref = psi_ref; psi.update_psi_ref_kernel();}
+        )
         .def_readonly("gpu", &PsiClassicalFP<1u>::gpu)
         .def_readonly("num_params", &PsiClassicalFP<1u>::num_params)
         .def_property_readonly("order", [](const PsiClassicalFP<1u>& psi) {return psi.get_order();})
@@ -167,11 +138,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("vector", [](const PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("normalize", [](PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
+        .def("calibrate", &PsiClassicalFP<1u>::calibrate<ExactSummation_t<Spins>>)
         #endif // ENABLE_SPINS
         #ifdef ENABLE_PAULIS
         .def("vector", [](const PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("normalize", [](PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
+        .def("calibrate", &PsiClassicalFP<1u>::calibrate<ExactSummation_t<PauliString>>)
         #endif // ENABLE_PAULIS
         #endif // ENABLE_EXACT_SUMMATION
         ;
@@ -180,6 +153,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<PsiClassicalFP<2u>>(m, "PsiClassicalFP_2")
         .def(py::init<
             const unsigned int,
+            const quantum_expression::PauliExpression&,
             const quantum_expression::PauliExpression&,
             const quantum_expression::PauliExpression&,
             const complex_tensor<1u>&,
@@ -193,7 +167,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("H_local", [](const PsiClassicalFP<2u>& psi){return psi.H_local_op.to_expr_list();})
         .def_property_readonly("H_2_local", [](const PsiClassicalFP<2u>& psi){return psi.H_2_local_op.to_expr_list();})
         .def_readwrite("prefactor", &PsiClassicalFP<2u>::prefactor)
-        .def_readwrite("psi_ref", &PsiClassicalFP<2u>::psi_ref)
+        .def_property(
+            "psi_ref",
+            [](const PsiClassicalFP<2u>& psi) {return psi.psi_ref;},
+            [](PsiClassicalFP<2u>& psi, const PsiClassicalFP<2u>::PsiRef& psi_ref) {psi.psi_ref = psi_ref; psi.update_psi_ref_kernel();}
+        )
         .def_readonly("gpu", &PsiClassicalFP<2u>::gpu)
         .def_readonly("num_params", &PsiClassicalFP<2u>::num_params)
         .def_property_readonly("order", [](const PsiClassicalFP<2u>& psi) {return psi.get_order();})
@@ -208,11 +186,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("vector", [](const PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("normalize", [](PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
+        .def("calibrate", &PsiClassicalFP<2u>::calibrate<ExactSummation_t<Spins>>)
         #endif // ENABLE_SPINS
         #ifdef ENABLE_PAULIS
         .def("vector", [](const PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("normalize", [](PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
+        .def("calibrate", &PsiClassicalFP<2u>::calibrate<ExactSummation_t<PauliString>>)
         #endif // ENABLE_PAULIS
         #endif // ENABLE_EXACT_SUMMATION
         ;
@@ -221,6 +201,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<PsiClassicalANN<1u>>(m, "PsiClassicalANN_1")
         .def(py::init<
             const unsigned int,
+            const quantum_expression::PauliExpression&,
             const quantum_expression::PauliExpression&,
             const quantum_expression::PauliExpression&,
             const complex_tensor<1u>&,
@@ -234,7 +215,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("H_local", [](const PsiClassicalANN<1u>& psi){return psi.H_local_op.to_expr_list();})
         .def_property_readonly("H_2_local", [](const PsiClassicalANN<1u>& psi){return psi.H_2_local_op.to_expr_list();})
         .def_readwrite("prefactor", &PsiClassicalANN<1u>::prefactor)
-        .def_readwrite("psi_ref", &PsiClassicalANN<1u>::psi_ref)
+        .def_property(
+            "psi_ref",
+            [](const PsiClassicalANN<1u>& psi) {return psi.psi_ref;},
+            [](PsiClassicalANN<1u>& psi, const PsiClassicalANN<1u>::PsiRef& psi_ref) {psi.psi_ref = psi_ref; psi.update_psi_ref_kernel();}
+        )
         .def_readonly("gpu", &PsiClassicalANN<1u>::gpu)
         .def_readonly("num_params", &PsiClassicalANN<1u>::num_params)
         .def_property_readonly("order", [](const PsiClassicalANN<1u>& psi) {return psi.get_order();})
@@ -249,11 +234,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("vector", [](const PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("normalize", [](PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
+        .def("calibrate", &PsiClassicalANN<1u>::calibrate<ExactSummation_t<Spins>>)
         #endif // ENABLE_SPINS
         #ifdef ENABLE_PAULIS
         .def("vector", [](const PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("normalize", [](PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
+        .def("calibrate", &PsiClassicalANN<1u>::calibrate<ExactSummation_t<PauliString>>)
         #endif // ENABLE_PAULIS
         #endif // ENABLE_EXACT_SUMMATION
         ;
@@ -262,6 +249,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<PsiClassicalANN<2u>>(m, "PsiClassicalANN_2")
         .def(py::init<
             const unsigned int,
+            const quantum_expression::PauliExpression&,
             const quantum_expression::PauliExpression&,
             const quantum_expression::PauliExpression&,
             const complex_tensor<1u>&,
@@ -275,7 +263,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("H_local", [](const PsiClassicalANN<2u>& psi){return psi.H_local_op.to_expr_list();})
         .def_property_readonly("H_2_local", [](const PsiClassicalANN<2u>& psi){return psi.H_2_local_op.to_expr_list();})
         .def_readwrite("prefactor", &PsiClassicalANN<2u>::prefactor)
-        .def_readwrite("psi_ref", &PsiClassicalANN<2u>::psi_ref)
+        .def_property(
+            "psi_ref",
+            [](const PsiClassicalANN<2u>& psi) {return psi.psi_ref;},
+            [](PsiClassicalANN<2u>& psi, const PsiClassicalANN<2u>::PsiRef& psi_ref) {psi.psi_ref = psi_ref; psi.update_psi_ref_kernel();}
+        )
         .def_readonly("gpu", &PsiClassicalANN<2u>::gpu)
         .def_readonly("num_params", &PsiClassicalANN<2u>::num_params)
         .def_property_readonly("order", [](const PsiClassicalANN<2u>& psi) {return psi.get_order();})
@@ -290,11 +282,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("vector", [](const PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("normalize", [](PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
+        .def("calibrate", &PsiClassicalANN<2u>::calibrate<ExactSummation_t<Spins>>)
         #endif // ENABLE_SPINS
         #ifdef ENABLE_PAULIS
         .def("vector", [](const PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](const PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("normalize", [](PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
+        .def("calibrate", &PsiClassicalANN<2u>::calibrate<ExactSummation_t<PauliString>>)
         #endif // ENABLE_PAULIS
         #endif // ENABLE_EXACT_SUMMATION
         ;
@@ -499,68 +493,68 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<KullbackLeibler>(m, "KullbackLeibler")
         .def(py::init<unsigned int, bool>())
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        // .def("__call__", &KullbackLeibler::value<const PsiDeep&, const PsiClassicalFP<1u>&, MonteCarlo_tt<Spins>&>)
-        .def("gradient", &KullbackLeibler::gradient_py<const PsiDeep&, const PsiClassicalFP<1u>&, MonteCarlo_tt<Spins>&>)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        // .def("__call__", &KullbackLeibler::value<const PsiDeep&, const PsiClassicalFP<2u>&, MonteCarlo_tt<Spins>&>)
-        .def("gradient", &KullbackLeibler::gradient_py<const PsiDeep&, const PsiClassicalFP<2u>&, MonteCarlo_tt<Spins>&>)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        // .def("__call__", &KullbackLeibler::value<const PsiDeep&, const PsiClassicalANN<1u>&, MonteCarlo_tt<Spins>&>)
-        .def("gradient", &KullbackLeibler::gradient_py<const PsiDeep&, const PsiClassicalANN<1u>&, MonteCarlo_tt<Spins>&>)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        // .def("__call__", &KullbackLeibler::value<const PsiDeep&, const PsiClassicalANN<2u>&, MonteCarlo_tt<Spins>&>)
-        .def("gradient", &KullbackLeibler::gradient_py<const PsiDeep&, const PsiClassicalANN<2u>&, MonteCarlo_tt<Spins>&>)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        // .def("__call__", &KullbackLeibler::value<const PsiDeep&, const PsiClassicalFP<1u>&, MonteCarlo_tt<PauliString>&>)
-        .def("gradient", &KullbackLeibler::gradient_py<const PsiDeep&, const PsiClassicalFP<1u>&, MonteCarlo_tt<PauliString>&>)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        // .def("__call__", &KullbackLeibler::value<const PsiDeep&, const PsiClassicalFP<2u>&, MonteCarlo_tt<PauliString>&>)
-        .def("gradient", &KullbackLeibler::gradient_py<const PsiDeep&, const PsiClassicalFP<2u>&, MonteCarlo_tt<PauliString>&>)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        // .def("__call__", &KullbackLeibler::value<const PsiDeep&, const PsiClassicalANN<1u>&, MonteCarlo_tt<PauliString>&>)
-        .def("gradient", &KullbackLeibler::gradient_py<const PsiDeep&, const PsiClassicalANN<1u>&, MonteCarlo_tt<PauliString>&>)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        // .def("__call__", &KullbackLeibler::value<const PsiDeep&, const PsiClassicalANN<2u>&, MonteCarlo_tt<PauliString>&>)
-        .def("gradient", &KullbackLeibler::gradient_py<const PsiDeep&, const PsiClassicalANN<2u>&, MonteCarlo_tt<PauliString>&>)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        // .def("__call__", &KullbackLeibler::value<const PsiDeep&, const PsiClassicalFP<1u>&, ExactSummation_t<Spins>&>)
-        .def("gradient", &KullbackLeibler::gradient_py<const PsiDeep&, const PsiClassicalFP<1u>&, ExactSummation_t<Spins>&>)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<Spins>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        // .def("__call__", &KullbackLeibler::value<const PsiDeep&, const PsiClassicalFP<2u>&, ExactSummation_t<Spins>&>)
-        .def("gradient", &KullbackLeibler::gradient_py<const PsiDeep&, const PsiClassicalFP<2u>&, ExactSummation_t<Spins>&>)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<Spins>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        // .def("__call__", &KullbackLeibler::value<const PsiDeep&, const PsiClassicalANN<1u>&, ExactSummation_t<Spins>&>)
-        .def("gradient", &KullbackLeibler::gradient_py<const PsiDeep&, const PsiClassicalANN<1u>&, ExactSummation_t<Spins>&>)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<Spins>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        // .def("__call__", &KullbackLeibler::value<const PsiDeep&, const PsiClassicalANN<2u>&, ExactSummation_t<Spins>&>)
-        .def("gradient", &KullbackLeibler::gradient_py<const PsiDeep&, const PsiClassicalANN<2u>&, ExactSummation_t<Spins>&>)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<Spins>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        // .def("__call__", &KullbackLeibler::value<const PsiDeep&, const PsiClassicalFP<1u>&, ExactSummation_t<PauliString>&>)
-        .def("gradient", &KullbackLeibler::gradient_py<const PsiDeep&, const PsiClassicalFP<1u>&, ExactSummation_t<PauliString>&>)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        // .def("__call__", &KullbackLeibler::value<const PsiDeep&, const PsiClassicalFP<2u>&, ExactSummation_t<PauliString>&>)
-        .def("gradient", &KullbackLeibler::gradient_py<const PsiDeep&, const PsiClassicalFP<2u>&, ExactSummation_t<PauliString>&>)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        // .def("__call__", &KullbackLeibler::value<const PsiDeep&, const PsiClassicalANN<1u>&, ExactSummation_t<PauliString>&>)
-        .def("gradient", &KullbackLeibler::gradient_py<const PsiDeep&, const PsiClassicalANN<1u>&, ExactSummation_t<PauliString>&>)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        // .def("__call__", &KullbackLeibler::value<const PsiDeep&, const PsiClassicalANN<2u>&, ExactSummation_t<PauliString>&>)
-        .def("gradient", &KullbackLeibler::gradient_py<const PsiDeep&, const PsiClassicalANN<2u>&, ExactSummation_t<PauliString>&>)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<PauliString>>)
 #endif
     ;
 

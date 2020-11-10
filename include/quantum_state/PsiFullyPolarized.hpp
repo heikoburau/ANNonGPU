@@ -93,6 +93,10 @@ struct PsiFullyPolarized_t {
         return this->num_sites;
     }
 
+    HDINLINE unsigned int get_num_input_units() const {
+        return this->num_sites;
+    }
+
     HDINLINE
     double probability_s(const double log_psi_s_real) const {
         return exp(2.0 * log_psi_s_real);
@@ -133,6 +137,9 @@ struct PsiFullyPolarized_t : public kernel::PsiFullyPolarized_t<dtype> {
     }
 
 #endif // __PYTHONCC__
+
+    template<typename Ensemble>
+    inline void calibrate(Ensemble& ensemble) {}
 
 };
 

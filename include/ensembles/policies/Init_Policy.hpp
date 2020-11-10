@@ -19,7 +19,7 @@ struct Init_Policy<Spins> {
         #include "cuda_kernel_defines.h"
 
         SINGLE {
-            result.set_randomly(rng_state, psi.get_num_input_units());
+            result.set_randomly(rng_state, psi.num_sites);
         }
     }
 };

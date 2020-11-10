@@ -117,6 +117,27 @@ PsiDeepT<dtype, symmetric>::PsiDeepT(const PsiDeepT<dtype, symmetric>& other)
     this->init_kernel();
 }
 
+template<typename dtype, bool symmetric>
+PsiDeepT<dtype, symmetric>& PsiDeepT<dtype, symmetric>::operator=(const PsiDeepT<dtype, symmetric>& other) {
+    this->layers = other.layers;
+    this->input_biases = other.input_biases;
+    this->final_weights = other.final_weights;
+    this->gpu = other.gpu;
+
+    this->num_sites = other.num_sites;
+    this->N = other.N;
+    this->prefactor = other.prefactor;
+    this->log_prefactor = other.log_prefactor;
+    this->num_layers = other.num_layers;
+    this->width = other.width;
+    this->num_units = other.num_units;
+    this->num_final_weights = other.num_final_weights;
+
+    this->init_kernel();
+
+    return *this;
+}
+
 
 template<typename dtype, bool symmetric>
 void PsiDeepT<dtype, symmetric>::init_kernel() {

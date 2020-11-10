@@ -14,6 +14,7 @@ namespace ann_on_gpu {
 template<typename dtype, unsigned int order, typename PsiRef>
 void PsiClassical_t<dtype, order, PsiRef>::init_kernel() {
     this->kernel().params = this->params.data();
+    this->kernel().H_local_diagonal = this->H_local_diagonal_op.kernel();
     this->kernel().H_local = this->H_local_op.kernel();
     this->kernel().H_2_local = this->H_2_local_op.kernel();
 
@@ -24,9 +25,14 @@ void PsiClassical_t<dtype, order, PsiRef>::init_kernel() {
         this->num_local_energies += this->H_2_local.num_strings;
 
         this->m_2.begin_local_energies = this->num_sites * this->H_local.num_strings;
-        this->m_2.begin_params = this->H_local.num_strings;
+        this->m_2.begin_params = this->H_local_diagonal.num_strings + this->H_local.num_strings;
+        this->m_2.end_params = this->m_2.begin_params + this->H_2_local.num_strings;
 
-        this->m_1_squared.begin_params = this->m_2.begin_params + this->H_2_local.num_strings;
+        // std::cout << "this->m_2.begin_local_energies: " << this->m_2.begin_local_energies << std::endl;
+        // std::cout << "this->m_2.begin_params: " << this->m_2.begin_params << std::endl;
+        // std::cout << "this->m_2.end_params: " << this->m_2.end_params << std::endl;
+
+        this->m_1_squared.begin_params = this->m_2.end_params;
 
         this->m_1_squared.num_ll_pairs = this->H_local.num_strings * (this->H_local.num_strings + 1u) / 2u;
 

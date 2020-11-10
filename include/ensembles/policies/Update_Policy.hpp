@@ -23,7 +23,7 @@ struct Update_Policy<Spins> {
         #include "cuda_kernel_defines.h"
 
         SINGLE {
-            next_spins = spins.flip(random_uint32(rng_state) % psi.get_num_input_units());
+            next_spins = spins.flip(random_uint32(rng_state) % psi.num_sites);
         }
     }
 

@@ -491,6 +491,7 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
 
     PsiDeepT(const unsigned int N, const unsigned int M, const bool gpu);
     PsiDeepT(const PsiDeepT& other);
+    PsiDeepT& operator=(const PsiDeepT& other);
 
 #ifdef __PYTHONCC__
 
@@ -660,6 +661,15 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
     }
 
 #endif // __PYTHONCC__
+
+    template<typename Ensemble>
+    inline void calibrate(Ensemble& ensemble) {
+        this->prefactor = 1.0;
+        this->log_prefactor = complex_t(0.0);
+        this->prefactor /= psi_norm(*this, ensemble);
+        this->log_prefactor = -log_psi(*this, ensemble);
+        this->prefactor /= psi_norm(*this, ensemble);
+    }
 
     Array<dtype> get_params() const;
     void set_params(const Array<dtype>& new_params);
