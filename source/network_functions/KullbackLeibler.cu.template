@@ -126,7 +126,7 @@ double KullbackLeibler::gradient(
     const auto factor = pow(value, nu);
 
     for(auto k = 0u; k < this->num_params; k++) {
-        result[k] = 2.0 * (
+        result[k] = (
             this->log_ratio_O_k_ar[k] - this->log_ratio_ar.front() * this->O_k_ar[k]
         ).to_std() / factor;
     }

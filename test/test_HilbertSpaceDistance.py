@@ -20,7 +20,7 @@ def test_distance1(psi_deep, ensemble, hamiltonian, gpu):
 
     H = hamiltonian(num_sites)
 
-    psi.normalize(ensemble)
+    psi.calibrate(ensemble)
 
     t = 1e-2
     U = 1 + 1j * H * t
@@ -68,8 +68,6 @@ def test_distance1(psi_deep, ensemble, hamiltonian, gpu):
 
 def test_gradient1(psi_deep, ensemble, single_sigma, gpu):
     psi = psi_deep(gpu)
-    if psi.symmetric:
-        return
 
     num_sites = psi.num_sites
 
@@ -81,11 +79,16 @@ def test_gradient1(psi_deep, ensemble, single_sigma, gpu):
 
     expr = single_sigma(num_sites)
 
-    psi.normalize(ensemble)
+    psi.calibrate(ensemble)
+    # psi.normalize(ensemble)
     psi1 = +psi
 
     hs_distance = HilbertSpaceDistance(psi.num_params, gpu)
-    op = Operator(expr, gpu)
+
+    if psi.symmetric:
+        op = Operator(sum(expr.roll(i, num_sites) for i in range(num_sites)), gpu)
+    else:
+        op = Operator(expr, gpu)
 
     gradient_test, _ = hs_distance.gradient(psi, psi, op, True, ensemble, 1)
 
@@ -111,9 +114,6 @@ def test_gradient1(psi_deep, ensemble, single_sigma, gpu):
         delta_params[k] = 1j * eps
         gradient_ref[k] += 1j * distance_diff(delta_params)
 
-    print(gradient_ref - gradient_test)
-    print(gradient_test)
-
     passed = np.allclose(gradient_ref, gradient_test, rtol=1e-3, atol=1e-4)
 
     if not passed:
@@ -133,10 +133,8 @@ def test_gradient1(psi_deep, ensemble, single_sigma, gpu):
 
 def test_gradient2(psi_deep, ensemble, hamiltonian, gpu):
     psi_0 = psi_deep(gpu)
-    if psi_0.symmetric:
-        return
-
     psi_0.params = (2 * np.random.rand(psi_0.num_params)) * psi_0.params
+
     psi = psi_deep(gpu)
 
     num_sites = psi.num_sites
@@ -181,10 +179,10 @@ def test_gradient2(psi_deep, ensemble, hamiltonian, gpu):
         delta_params[k] = 1j * eps
         gradient_ref[k] += 1j * distance_diff(delta_params)
 
-    print("distance:", distance)
-    print(gradient_test - gradient_ref)
-    print(gradient_test)
-    print(gradient_ref)
+    # print("distance:", distance)
+    # print(gradient_test - gradient_ref)
+    # print(gradient_test)
+    # print(gradient_ref)
 
     passed = np.allclose(gradient_ref, gradient_test, rtol=1e-3, atol=1e-4)
 

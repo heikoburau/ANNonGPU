@@ -48,30 +48,20 @@ void kernel::KullbackLeibler::compute_averages(
             }
 
             if(compute_gradient) {
-                // SHARED_MEM_LOOP_BEGIN(m, psi_prime_kernel.num_sites) {
-                //     SHARED typename Ensemble::Basis_t sh_conf;
-                //     SINGLE {
-                //         sh_conf = configuration.roll(m, psi_prime_kernel.num_sites);
-                //     }
-                //     SYNC;
-
-                    psi_prime_kernel.foreach_O_k(
-                        configuration,
-                        payload_prime,
-                        [&](const unsigned int k, const complex_t& O_k_element) {
-                            generic_atomicAdd(
-                                &this_.O_k[k],
-                                weight * conj(O_k_element)
-                            );
-                            generic_atomicAdd(
-                                &this_.log_ratio_O_k[k],
-                                weight * (log_psi_prime - log_psi) * conj(O_k_element)
-                            );
-                        }
-                    );
-
-                //     SHARED_MEM_LOOP_END(m);
-                // }
+                psi_prime_kernel.foreach_O_k(
+                    configuration,
+                    payload_prime,
+                    [&](const unsigned int k, const complex_t& O_k_element) {
+                        generic_atomicAdd(
+                            &this_.O_k[k],
+                            weight * conj(O_k_element)
+                        );
+                        generic_atomicAdd(
+                            &this_.log_ratio_O_k[k],
+                            weight * (log_psi_prime - log_psi) * conj(O_k_element)
+                        );
+                    }
+                );
             }
         },
         max(psi.get_width(), psi_prime.get_width())
@@ -114,12 +104,12 @@ double KullbackLeibler::value(
     this->log_ratio_ar.update_host();
     this->log_ratio_abs2_ar.update_host();
 
-    // return sqrt(max(
-    //     1e-8,
-    //     this->log_ratio_abs2_ar.front() - abs2(this->log_ratio_ar.front())
-    // ));
+    return sqrt(max(
+        1e-8,
+        this->log_ratio_abs2_ar.front() - abs2(this->log_ratio_ar.front())
+    ));
 
-    return this->log_ratio_abs2_ar.front() - abs2(this->log_ratio_ar.front());
+    // return this->log_ratio_abs2_ar.front() - abs2(this->log_ratio_ar.front());
 }
 
 
@@ -142,9 +132,9 @@ double KullbackLeibler::gradient(
     const auto factor = pow(value, nu);
 
     for(auto k = 0u; k < this->num_params; k++) {
-        result[k] = 2.0 * (
+        result[k] = (
             this->log_ratio_O_k_ar[k] - this->log_ratio_ar.front() * this->O_k_ar[k]
-        ).to_std();// / factor;
+        ).to_std() / factor;
     }
 
     return value;

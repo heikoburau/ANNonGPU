@@ -69,7 +69,7 @@ void kernel::HilbertSpaceDistance::compute_averages(
                 }
                 probability_ratio = exp(real_dtype(2.0) * (log_psi_prime.real() - log_psi.real()));
 
-                generic_atomicAdd(this_.omega_avg, weight * precision_cast<complex_t>(omega));
+                generic_atomicAdd(this_.omega_avg, weight * omega);
                 generic_atomicAdd(this_.probability_ratio_avg, weight * probability_ratio);
             }
 
@@ -78,8 +78,8 @@ void kernel::HilbertSpaceDistance::compute_averages(
                     configuration,
                     payload_prime,
                     [&](const unsigned int k, const dtype& O_k_element) {
-                        generic_atomicAdd(&this_.omega_O_k_avg[k], weight * precision_cast<complex_t>(omega * conj(O_k_element)));
-                        generic_atomicAdd(&this_.probability_ratio_O_k_avg[k], weight * precision_cast<complex_t>(probability_ratio * conj(O_k_element)));
+                        generic_atomicAdd(&this_.omega_O_k_avg[k], weight * omega * conj(O_k_element));
+                        generic_atomicAdd(&this_.probability_ratio_O_k_avg[k], weight * probability_ratio * conj(O_k_element));
                     }
                 );
             }
@@ -142,6 +142,8 @@ double HilbertSpaceDistance::gradient(
     complex<double>* result, const Psi_t& psi, const Psi_t_prime& psi_prime, const Operator& operator_,
     const bool is_unitary, Ensemble& ensemble, const float nu
 ) {
+    // return the gradient of 'distance' if nu = 1
+
     this->clear();
     this->compute_averages<true>(psi, psi_prime, operator_, is_unitary, ensemble);
 

@@ -16,8 +16,6 @@ def fubini_study(psi, phi):
 
 def test_operator(psi_deep, single_sigma, ensemble, gpu):
     psi_0 = psi_deep(gpu)
-    if psi_0.symmetric:
-        return
 
     num_sites = psi_0.num_sites
 
@@ -28,7 +26,10 @@ def test_operator(psi_deep, single_sigma, ensemble, gpu):
     ensemble = ensemble(num_sites, gpu)
 
     op = single_sigma(num_sites)
-    psi_0.normalize(ensemble)
+    if psi_0.symmetric:
+        op = sum(op.roll(i, num_sites) for i in range(num_sites))
+
+    psi_0.calibrate(ensemble)
 
     # print("L:", num_sites)
     # print("operator:", op)
