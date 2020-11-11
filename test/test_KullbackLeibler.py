@@ -15,18 +15,12 @@ def complex_noise(shape):
     return real_noise(shape) + 1j * real_noise(shape)
 
 
-def test_divergence(psi_classical_ann, gpu):
+def __test_divergence(psi_classical_ann, gpu):
     psi = psi_classical_ann(gpu)
 
     esum = ExactSummationSpins(psi.num_sites, gpu)
 
-    L = psi.num_sites
-    psi_ann = new_deep_neural_network(L, L, M=[L, L], C=[L, L], noise=1e-2, gpu=gpu)
-    psi_ann.calibrate(esum)
-
-    psi.psi_ref = psi_ann
-    psi.update_psi_ref_kernel()
-    psi.normalize(esum)
+    psi.calibrate(esum)
 
     psi.params = 0.1 * complex_noise(len(psi.params))
     psi.normalize(esum)
@@ -40,32 +34,33 @@ def test_divergence(psi_classical_ann, gpu):
 
     assert np.sum(p) == approx(1)
 
+    log_psi_vec = np.log(psi_vec)
+    log_psi1_vec = np.log(psi1_vec)
+
     div_ref = (
-        p @ abs(np.log(psi1_vec / psi_vec))**2 -
-        abs(p @ np.log(psi1_vec / psi_vec))**2
-    )
+        p @ abs(log_psi1_vec - log_psi_vec)**2 -
+        abs(p @ (log_psi1_vec - log_psi_vec))**2
+    )**0.5
 
     assert div_test == approx(div_ref)
 
 
-def __test_gradient(psi_classical_ann, gpu):
+def test_gradient(psi_classical_ann, gpu):
     psi = psi_classical_ann(gpu)
 
     esum = ExactSummationSpins(psi.num_sites, gpu)
 
-    L = psi.num_sites
-    psi_ann = new_deep_neural_network(L, L, M=[L, L], C=[L, L], noise=1e-2, gpu=gpu)
-    psi_ann.calibrate(esum)
+    psi.calibrate(esum)
 
-    psi.psi_ref = +psi_ann
+    psi.params = 0.01 * complex_noise(len(psi.params))
     psi.normalize(esum)
+    psi_ann = psi.psi_ref
 
-    psi.params = 0.1 * complex_noise(len(psi.params))
-    psi.normalize(esum)
+    assert len(psi_ann.params) == psi_ann.num_params
 
-    kl_divergence = KullbackLeibler(psi.psi_ref.num_params, gpu)
+    kl_divergence = KullbackLeibler(psi_ann.num_params, gpu)
 
-    gradient_test, _ = kl_divergence.gradient(psi, psi_ann, esum, 1)
+    gradient_test, _ = kl_divergence.gradient(psi, psi_ann, esum, 0)
     params_0 = psi_ann.params
 
     eps = 1e-6
@@ -79,9 +74,9 @@ def __test_gradient(psi_classical_ann, gpu):
 
         return (plus_distance - minus_distance) / (2 * eps)
 
-    gradient_ref = np.zeros(psi.psi_ref.num_params, dtype=complex)
+    gradient_ref = np.zeros(psi_ann.num_params, dtype=complex)
 
-    for k in range(psi.num_params):
+    for k in range(psi_ann.num_params):
         delta_params = np.zeros_like(params_0)
         delta_params[k] = eps
         gradient_ref[k] = distance_diff(delta_params)
@@ -90,8 +85,8 @@ def __test_gradient(psi_classical_ann, gpu):
         delta_params[k] = 1j * eps
         gradient_ref[k] += 1j * distance_diff(delta_params)
 
-    print(gradient_ref - gradient_test)
-    print(gradient_test)
+    # print(gradient_ref - gradient_test)
+    # print(gradient_test)
 
     passed = np.allclose(gradient_ref, gradient_test, rtol=1e-3, atol=1e-4)
 

@@ -18,7 +18,7 @@ def complex_noise(shape):
     return real_noise(shape) + 1j * real_noise(shape)
 
 
-def __test_psi_deep_s(psi_deep, ensemble, gpu):
+def test_psi_deep_s(psi_deep, ensemble, gpu):
     psi = psi_deep(gpu)
 
     use_spins = ensemble.__name__.endswith("Spins")
@@ -191,7 +191,7 @@ def test_psi_classical_s(psi_classical, gpu):
         assert log_psi_s(psi, conf) == approx(log_psi_s_ref)
 
 
-def __test_O_k(psi_all, gpu):
+def test_O_k(psi_all, gpu):
     psi = psi_all(gpu)
 
     if isinstance(psi, PsiDeep) and psi.symmetric:

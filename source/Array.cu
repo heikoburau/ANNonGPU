@@ -57,13 +57,6 @@ void Array<T>::resize(const size_t& new_size) {
 template<typename T>
 Array<T>& Array<T>::operator=(const Array& other) {
     std::vector<T>::operator=(other);
-    if(this->gpu) {
-        FREE(this->device, true);
-    }
-    this->gpu = other.gpu;
-    if(this->gpu) {
-        MALLOC(this->device, sizeof(T) * this->size(), true);
-    }
 
     this->update_device();
     return *this;

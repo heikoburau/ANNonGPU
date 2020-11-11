@@ -50,7 +50,7 @@ namespace PsiDeep {
 
     template<typename dtype, unsigned int max_width>
     struct Payload_t<dtype, max_width, true> {
-        dtype angles[0];
+        dtype angles[max_width];
         dtype activations[max_width];
     };
 
@@ -340,10 +340,6 @@ struct PsiDeepT {
 
         SHARED dtype deep_angles[max_deep_angles];
         SHARED dtype log_psi;
-        SINGLE {
-            log_psi = dtype(0.0);
-        }
-        SYNC;
 
         MULTI(i, this->N) {
             function(
@@ -354,6 +350,8 @@ struct PsiDeepT {
             );
         }
 
+        this->compute_angles(payload.angles, configuration);
+        // note: since log_psi isn't needed here, it doesn't need to be initialized too
         this->forward_pass(log_psi, payload.angles, payload.activations, deep_angles);
 
         for(int layer_idx = int(this->num_layers) - 1; layer_idx > 0; layer_idx--) {

@@ -51,7 +51,7 @@ def pytest_generate_tests(metafunc):
             lambda gpu: new_2nd_order_vCN_from_H_local(4, sigma_z(0) * sigma_y((0 + 1) % 2) + 1.1 * sigma_x(0), gpu=gpu),
             lambda gpu: new_2nd_order_vCN_from_H_local(
                 4, sigma_z(0) * sigma_z(1) + 1.1 * sigma_x(0),
-                psi_ref=new_deep_neural_network(4, 4, [4], [4], noise=1e-4, a=0., gpu=gpu),
+                psi_ref=new_deep_neural_network(4, 4, [4], [4], noise=1e-2, a=0.2, gpu=gpu),
                 gpu=gpu
             ),
             lambda gpu: new_classical_network(
@@ -65,7 +65,7 @@ def pytest_generate_tests(metafunc):
     if 'psi_classical_ann' in metafunc.fixturenames:
         psi_list = [
             lambda gpu: new_2nd_order_vCN_from_H_local(
-                4, sigma_z(0) * sigma_y((0 + 1) % 2) + 1.1 * sigma_x(0),
+                4, sigma_z(0) * sigma_y(1) + 1.1 * sigma_x(0),
                 psi_ref=new_deep_neural_network(4, 4, [4], [4], noise=1e-2, a=0.1, gpu=gpu),
                 gpu=gpu
             ),
