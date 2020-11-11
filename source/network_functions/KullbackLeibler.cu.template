@@ -98,12 +98,12 @@ double KullbackLeibler::value(
     this->log_ratio_ar.update_host();
     this->log_ratio_abs2_ar.update_host();
 
-    // return sqrt(max(
-    //     1e-8,
-    //     this->log_ratio_abs2_ar.front() - abs2(this->log_ratio_ar.front())
-    // ));
+    return sqrt(max(
+        1e-8,
+        this->log_ratio_abs2_ar.front() - abs2(this->log_ratio_ar.front())
+    ));
 
-    return this->log_ratio_abs2_ar.front() - abs2(this->log_ratio_ar.front());
+    // return this->log_ratio_abs2_ar.front() - abs2(this->log_ratio_ar.front());
 }
 
 
@@ -128,7 +128,7 @@ double KullbackLeibler::gradient(
     for(auto k = 0u; k < this->num_params; k++) {
         result[k] = 2.0 * (
             this->log_ratio_O_k_ar[k] - this->log_ratio_ar.front() * this->O_k_ar[k]
-        ).to_std();// / factor;
+        ).to_std() / factor;
     }
 
     return value;
