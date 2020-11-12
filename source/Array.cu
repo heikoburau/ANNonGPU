@@ -24,6 +24,7 @@ template<typename T>
 Array<T>::Array(const Array<T>& other)
     : vector<T>(other), gpu(other.gpu)
 {
+    // cout << "Array::copy" << endl;
     if(gpu) {
         MALLOC(this->device, sizeof(T) * this->size(), true);
         MEMCPY(this->device, other.device, sizeof(T) * this->size(), true, true);
@@ -34,6 +35,7 @@ template<typename T>
 Array<T>::Array(Array<T>&& other)
     : vector<T>(other), gpu(other.gpu)
 {
+    // cout << "Array::move" << endl;
     this->device = other.device;
     other.device = nullptr;
 }
@@ -56,7 +58,14 @@ void Array<T>::resize(const size_t& new_size) {
 
 template<typename T>
 Array<T>& Array<T>::operator=(const Array& other) {
+    // cout << "Array::=" << endl;
     std::vector<T>::operator=(other);
+
+    // don't change this
+    if(!this->gpu && other.gpu) {
+        MALLOC(this->device, sizeof(T) * other.size(), true);
+        this->gpu = true;
+    }
 
     this->update_device();
     return *this;
@@ -64,6 +73,7 @@ Array<T>& Array<T>::operator=(const Array& other) {
 
 template<typename T>
 Array<T>& Array<T>::operator=(Array&& other) {
+    // cout << "Array::=&&" << endl;
     std::vector<T>::operator=(other);
     if(this->gpu) {
         FREE(this->device, true);

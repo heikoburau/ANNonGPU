@@ -1,7 +1,7 @@
 #include "quantum_states.hpp"
 #include "ensembles/MonteCarlo.hpp"
 #include "operator/Operator.hpp"
-#include "network_functions/HilbertSpaceDistance.hpp"
+// #include "network_functions/HilbertSpaceDistance.hpp"
 #include "types.h"
 
 #include "QuantumExpression/QuantumExpression.hpp"
@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
 
     PsiDeep psi(N, M, gpu);
 
-    HilbertSpaceDistance hs_distance(psi.num_params, gpu);
+    // HilbertSpaceDistance hs_distance(psi.num_params, gpu);
 
     // MonteCarloSpins mc_loop(
     //     1u << 14u,

@@ -37,14 +37,18 @@ RNGStates::RNGStates(const unsigned int num_states, const bool gpu)
         );
     }
     else {
-        this->rng_states_host = new mt19937[num_states];
+        this->rng_states_host = new mt19937[this->num_states];
         for(auto i = 0u; i < this->num_states; i++) {
             this->rng_states_host[i] = mt19937(i);
         }
     }
 }
 
-RNGStates::RNGStates(const RNGStates& other) : gpu(other.gpu) {
+RNGStates::RNGStates(const RNGStates& other)
+    :
+    num_states(other.num_states),
+    gpu(other.gpu)
+{
     this->rng_states_device = nullptr;
     this->rng_states_host = nullptr;
 
@@ -60,7 +64,7 @@ RNGStates::RNGStates(const RNGStates& other) : gpu(other.gpu) {
         );
     }
     else {
-        this->rng_states_host = new mt19937[num_states];
+        this->rng_states_host = new mt19937[this->num_states];
         for(auto i = 0u; i < this->num_states; i++) {
             this->rng_states_host[i] = other.rng_states_host[i];
         }

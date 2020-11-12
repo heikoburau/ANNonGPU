@@ -4,6 +4,8 @@
 // HilbertSpaceDistance.cu.template
 // ***********************************************************
 
+#ifndef LEAN_AND_MEAN
+
 #include "network_functions/HilbertSpaceDistance.hpp"
 #include "ensembles.hpp"
 #include "quantum_states.hpp"
@@ -190,3 +192,6 @@ template double HilbertSpaceDistance::gradient(complex<double>* result, const Ps
 
 
 } // namespace ann_on_gpu
+
+
+#endif // LEAN_AND_MEAN

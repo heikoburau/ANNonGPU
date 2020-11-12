@@ -126,6 +126,11 @@ if (ENABLE_PSI_CLASSICAL_ANN)
   target_compile_definitions(ANNonGPU PUBLIC ENABLE_PSI_CLASSICAL_ANN)
 endif()
 
+option(LEAN_AND_MEAN "compile a light version missing some heavy network functions" OFF)
+if (LEAN_AND_MEAN)
+  target_compile_definitions(ANNonGPU PUBLIC LEAN_AND_MEAN)
+endif()
+
 # Compile and link ANNonGPU
 # =========================
 

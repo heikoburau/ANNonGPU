@@ -1,4 +1,4 @@
-#pragma once
+ #pragma once
 
 #include "operator/Operator.hpp"
 #include "Array.hpp"

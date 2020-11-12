@@ -1,3 +1,5 @@
+#ifndef LEAN_AND_MEAN
+
 #include "network_functions/KullbackLeibler.hpp"
 #include "ensembles.hpp"
 #include "quantum_states.hpp"
@@ -112,7 +114,38 @@ double KullbackLeibler::gradient(
     complex<double>* result, const Psi_t& psi, const Psi_t_prime& psi_prime, Ensemble& ensemble, const double nu
 ) {
     this->clear();
+
+    std::cout << psi.gpu << std::endl;
+    std::cout << psi_prime.gpu << std::endl;
+    std::cout << ensemble.gpu << std::endl;
+
+    std::cout << std::endl;
+
+    std::cout << psi.get_width() << std::endl;
+    std::cout << psi_prime.get_width() << std::endl;
+
     this->compute_averages<true>(psi, psi_prime, ensemble);
+
+    std::cout << std::endl;
+
+    std::cout << this->log_ratio_ar.gpu << std::endl;
+    std::cout << this->log_ratio_abs2_ar.gpu << std::endl;
+    std::cout << this->O_k_ar.gpu << std::endl;
+    std::cout << this->log_ratio_O_k_ar.gpu << std::endl;
+
+    std::cout << std::endl;
+
+    std::cout << this->log_ratio_ar.size() << std::endl;
+    std::cout << this->log_ratio_abs2_ar.size() << std::endl;
+    std::cout << this->O_k_ar.size() << std::endl;
+    std::cout << this->log_ratio_O_k_ar.size() << std::endl;
+
+    std::cout << std::endl;
+
+    std::cout << this->log_ratio_ar.data() << std::endl;
+    std::cout << this->log_ratio_abs2_ar.data() << std::endl;
+    std::cout << this->O_k_ar.data() << std::endl;
+    std::cout << this->log_ratio_O_k_ar.data() << std::endl;
 
     this->log_ratio_ar.update_host();
     this->log_ratio_abs2_ar.update_host();
@@ -142,3 +175,5 @@ template double KullbackLeibler::gradient(complex<double>*, const ClPsi&, const 
 
 
 } // namespace ann_on_gpu
+
+#endif // LEAN_AND_MEAN

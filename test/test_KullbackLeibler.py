@@ -52,9 +52,11 @@ def test_gradient(psi_classical_ann, gpu):
 
     psi.calibrate(esum)
 
-    psi.params = 0.01 * complex_noise(len(psi.params))
+    psi.params = 0.1 * complex_noise(len(psi.params))
     psi.normalize(esum)
     psi_ann = psi.psi_ref
+
+    # psi_ann = new_deep_neural_network(8, 8, [8, 4], [4, 2], noise=1e-3, a=0., gpu=gpu)
 
     assert len(psi_ann.params) == psi_ann.num_params
 
@@ -63,7 +65,7 @@ def test_gradient(psi_classical_ann, gpu):
     gradient_test, _ = kl_divergence.gradient(psi, psi_ann, esum, 1)
     params_0 = psi_ann.params
 
-    eps = 1e-6
+    eps = 1e-4
 
     def distance_diff(delta_params):
         psi_ann.params = params_0 + delta_params

@@ -4,6 +4,8 @@
 // ExpectationValue.cu.template
 // ***********************************************************
 
+#ifndef LEAN_AND_MEAN
+
 #include "network_functions/ExpectationValue.hpp"
 #include "ensembles.hpp"
 #include "quantum_states.hpp"
@@ -191,3 +193,5 @@ template pair<double, complex<double>> ExpectationValue::fluctuation(const Opera
 #endif
 
 } // namespace ann_on_gpu
+
+#endif // LEAN_AND_MEAN

@@ -1,9 +1,6 @@
-#ifdef ENABLE_EXACT_SUMMATION
-
-
 #include "network_functions/PsiVector.hpp"
 #include "quantum_states.hpp"
-#include "ensembles/ExactSummation.hpp"
+#include "ensembles.hpp"
 #include "types.h"
 
 #include <iostream>
@@ -106,12 +103,12 @@ std::complex<double> log_psi_s(const Psi_t& psi, const Basis_t& configuration) {
 
 //! begin template
 template std::complex<double> log_psi_s(const AllPsi&, const Basis&);
+//! end template
+
+//! begin template
 template std::complex<double> log_psi(const AllPsi& psi, Ensemble<Basis>& ensemble);
 template Array<complex_t> psi_vector(const AllPsi& psi, Ensemble<Basis>& ensemble);
 //! end template
 
 
 } // namespace ann_on_gpu
-
-
-#endif // ENABLE_EXACT_SUMMATION

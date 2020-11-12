@@ -15,7 +15,7 @@ using namespace cuda_complex;
 template<typename dtype, bool symmetric>
 PsiDeepT<dtype, symmetric>::PsiDeepT(const unsigned int N, const unsigned int M, const bool gpu)
     :
-    input_biases(N, gpu),
+    input_weights(N, gpu),
     final_weights(M, gpu),
     gpu(gpu)
 {
@@ -92,7 +92,7 @@ PsiDeepT<dtype, symmetric>::PsiDeepT(const unsigned int N, const unsigned int M,
         move(Array<dtype>(1, gpu))
     });
 
-    this->input_biases.clear();
+    this->input_weights.clear();
 
     this->init_kernel();
 }
@@ -101,7 +101,7 @@ template<typename dtype, bool symmetric>
 PsiDeepT<dtype, symmetric>::PsiDeepT(const PsiDeepT<dtype, symmetric>& other)
     :
     layers(other.layers),
-    input_biases(other.input_biases),
+    input_weights(other.input_weights),
     final_weights(other.final_weights),
     gpu(other.gpu)
 {
@@ -120,7 +120,7 @@ PsiDeepT<dtype, symmetric>::PsiDeepT(const PsiDeepT<dtype, symmetric>& other)
 template<typename dtype, bool symmetric>
 PsiDeepT<dtype, symmetric>& PsiDeepT<dtype, symmetric>::operator=(const PsiDeepT<dtype, symmetric>& other) {
     this->layers = other.layers;
-    this->input_biases = other.input_biases;
+    this->input_weights = other.input_weights;
     this->final_weights = other.final_weights;
     this->gpu = other.gpu;
 
@@ -180,7 +180,13 @@ template<typename dtype, bool symmetric>
 void PsiDeepT<dtype, symmetric>::update_kernel() {
     for(auto layer_idx = 0u; layer_idx < this->num_layers; layer_idx++) {
         Layer& layer = *next(this->layers.begin(), layer_idx);
-        auto& kernel_layer = kernel::PsiDeepT<dtype, symmetric>::layers[layer_idx];
+        auto& kernel_layer = this->kernel().layers[layer_idx];
+
+        layer.lhs_connections.update_device();
+        layer.rhs_connections.update_device();
+        layer.lhs_weights.update_device();
+        layer.rhs_weights.update_device();
+        layer.biases.update_device();
 
         kernel_layer.lhs_connections = layer.lhs_connections.data();
         kernel_layer.rhs_connections = layer.rhs_connections.data();
@@ -188,8 +194,12 @@ void PsiDeepT<dtype, symmetric>::update_kernel() {
         kernel_layer.rhs_weights = layer.rhs_weights.data();
         kernel_layer.biases = layer.biases.data();
     }
-    kernel::PsiDeepT<dtype, symmetric>::input_biases = PsiDeepT<dtype, symmetric>::input_biases.data();
-    kernel::PsiDeepT<dtype, symmetric>::final_weights = PsiDeepT<dtype, symmetric>::final_weights.data();
+
+    this->input_weights.update_device();
+    this->final_weights.update_device();
+
+    this->kernel().input_weights = this->input_weights.data();
+    this->kernel().final_weights = this->final_weights.data();
 }
 
 
@@ -221,9 +231,6 @@ pair<Array<unsigned int>, Array<dtype>> PsiDeepT<dtype, symmetric>::compile_rhs_
         }
     }
 
-    rhs_connections.update_device();
-    rhs_weights.update_device();
-
     return {move(rhs_connections), move(rhs_weights)};
 }
 
@@ -233,7 +240,7 @@ Array<dtype> PsiDeepT<dtype, symmetric>::get_params() const {
     Array<dtype> result(this->num_params, false);
 
     for(auto i = 0u; i < this->N; i++) {
-        result[i] = this->input_biases[i];
+        result[i] = this->input_weights[i];
     }
     auto it = result.begin() + this->N;
 
@@ -255,20 +262,17 @@ Array<dtype> PsiDeepT<dtype, symmetric>::get_params() const {
 template<typename dtype, bool symmetric>
 void PsiDeepT<dtype, symmetric>::set_params(const Array<dtype>& new_params) {
     for(auto i = 0u; i < this->N; i++) {
-        this->input_biases[i] = new_params[i];
+        this->input_weights[i] = new_params[i];
     }
-    this->input_biases.update_device();
     auto it = new_params.begin() + this->N;
 
     for(auto layer_it = next(this->layers.begin()); layer_it != this->layers.end(); layer_it++) {
         auto& layer = *layer_it;
 
         copy(it, it + layer.biases.size(), layer.biases.begin());
-        layer.biases.update_device();
         it += layer.size;
 
         copy(it, it + layer.lhs_weights.size(), layer.lhs_weights.begin());
-        layer.lhs_weights.update_device();
         it += layer.lhs_weights.size();
 
         prev(layer_it)->rhs_weights = this->compile_rhs_connections_and_weights(
@@ -280,7 +284,6 @@ void PsiDeepT<dtype, symmetric>::set_params(const Array<dtype>& new_params) {
         ).second;
     }
     copy(it, it + this->num_final_weights, this->final_weights.begin());
-    this->final_weights.update_device();
     it += this->num_final_weights;
 
     this->update_kernel();

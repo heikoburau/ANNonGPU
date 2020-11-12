@@ -113,7 +113,7 @@ struct PsiDeepT {
     double         prefactor;
     dtype          log_prefactor;
 
-    dtype*         RESTRICT input_biases;
+    dtype*         RESTRICT input_weights;
     Layer          layers[max_layers];
     dtype*         RESTRICT final_weights;
     unsigned int   num_final_weights;
@@ -218,7 +218,7 @@ struct PsiDeepT {
         if(symmetric) {
             SHARED_MEM_LOOP_BEGIN(n, this->num_sites) {
                 MULTI(i, this->N) {
-                    generic_atomicAdd(&result, result_dtype(shifted_configuration.network_unit_at(i)) * this->input_biases[i]);
+                    generic_atomicAdd(&result, result_dtype(shifted_configuration.network_unit_at(i)) * this->input_weights[i]);
                 }
 
                 this->compute_angles(payload.activations, shifted_configuration);
@@ -237,7 +237,7 @@ struct PsiDeepT {
         }
         else {
             MULTI(i, this->N) {
-                generic_atomicAdd(&result, result_dtype(configuration.network_unit_at(i)) * this->input_biases[i]);
+                generic_atomicAdd(&result, result_dtype(configuration.network_unit_at(i)) * this->input_weights[i]);
             }
 
             this->forward_pass(result, payload.angles, payload.activations, nullptr);
@@ -483,7 +483,7 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
         Array<dtype>        biases;
     };
     list<Layer>  layers;
-    Array<dtype> input_biases;
+    Array<dtype> input_weights;
     Array<dtype> final_weights;
     bool         gpu;
 
@@ -495,16 +495,16 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
 
     inline PsiDeepT(
         const unsigned int num_sites,
-        const xt::pytensor<typename std_dtype<dtype>::type, 1u>& input_biases,
+        const xt::pytensor<typename std_dtype<dtype>::type, 1u>& input_weights,
         const vector<xt::pytensor<typename std_dtype<dtype>::type, 1u>> biases_list,
         const vector<xt::pytensor<unsigned int, 2u>>& lhs_connections_list,
         const vector<xt::pytensor<typename std_dtype<dtype>::type, 2u>>& lhs_weights_list,
         const xt::pytensor<typename std_dtype<dtype>::type, 1u>& final_weights,
         const double prefactor,
         const bool gpu
-    ) : input_biases(input_biases, gpu), final_weights(final_weights, gpu) {
+    ) : input_weights(input_weights, gpu), final_weights(final_weights, gpu) {
         this->num_sites = num_sites;
-        this->N = input_biases.shape()[0];
+        this->N = input_weights.shape()[0];
         this->prefactor = prefactor;
         this->log_prefactor = dtype(0.0);
         this->num_layers = lhs_weights_list.size() + 1u; // num hidden layers + input layer
@@ -533,13 +533,15 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
             Array<dtype> lhs_weights_array(lhs_weights, gpu);
             Array<dtype> biases_array(biases, gpu);
 
-            const auto rhs_connections_and_weights = this->compile_rhs_connections_and_weights(
+            // WARNING: do not make this const! Otherwise its content will be copied on assignment, not moved.
+            auto rhs_connections_and_weights = this->compile_rhs_connections_and_weights(
                 layer_idx > 1 ? biases_list[layer_idx - 2].size() : this->N,
                 size,
                 lhs_connectivity,
                 lhs_connections_array,
                 lhs_weights_array
             );
+
 
             this->layers.push_front({
                 size,
@@ -577,7 +579,7 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
         // cout << endl;
 
         // for(auto layer_idx = int(this->num_layers) - 1; layer_idx >= 0; layer_idx--) {
-        //     const auto& kernel_layer = kernel::PsiDeepT<dtype>::layers[layer_idx];
+        //     const auto& kernel_layer = kernel::PsiDeepT<dtype, symmetric>::layers[layer_idx];
         //     const auto& layer = *next(this->layers.begin(), layer_idx);
 
         //     cout << "Layer: " << layer_idx << endl;

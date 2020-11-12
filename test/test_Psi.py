@@ -78,7 +78,7 @@ def test_psi_deep_s(psi_deep, ensemble, gpu):
                     for j in range(len(b))
                 ]
 
-            log_psi_s_ref += psi.input_biases @ input_activations + psi.final_weights @ activations
+            log_psi_s_ref += psi.input_weights @ input_activations + psi.final_weights @ activations
 
         psi_s_ref = cmath.exp(log_psi_s_ref / (psi.num_sites if psi.symmetric else 1))
 
@@ -194,9 +194,6 @@ def test_psi_classical_s(psi_classical, gpu):
 def test_O_k(psi_all, gpu):
     psi = psi_all(gpu)
 
-    if isinstance(psi, PsiDeep) and psi.symmetric:
-        return
-
     # use_spins = ensemble.__name__.endswith("Spins")
     # if not use_spins and psi.N % 3 != 0:
     #     return
@@ -205,9 +202,10 @@ def test_O_k(psi_all, gpu):
 
     eps = 1e-4
 
+    psi_plus = +psi
+
     def psi_plus_eps(psi, k, eps):
-        psi_plus = +psi
-        params = psi_plus.params
+        params = psi.params
         params[k] += eps
         psi_plus.params = params
 
@@ -229,7 +227,13 @@ def test_O_k(psi_all, gpu):
             for k in range(psi.num_params)
         ])
 
-        O_k_vector_test = psi_O_k(psi, conf)
+        if hasattr(psi, "symmetric") and psi.symmetric:
+            O_k_vector_test = sum(
+                psi_O_k(psi, conf.roll(i, psi.num_sites))
+                for i in range(psi.num_sites)
+            ) / psi.num_sites
+        else:
+            O_k_vector_test = psi_O_k(psi, conf)
 
         passed = np.allclose(O_k_vector_ref, O_k_vector_test, rtol=1e-3, atol=1e-4)
 

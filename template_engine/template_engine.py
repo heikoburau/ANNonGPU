@@ -22,7 +22,8 @@ def generate_output(line_iter, file_path):
     yield "// *       This is an automatically generated file.          *\n"
     yield "// *       For editing, please use the source file:          *\n"
     yield "// " + file_path.name + "\n"
-    yield "// ***********************************************************\n\n"
+    yield "// ***********************************************************\n"
+    yield "\n"
 
     while True:
         try:
@@ -87,12 +88,16 @@ def expand_template(template):
 
 for file_pattern in file_patterns:
     for file_path in root.glob(file_pattern):
+        with open(file_path) as f:
+            output = list(generate_output(iter(f), file_path))
+
+        output_path = Path(str(file_path)[:-len(file_path.suffix)])
+        if output_path.exists():
+            with open(output_path) as f:
+                if output == list(f):
+                    continue
+
         print(file_path)
 
-        with open(file_path) as f:
-            lines = f.readlines()
-
-        output = list(generate_output(iter(lines), file_path))
-
-        with open(str(file_path)[:-len(file_path.suffix)], 'w') as f:
+        with open(output_path, 'w') as f:
             f.writelines(output)

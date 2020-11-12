@@ -4,6 +4,8 @@
 // TDVP.cu.template
 // ***********************************************************
 
+#ifndef LEAN_AND_MEAN
+
 #include "network_functions/TDVP.hpp"
 #include "quantum_states.hpp"
 #include "ensembles.hpp"
@@ -52,16 +54,12 @@ void TDVP::eval(const Operator& op, const Psi_t& psi, Ensemble& ensemble) {
                     generic_atomicAdd(&O_k_ptr[k], weight * O_k);
                     generic_atomicAdd(&F_ptr[k], weight * local_energy * conj(O_k));
 
-                    psi_kernel.foreach_O_k(
-                        configuration,
-                        payload,
-                        [&](const unsigned int k_prime, const complex_t& O_k_prime) {
-                            generic_atomicAdd(
-                                &S_ptr[k * num_params + k_prime],
-                                weight * conj(O_k) * O_k_prime
-                            );
-                        }
-                    );
+                    for(auto k_prime = 0u; k_prime < psi_kernel.num_params; k_prime++) {
+                        generic_atomicAdd(
+                            &S_ptr[k * num_params + k_prime],
+                            weight * conj(O_k) * psi_kernel.get_O_k(k_prime, payload)
+                        );
+                    }
                 }
             );
         }
@@ -135,3 +133,6 @@ template void TDVP::eval(const Operator&, const PsiClassicalANN<2u>&, ExactSumma
 
 
 } // namespace ann_on_gpu
+
+
+#endif // LEAN_AND_MEAN
