@@ -112,6 +112,16 @@ struct MonteCarlo_t {
                 this->weight
             );
 
+            // SINGLE {
+            //     configuration = configuration.roll(
+            //         random_uint32(&rng_state) % psi.num_sites,
+            //         psi.num_sites
+            //     );
+            // }
+            // SYNC;
+            // psi.init_payload(payload, configuration);
+            // psi.log_psi_s(log_psi, configuration, payload);
+
             SHARED_MEM_LOOP_END(mc_step_within_chain);
         }
 

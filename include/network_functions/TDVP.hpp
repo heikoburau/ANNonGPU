@@ -17,13 +17,16 @@ struct TDVP {
     Array<complex_t> S_matrix;
     Array<complex_t> F_vector;
 
+    Array<double>    prob_ratio;
+
     inline TDVP(unsigned int num_params, bool gpu)
     :
     num_params(num_params),
-    E_local_ar(num_params, gpu),
+    E_local_ar(1, gpu),
     O_k_ar(num_params, gpu),
     S_matrix(num_params * num_params, gpu),
-    F_vector(num_params, gpu)
+    F_vector(num_params, gpu),
+    prob_ratio(1, gpu)
     {}
 
     template<typename Psi_t, typename Ensemble>
