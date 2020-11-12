@@ -47,6 +47,7 @@ void TDVP::eval(const Operator& op, const Psi_t& psi, Ensemble& ensemble) {
                 generic_atomicAdd(E_local_ptr, weight * local_energy);
             }
 
+            psi_kernel.init_payload(payload, configuration);
             psi_kernel.foreach_O_k(
                 configuration,
                 payload,

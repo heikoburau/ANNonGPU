@@ -39,7 +39,7 @@ struct PsiClassical_t {
     using dtype = dtype_t;
     using real_dtype = typename cuda_complex::get_real_type<dtype>::type;
 
-    static constexpr unsigned int max_sites = MAX_SPINS / 2u;
+    static constexpr unsigned int max_sites = MAX_SPINS;
     static constexpr unsigned int max_local_terms = 4u;
     static constexpr unsigned int max_local_energies = max_local_terms * max_sites;
 
@@ -209,6 +209,8 @@ struct PsiClassical_t {
         #include "cuda_kernel_defines.h"
         // CAUTION: 'result' has to be a shared variable.
 
+        this->init_payload(payload, configuration);
+
         SINGLE {
             result = payload.log_psi_ref;
         }
@@ -236,7 +238,7 @@ struct PsiClassical_t {
     HDINLINE void update_input_units(
         const Basis_t& old_vector, const Basis_t& new_vector, Payload& payload
     ) const {
-        this->init_payload(payload, new_vector);
+
     }
 
     HDINLINE

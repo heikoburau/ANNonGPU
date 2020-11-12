@@ -72,7 +72,7 @@ struct PsiDeepT {
 
     static constexpr unsigned int max_N = MAX_SPINS;
     static constexpr unsigned int max_layers = 4u;
-    static constexpr unsigned int max_width = 2 * MAX_SPINS;
+    static constexpr unsigned int max_width = MAX_SPINS;
     static constexpr unsigned int max_deep_angles = MAX_SPINS;
 
 
