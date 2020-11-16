@@ -1,6 +1,6 @@
 #include "quantum_states.hpp"
-// #include "ensembles/MonteCarlo.hpp"
-#include "ensembles/ExactSummation.hpp"
+#include "ensembles/MonteCarlo.hpp"
+// #include "ensembles/ExactSummation.hpp"
 #include "operator/Operator.hpp"
 // #include "network_functions/HilbertSpaceDistance.hpp"
 #include "network_functions/ExpectationValue.hpp"
@@ -45,16 +45,16 @@ int main(int argc, char *argv[]) {
     // HilbertSpaceDistance hs_distance(psi.num_params, gpu);
     ExpectationValue evalue(gpu);
 
-    // MonteCarloSpins mc_loop(
-    //     1u << 12u,
-    //     1u,
-    //     2u,
-    //     gpu ? (1u << 10u) : 1u,
-    //     Update_Policy<ann_on_gpu::Spins>(),
-    //     gpu
-    // );
+    MonteCarloSpins mc_loop(
+        1u << 12u,
+        1u,
+        2u,
+        gpu ? (1u << 12u) : 1u,
+        Update_Policy<ann_on_gpu::Spins>(),
+        gpu
+    );
 
-    ExactSummationSpins esum(N, gpu);
+    // ExactSummationSpins esum(N, gpu);
 
     // vector<cpx> result(psi.num_params);
 
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
 
     const auto start = high_resolution_clock::now();
 
-    cout << evalue(op, psi, esum) << endl;
+    cout << evalue(op, psi, mc_loop) << endl;
 
     const auto end = high_resolution_clock::now();
 
