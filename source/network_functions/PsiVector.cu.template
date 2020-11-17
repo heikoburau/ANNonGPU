@@ -9,7 +9,7 @@ namespace ann_on_gpu {
 
 
 template<typename Psi_t, typename Ensemble>
-Array<complex_t> psi_vector(const Psi_t& psi, Ensemble& ensemble) {
+Array<complex_t> psi_vector(Psi_t& psi, Ensemble& ensemble) {
 
     Array<complex_t> result(ensemble.get_num_steps(), ensemble.gpu);
 
@@ -39,7 +39,7 @@ Array<complex_t> psi_vector(const Psi_t& psi, Ensemble& ensemble) {
 }
 
 template<typename Psi_t, typename Ensemble>
-std::complex<double> log_psi(const Psi_t& psi, Ensemble& ensemble) {
+std::complex<double> log_psi(Psi_t& psi, Ensemble& ensemble) {
     Array<complex_t> result(1u, ensemble.gpu);
 
     result.clear();
@@ -67,7 +67,7 @@ std::complex<double> log_psi(const Psi_t& psi, Ensemble& ensemble) {
 }
 
 template<typename Psi_t, typename Basis_t>
-std::complex<double> log_psi_s(const Psi_t& psi, const Basis_t& configuration) {
+std::complex<double> log_psi_s(Psi_t& psi, const Basis_t& configuration) {
     Array<complex_t> result(1u, psi.gpu);
 
     auto result_ptr = result.data();
@@ -80,7 +80,7 @@ std::complex<double> log_psi_s(const Psi_t& psi, const Basis_t& configuration) {
         SHARED typename Psi_t::Payload payload;
         SHARED typename Psi_t::dtype   log_psi;
 
-        psi_kernel.init_payload(payload, conf);
+        psi_kernel.init_payload(payload, conf, 0u);
         psi_kernel.log_psi_s(log_psi, conf, payload);
 
         SINGLE {
@@ -102,12 +102,12 @@ std::complex<double> log_psi_s(const Psi_t& psi, const Basis_t& configuration) {
 
 
 //! begin template
-template std::complex<double> log_psi_s(const AllPsi&, const Basis&);
+template std::complex<double> log_psi_s(AllPsi&, const Basis&);
 //! end template
 
 //! begin template
-template std::complex<double> log_psi(const AllPsi& psi, Ensemble<Basis>& ensemble);
-template Array<complex_t> psi_vector(const AllPsi& psi, Ensemble<Basis>& ensemble);
+template std::complex<double> log_psi(AllPsi& psi, Ensemble<Basis>& ensemble);
+template Array<complex_t> psi_vector(AllPsi& psi, Ensemble<Basis>& ensemble);
 //! end template
 
 

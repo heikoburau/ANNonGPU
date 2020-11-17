@@ -10,6 +10,6 @@ using namespace std;
 
 
 template<typename Psi_t, typename Ensemble>
-Array<complex_t> psi_angles(const Psi_t& psi, Ensemble& spin_ensemble);
+Array<complex_t> psi_angles(Psi_t& psi, Ensemble& spin_ensemble);
 
 } // namespace ann_on_gpu

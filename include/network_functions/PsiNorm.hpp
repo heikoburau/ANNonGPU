@@ -8,7 +8,7 @@
 namespace ann_on_gpu {
 
 template<typename Psi_t, typename Ensemble>
-double psi_norm(const Psi_t& psi, Ensemble& exact_summation);
+double psi_norm(Psi_t& psi, Ensemble& exact_summation);
 
 } // namespace ann_on_gpu
 

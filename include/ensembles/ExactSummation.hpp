@@ -56,7 +56,7 @@ struct ExactSummation_t {
 
             SYNC;
 
-            psi.init_payload(payload, configuration);
+            psi.init_payload(payload, configuration, conf_index);
             psi.log_psi_s(log_psi, configuration, payload);
 
             SYNC;
@@ -68,6 +68,8 @@ struct ExactSummation_t {
             SYNC;
 
             function(conf_index, configuration, log_psi, payload, weight);
+
+            psi.save_payload(payload, conf_index);
         }
     }
 
@@ -97,9 +99,12 @@ struct ExactSummation_t : public kernel::ExactSummation_t<Basis_t> {
 
 #ifdef __CUDACC__
     template<typename Psi_t, typename Function>
-    inline void foreach(const Psi_t& psi, const Function& function, const int blockDim=-1) const {
+    inline void foreach(Psi_t& psi, const Function& function, const int blockDim=-1) const {
         auto this_kernel = this->kernel();
         const auto psi_kernel = psi.kernel();
+
+        psi.prepare(this->num_configurations);
+
         if(this->gpu) {
             const auto blockDim_ = blockDim == -1 ? psi.get_width() : blockDim;
 

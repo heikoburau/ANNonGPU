@@ -15,7 +15,7 @@ namespace kernel {
 
 template<bool compute_gradient, typename Psi_t, typename Psi_t_prime, typename Ensemble>
 void kernel::KullbackLeibler::compute_averages(
-    const Psi_t& psi, const Psi_t_prime& psi_prime, Ensemble& ensemble
+    Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& ensemble
 ) const {
     const auto this_ = *this;
     const auto psi_prime_kernel = psi_prime.kernel();
@@ -92,7 +92,7 @@ void KullbackLeibler::clear() {
 
 template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
 double KullbackLeibler::value(
-    const Psi_t& psi, const Psi_t_prime& psi_prime, Ensemble& ensemble
+    Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& ensemble
 ) {
     this->clear();
     this->compute_averages<false>(psi, psi_prime, ensemble);
@@ -111,7 +111,7 @@ double KullbackLeibler::value(
 
 template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
 double KullbackLeibler::gradient(
-    complex<double>* result, const Psi_t& psi, const Psi_t_prime& psi_prime, Ensemble& ensemble, const double nu
+    complex<double>* result, Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& ensemble, const double nu
 ) {
     this->clear();
 
@@ -169,8 +169,8 @@ double KullbackLeibler::gradient(
 
 
 //! begin template
-template double KullbackLeibler::value(const ClPsi&, const PsiDeep&, Ensemble<Basis>&);
-template double KullbackLeibler::gradient(complex<double>*, const ClPsi&, const PsiDeep&, Ensemble<Basis>&, const double);
+template double KullbackLeibler::value(ClPsi&, PsiDeep&, Ensemble<Basis>&);
+template double KullbackLeibler::gradient(complex<double>*, ClPsi&, PsiDeep&, Ensemble<Basis>&, const double);
 //! end template
 
 

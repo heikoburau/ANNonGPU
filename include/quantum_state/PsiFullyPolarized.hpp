@@ -33,7 +33,10 @@ struct PsiFullyPolarized_t {
 
     template<typename Basis_t>
     HDINLINE
-    void init_payload(Payload&, const Basis_t&) const {}
+    void init_payload(Payload&, const Basis_t&, const unsigned int) const {}
+
+    HDINLINE
+    void save_payload(Payload& payload, const unsigned int conf_idx) const {}
 
 #ifdef ENABLE_SPINS
     template<typename result_dtype>
@@ -141,6 +144,7 @@ struct PsiFullyPolarized_t : public kernel::PsiFullyPolarized_t<dtype> {
     template<typename Ensemble>
     inline void calibrate(Ensemble& ensemble) {}
 
+    inline void prepare(const unsigned int num_configurations) {}
 };
 
 

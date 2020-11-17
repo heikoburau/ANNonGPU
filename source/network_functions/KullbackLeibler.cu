@@ -21,7 +21,7 @@ namespace kernel {
 
 template<bool compute_gradient, typename Psi_t, typename Psi_t_prime, typename Ensemble>
 void kernel::KullbackLeibler::compute_averages(
-    const Psi_t& psi, const Psi_t_prime& psi_prime, Ensemble& ensemble
+    Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& ensemble
 ) const {
     const auto this_ = *this;
     const auto psi_prime_kernel = psi_prime.kernel();
@@ -98,7 +98,7 @@ void KullbackLeibler::clear() {
 
 template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
 double KullbackLeibler::value(
-    const Psi_t& psi, const Psi_t_prime& psi_prime, Ensemble& ensemble
+    Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& ensemble
 ) {
     this->clear();
     this->compute_averages<false>(psi, psi_prime, ensemble);
@@ -117,7 +117,7 @@ double KullbackLeibler::value(
 
 template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
 double KullbackLeibler::gradient(
-    complex<double>* result, const Psi_t& psi, const Psi_t_prime& psi_prime, Ensemble& ensemble, const double nu
+    complex<double>* result, Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& ensemble, const double nu
 ) {
     this->clear();
 
@@ -175,68 +175,68 @@ double KullbackLeibler::gradient(
 
 
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-template double KullbackLeibler::value(const PsiClassicalFP<1u>&, const PsiDeep&, MonteCarlo_tt<Spins>&);
-template double KullbackLeibler::gradient(complex<double>*, const PsiClassicalFP<1u>&, const PsiDeep&, MonteCarlo_tt<Spins>&, const double);
+template double KullbackLeibler::value(PsiClassicalFP<1u>&, PsiDeep&, MonteCarlo_tt<Spins>&);
+template double KullbackLeibler::gradient(complex<double>*, PsiClassicalFP<1u>&, PsiDeep&, MonteCarlo_tt<Spins>&, const double);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-template double KullbackLeibler::value(const PsiClassicalFP<2u>&, const PsiDeep&, MonteCarlo_tt<Spins>&);
-template double KullbackLeibler::gradient(complex<double>*, const PsiClassicalFP<2u>&, const PsiDeep&, MonteCarlo_tt<Spins>&, const double);
+template double KullbackLeibler::value(PsiClassicalFP<2u>&, PsiDeep&, MonteCarlo_tt<Spins>&);
+template double KullbackLeibler::gradient(complex<double>*, PsiClassicalFP<2u>&, PsiDeep&, MonteCarlo_tt<Spins>&, const double);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template double KullbackLeibler::value(const PsiClassicalANN<1u>&, const PsiDeep&, MonteCarlo_tt<Spins>&);
-template double KullbackLeibler::gradient(complex<double>*, const PsiClassicalANN<1u>&, const PsiDeep&, MonteCarlo_tt<Spins>&, const double);
+template double KullbackLeibler::value(PsiClassicalANN<1u>&, PsiDeep&, MonteCarlo_tt<Spins>&);
+template double KullbackLeibler::gradient(complex<double>*, PsiClassicalANN<1u>&, PsiDeep&, MonteCarlo_tt<Spins>&, const double);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template double KullbackLeibler::value(const PsiClassicalANN<2u>&, const PsiDeep&, MonteCarlo_tt<Spins>&);
-template double KullbackLeibler::gradient(complex<double>*, const PsiClassicalANN<2u>&, const PsiDeep&, MonteCarlo_tt<Spins>&, const double);
+template double KullbackLeibler::value(PsiClassicalANN<2u>&, PsiDeep&, MonteCarlo_tt<Spins>&);
+template double KullbackLeibler::gradient(complex<double>*, PsiClassicalANN<2u>&, PsiDeep&, MonteCarlo_tt<Spins>&, const double);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-template double KullbackLeibler::value(const PsiClassicalFP<1u>&, const PsiDeep&, MonteCarlo_tt<PauliString>&);
-template double KullbackLeibler::gradient(complex<double>*, const PsiClassicalFP<1u>&, const PsiDeep&, MonteCarlo_tt<PauliString>&, const double);
+template double KullbackLeibler::value(PsiClassicalFP<1u>&, PsiDeep&, MonteCarlo_tt<PauliString>&);
+template double KullbackLeibler::gradient(complex<double>*, PsiClassicalFP<1u>&, PsiDeep&, MonteCarlo_tt<PauliString>&, const double);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-template double KullbackLeibler::value(const PsiClassicalFP<2u>&, const PsiDeep&, MonteCarlo_tt<PauliString>&);
-template double KullbackLeibler::gradient(complex<double>*, const PsiClassicalFP<2u>&, const PsiDeep&, MonteCarlo_tt<PauliString>&, const double);
+template double KullbackLeibler::value(PsiClassicalFP<2u>&, PsiDeep&, MonteCarlo_tt<PauliString>&);
+template double KullbackLeibler::gradient(complex<double>*, PsiClassicalFP<2u>&, PsiDeep&, MonteCarlo_tt<PauliString>&, const double);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template double KullbackLeibler::value(const PsiClassicalANN<1u>&, const PsiDeep&, MonteCarlo_tt<PauliString>&);
-template double KullbackLeibler::gradient(complex<double>*, const PsiClassicalANN<1u>&, const PsiDeep&, MonteCarlo_tt<PauliString>&, const double);
+template double KullbackLeibler::value(PsiClassicalANN<1u>&, PsiDeep&, MonteCarlo_tt<PauliString>&);
+template double KullbackLeibler::gradient(complex<double>*, PsiClassicalANN<1u>&, PsiDeep&, MonteCarlo_tt<PauliString>&, const double);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template double KullbackLeibler::value(const PsiClassicalANN<2u>&, const PsiDeep&, MonteCarlo_tt<PauliString>&);
-template double KullbackLeibler::gradient(complex<double>*, const PsiClassicalANN<2u>&, const PsiDeep&, MonteCarlo_tt<PauliString>&, const double);
+template double KullbackLeibler::value(PsiClassicalANN<2u>&, PsiDeep&, MonteCarlo_tt<PauliString>&);
+template double KullbackLeibler::gradient(complex<double>*, PsiClassicalANN<2u>&, PsiDeep&, MonteCarlo_tt<PauliString>&, const double);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-template double KullbackLeibler::value(const PsiClassicalFP<1u>&, const PsiDeep&, ExactSummation_t<Spins>&);
-template double KullbackLeibler::gradient(complex<double>*, const PsiClassicalFP<1u>&, const PsiDeep&, ExactSummation_t<Spins>&, const double);
+template double KullbackLeibler::value(PsiClassicalFP<1u>&, PsiDeep&, ExactSummation_t<Spins>&);
+template double KullbackLeibler::gradient(complex<double>*, PsiClassicalFP<1u>&, PsiDeep&, ExactSummation_t<Spins>&, const double);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-template double KullbackLeibler::value(const PsiClassicalFP<2u>&, const PsiDeep&, ExactSummation_t<Spins>&);
-template double KullbackLeibler::gradient(complex<double>*, const PsiClassicalFP<2u>&, const PsiDeep&, ExactSummation_t<Spins>&, const double);
+template double KullbackLeibler::value(PsiClassicalFP<2u>&, PsiDeep&, ExactSummation_t<Spins>&);
+template double KullbackLeibler::gradient(complex<double>*, PsiClassicalFP<2u>&, PsiDeep&, ExactSummation_t<Spins>&, const double);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template double KullbackLeibler::value(const PsiClassicalANN<1u>&, const PsiDeep&, ExactSummation_t<Spins>&);
-template double KullbackLeibler::gradient(complex<double>*, const PsiClassicalANN<1u>&, const PsiDeep&, ExactSummation_t<Spins>&, const double);
+template double KullbackLeibler::value(PsiClassicalANN<1u>&, PsiDeep&, ExactSummation_t<Spins>&);
+template double KullbackLeibler::gradient(complex<double>*, PsiClassicalANN<1u>&, PsiDeep&, ExactSummation_t<Spins>&, const double);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template double KullbackLeibler::value(const PsiClassicalANN<2u>&, const PsiDeep&, ExactSummation_t<Spins>&);
-template double KullbackLeibler::gradient(complex<double>*, const PsiClassicalANN<2u>&, const PsiDeep&, ExactSummation_t<Spins>&, const double);
+template double KullbackLeibler::value(PsiClassicalANN<2u>&, PsiDeep&, ExactSummation_t<Spins>&);
+template double KullbackLeibler::gradient(complex<double>*, PsiClassicalANN<2u>&, PsiDeep&, ExactSummation_t<Spins>&, const double);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-template double KullbackLeibler::value(const PsiClassicalFP<1u>&, const PsiDeep&, ExactSummation_t<PauliString>&);
-template double KullbackLeibler::gradient(complex<double>*, const PsiClassicalFP<1u>&, const PsiDeep&, ExactSummation_t<PauliString>&, const double);
+template double KullbackLeibler::value(PsiClassicalFP<1u>&, PsiDeep&, ExactSummation_t<PauliString>&);
+template double KullbackLeibler::gradient(complex<double>*, PsiClassicalFP<1u>&, PsiDeep&, ExactSummation_t<PauliString>&, const double);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-template double KullbackLeibler::value(const PsiClassicalFP<2u>&, const PsiDeep&, ExactSummation_t<PauliString>&);
-template double KullbackLeibler::gradient(complex<double>*, const PsiClassicalFP<2u>&, const PsiDeep&, ExactSummation_t<PauliString>&, const double);
+template double KullbackLeibler::value(PsiClassicalFP<2u>&, PsiDeep&, ExactSummation_t<PauliString>&);
+template double KullbackLeibler::gradient(complex<double>*, PsiClassicalFP<2u>&, PsiDeep&, ExactSummation_t<PauliString>&, const double);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template double KullbackLeibler::value(const PsiClassicalANN<1u>&, const PsiDeep&, ExactSummation_t<PauliString>&);
-template double KullbackLeibler::gradient(complex<double>*, const PsiClassicalANN<1u>&, const PsiDeep&, ExactSummation_t<PauliString>&, const double);
+template double KullbackLeibler::value(PsiClassicalANN<1u>&, PsiDeep&, ExactSummation_t<PauliString>&);
+template double KullbackLeibler::gradient(complex<double>*, PsiClassicalANN<1u>&, PsiDeep&, ExactSummation_t<PauliString>&, const double);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template double KullbackLeibler::value(const PsiClassicalANN<2u>&, const PsiDeep&, ExactSummation_t<PauliString>&);
-template double KullbackLeibler::gradient(complex<double>*, const PsiClassicalANN<2u>&, const PsiDeep&, ExactSummation_t<PauliString>&, const double);
+template double KullbackLeibler::value(PsiClassicalANN<2u>&, PsiDeep&, ExactSummation_t<PauliString>&);
+template double KullbackLeibler::gradient(complex<double>*, PsiClassicalANN<2u>&, PsiDeep&, ExactSummation_t<PauliString>&, const double);
 #endif
 
 

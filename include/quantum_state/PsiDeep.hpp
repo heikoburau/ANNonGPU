@@ -2,6 +2,7 @@
 
 #include "psi_functions.hpp"
 
+#include "RNGStates.hpp"
 #include "bases.hpp"
 #include "Array.hpp"
 #include "types.h"
@@ -13,6 +14,7 @@
 #include <vector>
 #include <list>
 #include <complex>
+#include <memory>
 
 #ifdef __PYTHONCC__
     #define FORCE_IMPORT_ARRAY
@@ -46,12 +48,21 @@ namespace PsiDeep {
     struct Payload_t<dtype, max_width, false> {
         dtype angles[max_width];
         dtype activations[max_width];
+
+
+        struct __align__(16) {
+            char data[sizeof(curandState_t) + sizeof(mt19937)];
+        } rng_state;
     };
 
     template<typename dtype, unsigned int max_width>
     struct Payload_t<dtype, max_width, true> {
         dtype angles[max_width];
         dtype activations[max_width];
+
+        struct __align__(16) {
+            char data[sizeof(curandState_t) + sizeof(mt19937)];
+        } rng_state;
     };
 
 } // namespace PsiDeep
@@ -121,6 +132,9 @@ struct PsiDeepT {
     unsigned int   width;                   // size of largest layer
     unsigned int   num_units;
 
+    RNGStates      rng_states;
+    unsigned int   num_random_shifts;
+
     unsigned int   N_i;
     unsigned int   N_j;
 
@@ -147,9 +161,23 @@ struct PsiDeepT {
 
     template<typename Basis_t>
     HDINLINE
-    void init_payload(Payload& payload, const Basis_t& configuration) const {
-        if(!symmetric) {
+    void init_payload(Payload& payload, const Basis_t& configuration, const unsigned int conf_idx) const {
+        if(symmetric) {
+            this->rng_states.get_state((void*)&payload.rng_state, conf_idx);
+        }
+        else {
             this->compute_angles(payload.angles, configuration);
+        }
+    }
+
+    HDINLINE
+    void save_payload(Payload& payload, const unsigned int conf_idx) const {
+        #include "cuda_kernel_defines.h"
+
+        if(symmetric) {
+            SINGLE {
+                this->rng_states.set_state((const void*)&payload.rng_state, conf_idx);
+            }
         }
     }
 
@@ -216,7 +244,7 @@ struct PsiDeepT {
         SYNC;
 
         if(symmetric) {
-            SHARED_MEM_LOOP_BEGIN(n, this->num_sites) {
+            SHARED_MEM_LOOP_BEGIN(n, this->num_random_shifts) {
                 MULTI(i, this->N) {
                     generic_atomicAdd(&result, result_dtype(shifted_configuration.network_unit_at(i)) * this->input_weights[i]);
                 }
@@ -225,13 +253,16 @@ struct PsiDeepT {
                 this->forward_pass(result, payload.activations, payload.activations, nullptr);
 
                 SINGLE {
-                    shifted_configuration = shifted_configuration.roll(1, this->num_sites);
+                    shifted_configuration = shifted_configuration.roll(
+                        random_uint32((void*)&payload.rng_state) % this->num_sites,
+                        this->num_sites
+                    );
                 }
 
                 SHARED_MEM_LOOP_END(n);
             }
             SINGLE {
-                result *= 1.0 / this->num_sites;
+                result *= 1.0 / this->num_random_shifts;
             }
             SYNC; // might be not neccessary
         }
@@ -487,6 +518,8 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
     Array<dtype> final_weights;
     bool         gpu;
 
+    unique_ptr<RNGStates>   rng_states;
+
     PsiDeepT(const unsigned int N, const unsigned int M, const bool gpu);
     PsiDeepT(const PsiDeepT& other);
     PsiDeepT& operator=(const PsiDeepT& other);
@@ -567,6 +600,9 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
             move(rhs_weights_array),
             move(Array<dtype>(1, gpu))
         });
+
+        this->rng_states = unique_ptr<RNGStates>(new RNGStates(1u, this->gpu));
+        this->num_random_shifts = 1u;
 
         this->init_kernel();
 
@@ -680,6 +716,8 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
 
     void init_kernel();
     void update_kernel();
+
+    void prepare(const unsigned int num_configurations);
 
     pair<Array<unsigned int>, Array<dtype>> compile_rhs_connections_and_weights(
         const unsigned int prev_size,

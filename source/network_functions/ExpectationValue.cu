@@ -19,7 +19,7 @@ ExpectationValue::ExpectationValue(const bool gpu) : A_local(1, gpu), A_local_ab
 
 template<typename Psi_t, typename Ensemble>
 complex<double> ExpectationValue::operator()(
-    const Operator& operator_, const Psi_t& psi, Ensemble& ensemble
+    const Operator& operator_, Psi_t& psi, Ensemble& ensemble
 ) {
 
     this->A_local.clear();
@@ -54,7 +54,7 @@ complex<double> ExpectationValue::operator()(
 
 template<typename Psi_t, typename Ensemble>
 pair<double, complex<double>> ExpectationValue::fluctuation(
-    const Operator& operator_, const Psi_t& psi, Ensemble& ensemble
+    const Operator& operator_, Psi_t& psi, Ensemble& ensemble
 ) {
 
     this->A_local.clear();
@@ -96,100 +96,100 @@ pair<double, complex<double>> ExpectationValue::fluctuation(
 }
 
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiDeep& psi, MonteCarlo_tt<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiDeep&, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiDeep& psi, MonteCarlo_tt<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiDeep&, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiFullyPolarized& psi, MonteCarlo_tt<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiFullyPolarized&, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiFullyPolarized& psi, MonteCarlo_tt<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiFullyPolarized&, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiClassicalFP<1u>& psi, MonteCarlo_tt<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiClassicalFP<1u>&, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalFP<1u>&, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiClassicalFP<2u>& psi, MonteCarlo_tt<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiClassicalFP<2u>&, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalFP<2u>&, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiClassicalANN<1u>& psi, MonteCarlo_tt<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiClassicalANN<1u>&, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalANN<1u>&, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiClassicalANN<2u>&, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalANN<2u>&, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiDeep& psi, MonteCarlo_tt<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiDeep&, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiDeep& psi, MonteCarlo_tt<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiDeep&, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiFullyPolarized&, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiFullyPolarized&, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiClassicalFP<1u>& psi, MonteCarlo_tt<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiClassicalFP<1u>&, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalFP<1u>&, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiClassicalFP<2u>& psi, MonteCarlo_tt<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiClassicalFP<2u>&, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalFP<2u>&, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiClassicalANN<1u>& psi, MonteCarlo_tt<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiClassicalANN<1u>&, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalANN<1u>&, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiClassicalANN<2u>& psi, MonteCarlo_tt<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiClassicalANN<2u>&, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalANN<2u>&, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiDeep& psi, ExactSummation_t<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiDeep&, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiDeep& psi, ExactSummation_t<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiDeep&, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiFullyPolarized& psi, ExactSummation_t<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiFullyPolarized&, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiFullyPolarized& psi, ExactSummation_t<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiFullyPolarized&, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiClassicalFP<1u>&, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalFP<1u>&, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiClassicalFP<2u>&, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalFP<2u>&, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiClassicalANN<1u>&, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalANN<1u>&, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiClassicalANN<2u>&, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalANN<2u>&, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiDeep& psi, ExactSummation_t<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiDeep&, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiDeep& psi, ExactSummation_t<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiDeep&, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiFullyPolarized& psi, ExactSummation_t<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiFullyPolarized&, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiFullyPolarized& psi, ExactSummation_t<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiFullyPolarized&, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiClassicalFP<1u>&, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalFP<1u>&, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiClassicalFP<2u>&, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalFP<2u>&, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiClassicalANN<1u>&, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalANN<1u>&, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator&, const PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, const PsiClassicalANN<2u>&, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalANN<2u>&, ExactSummation_t<PauliString>&);
 #endif
 
 } // namespace ann_on_gpu

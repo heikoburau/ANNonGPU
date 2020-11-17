@@ -8,7 +8,7 @@ namespace ann_on_gpu {
 
 
 template<typename Psi_t, typename Ensemble>
-Array<complex_t> psi_angles(const Psi_t& psi, Ensemble& ensemble) {
+Array<complex_t> psi_angles(Psi_t& psi, Ensemble& ensemble) {
     Array<complex_t> result(psi.get_num_angles() * ensemble.get_num_steps(), ensemble.gpu);
 
     result.clear();
@@ -38,7 +38,7 @@ Array<complex_t> psi_angles(const Psi_t& psi, Ensemble& ensemble) {
 
 
 //! begin template
-template Array<complex_t> psi_angles(const PsiDeep& psi, Ensemble<Basis>& ensemble);
+template Array<complex_t> psi_angles(PsiDeep& psi, Ensemble<Basis>& ensemble);
 //! end template
 
 

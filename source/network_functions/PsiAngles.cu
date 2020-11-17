@@ -14,7 +14,7 @@ namespace ann_on_gpu {
 
 
 template<typename Psi_t, typename Ensemble>
-Array<complex_t> psi_angles(const Psi_t& psi, Ensemble& ensemble) {
+Array<complex_t> psi_angles(Psi_t& psi, Ensemble& ensemble) {
     Array<complex_t> result(psi.get_num_angles() * ensemble.get_num_steps(), ensemble.gpu);
 
     result.clear();
@@ -44,16 +44,16 @@ Array<complex_t> psi_angles(const Psi_t& psi, Ensemble& ensemble) {
 
 
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
-template Array<complex_t> psi_angles(const PsiDeep& psi, MonteCarlo_tt<Spins>& ensemble);
+template Array<complex_t> psi_angles(PsiDeep& psi, MonteCarlo_tt<Spins>& ensemble);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
-template Array<complex_t> psi_angles(const PsiDeep& psi, MonteCarlo_tt<PauliString>& ensemble);
+template Array<complex_t> psi_angles(PsiDeep& psi, MonteCarlo_tt<PauliString>& ensemble);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
-template Array<complex_t> psi_angles(const PsiDeep& psi, ExactSummation_t<Spins>& ensemble);
+template Array<complex_t> psi_angles(PsiDeep& psi, ExactSummation_t<Spins>& ensemble);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
-template Array<complex_t> psi_angles(const PsiDeep& psi, ExactSummation_t<PauliString>& ensemble);
+template Array<complex_t> psi_angles(PsiDeep& psi, ExactSummation_t<PauliString>& ensemble);
 #endif
 
 

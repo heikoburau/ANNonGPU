@@ -68,7 +68,7 @@ struct MonteCarlo_t {
             markov_index = blockIdx.x;
         #else
             markov_index = 0u;
-            std::mt19937 rng_state;
+            mt19937 rng_state;
         #endif
         SINGLE {
             this->rng_states.get_state(rng_state, markov_index);
@@ -82,7 +82,7 @@ struct MonteCarlo_t {
         SHARED typename Psi_t::Payload      payload;
         SHARED typename Psi_t::dtype        log_psi;
 
-        psi.init_payload(payload, configuration);
+        psi.init_payload(payload, configuration, markov_index * this->num_mc_steps_per_chain);
         psi.log_psi_s(log_psi, configuration, payload);
 
         // thermalization
@@ -124,6 +124,8 @@ struct MonteCarlo_t {
 
             SHARED_MEM_LOOP_END(mc_step_within_chain);
         }
+
+        psi.save_payload(payload, markov_index * this->num_mc_steps_per_chain);
 
         SINGLE {
             this->rng_states.set_state(rng_state, markov_index);
@@ -213,12 +215,14 @@ struct MonteCarlo_t : public kernel::MonteCarlo_t<Basis_t, Init_Policy, typename
 
 #ifdef __CUDACC__
     template<typename Psi_t, typename Function>
-    inline void foreach(const Psi_t& psi, const Function& function, const int blockDim=-1) {
+    inline void foreach(Psi_t& psi, const Function& function, const int blockDim=-1) {
         auto this_kernel = this->kernel();
         auto psi_kernel = psi.kernel();
 
         this->acceptances_ar.clear();
         this->rejections_ar.clear();
+
+        psi.prepare(this->num_samples);
 
         if(this->gpu) {
             const auto blockDim_ = blockDim == -1 ? psi.get_width() : blockDim;

@@ -11,7 +11,7 @@ namespace ann_on_gpu {
 
 
 template<typename Psi_t, typename Ensemble>
-double psi_norm(const Psi_t& psi, Ensemble& exact_summation) {
+double psi_norm(Psi_t& psi, Ensemble& exact_summation) {
 
     Array<double> result_ar(1, exact_summation.gpu);
     result_ar.clear();
@@ -43,7 +43,7 @@ double psi_norm(const Psi_t& psi, Ensemble& exact_summation) {
 
 
 //! begin template
-template double psi_norm(const AllPsi& psi, ExactSummation_t<Basis>&);
+template double psi_norm(AllPsi& psi, ExactSummation_t<Basis>&);
 //! end template
 
 

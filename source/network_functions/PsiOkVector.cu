@@ -12,7 +12,7 @@
 namespace ann_on_gpu {
 
 template<typename Psi_t, typename Ensemble>
-Array<complex_t> psi_O_k_vector(const Psi_t& psi, Ensemble& ensemble) {
+Array<complex_t> psi_O_k_vector(Psi_t& psi, Ensemble& ensemble) {
     Array<complex_t> result(psi.num_params, psi.gpu);
 
     auto result_ptr = result.data();
@@ -43,7 +43,7 @@ Array<complex_t> psi_O_k_vector(const Psi_t& psi, Ensemble& ensemble) {
 }
 
 template<typename Psi_t, typename Basis_t>
-Array<complex_t> psi_O_k(const Psi_t& psi, const Basis_t& configuration) {
+Array<complex_t> psi_O_k(Psi_t& psi, const Basis_t& configuration) {
     Array<complex_t> result(psi.num_params, psi.gpu);
 
     auto result_ptr = result.data();
@@ -54,7 +54,7 @@ Array<complex_t> psi_O_k(const Psi_t& psi, const Basis_t& configuration) {
         #include "cuda_kernel_defines.h"
 
         SHARED typename Psi_t::Payload payload;
-        psi_kernel.init_payload(payload, conf);
+        psi_kernel.init_payload(payload, conf, 0u);
 
         psi_kernel.foreach_O_k(
             conf,
@@ -80,63 +80,63 @@ Array<complex_t> psi_O_k(const Psi_t& psi, const Basis_t& configuration) {
 
 #if defined(ENABLE_SPINS)
 
-template Array<complex_t> psi_O_k_vector(const PsiDeep&, ExactSummation_t<Spins>&);
-template Array<complex_t> psi_O_k(const PsiDeep&, const Spins&);
+template Array<complex_t> psi_O_k_vector(PsiDeep&, ExactSummation_t<Spins>&);
+template Array<complex_t> psi_O_k(PsiDeep&, const Spins&);
 #endif
 #if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 
-template Array<complex_t> psi_O_k_vector(const PsiFullyPolarized&, ExactSummation_t<Spins>&);
-template Array<complex_t> psi_O_k(const PsiFullyPolarized&, const Spins&);
+template Array<complex_t> psi_O_k_vector(PsiFullyPolarized&, ExactSummation_t<Spins>&);
+template Array<complex_t> psi_O_k(PsiFullyPolarized&, const Spins&);
 #endif
 #if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 
-template Array<complex_t> psi_O_k_vector(const PsiClassicalFP<1u>&, ExactSummation_t<Spins>&);
-template Array<complex_t> psi_O_k(const PsiClassicalFP<1u>&, const Spins&);
+template Array<complex_t> psi_O_k_vector(PsiClassicalFP<1u>&, ExactSummation_t<Spins>&);
+template Array<complex_t> psi_O_k(PsiClassicalFP<1u>&, const Spins&);
 #endif
 #if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 
-template Array<complex_t> psi_O_k_vector(const PsiClassicalFP<2u>&, ExactSummation_t<Spins>&);
-template Array<complex_t> psi_O_k(const PsiClassicalFP<2u>&, const Spins&);
+template Array<complex_t> psi_O_k_vector(PsiClassicalFP<2u>&, ExactSummation_t<Spins>&);
+template Array<complex_t> psi_O_k(PsiClassicalFP<2u>&, const Spins&);
 #endif
 #if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 
-template Array<complex_t> psi_O_k_vector(const PsiClassicalANN<1u>&, ExactSummation_t<Spins>&);
-template Array<complex_t> psi_O_k(const PsiClassicalANN<1u>&, const Spins&);
+template Array<complex_t> psi_O_k_vector(PsiClassicalANN<1u>&, ExactSummation_t<Spins>&);
+template Array<complex_t> psi_O_k(PsiClassicalANN<1u>&, const Spins&);
 #endif
 #if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 
-template Array<complex_t> psi_O_k_vector(const PsiClassicalANN<2u>&, ExactSummation_t<Spins>&);
-template Array<complex_t> psi_O_k(const PsiClassicalANN<2u>&, const Spins&);
+template Array<complex_t> psi_O_k_vector(PsiClassicalANN<2u>&, ExactSummation_t<Spins>&);
+template Array<complex_t> psi_O_k(PsiClassicalANN<2u>&, const Spins&);
 #endif
 #if defined(ENABLE_PAULIS)
 
-template Array<complex_t> psi_O_k_vector(const PsiDeep&, ExactSummation_t<PauliString>&);
-template Array<complex_t> psi_O_k(const PsiDeep&, const PauliString&);
+template Array<complex_t> psi_O_k_vector(PsiDeep&, ExactSummation_t<PauliString>&);
+template Array<complex_t> psi_O_k(PsiDeep&, const PauliString&);
 #endif
 #if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 
-template Array<complex_t> psi_O_k_vector(const PsiFullyPolarized&, ExactSummation_t<PauliString>&);
-template Array<complex_t> psi_O_k(const PsiFullyPolarized&, const PauliString&);
+template Array<complex_t> psi_O_k_vector(PsiFullyPolarized&, ExactSummation_t<PauliString>&);
+template Array<complex_t> psi_O_k(PsiFullyPolarized&, const PauliString&);
 #endif
 #if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 
-template Array<complex_t> psi_O_k_vector(const PsiClassicalFP<1u>&, ExactSummation_t<PauliString>&);
-template Array<complex_t> psi_O_k(const PsiClassicalFP<1u>&, const PauliString&);
+template Array<complex_t> psi_O_k_vector(PsiClassicalFP<1u>&, ExactSummation_t<PauliString>&);
+template Array<complex_t> psi_O_k(PsiClassicalFP<1u>&, const PauliString&);
 #endif
 #if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 
-template Array<complex_t> psi_O_k_vector(const PsiClassicalFP<2u>&, ExactSummation_t<PauliString>&);
-template Array<complex_t> psi_O_k(const PsiClassicalFP<2u>&, const PauliString&);
+template Array<complex_t> psi_O_k_vector(PsiClassicalFP<2u>&, ExactSummation_t<PauliString>&);
+template Array<complex_t> psi_O_k(PsiClassicalFP<2u>&, const PauliString&);
 #endif
 #if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 
-template Array<complex_t> psi_O_k_vector(const PsiClassicalANN<1u>&, ExactSummation_t<PauliString>&);
-template Array<complex_t> psi_O_k(const PsiClassicalANN<1u>&, const PauliString&);
+template Array<complex_t> psi_O_k_vector(PsiClassicalANN<1u>&, ExactSummation_t<PauliString>&);
+template Array<complex_t> psi_O_k(PsiClassicalANN<1u>&, const PauliString&);
 #endif
 #if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 
-template Array<complex_t> psi_O_k_vector(const PsiClassicalANN<2u>&, ExactSummation_t<PauliString>&);
-template Array<complex_t> psi_O_k(const PsiClassicalANN<2u>&, const PauliString&);
+template Array<complex_t> psi_O_k_vector(PsiClassicalANN<2u>&, ExactSummation_t<PauliString>&);
+template Array<complex_t> psi_O_k(PsiClassicalANN<2u>&, const PauliString&);
 #endif
 
 } // namespace ann_on_gpu

@@ -18,6 +18,14 @@ __global__ void initialize_random_states(curandState_t* random_states, const uns
     }
 }
 
+// __global__ void skip_ahead(curandState_t* random_states, const unsigned int num_states, const unsigned int steps) {
+//     const auto idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+//     if(idx < num_states) {
+//         skipahead(steps, &random_states[idx]);
+//     }
+// }
+
 }
 
 
@@ -79,6 +87,23 @@ RNGStates::~RNGStates() noexcept(false) {
         delete[] this->rng_states_host;
     }
 }
+
+
+// void RNGStates::skip_ahead(const unsigned int steps) {
+//     if(this->gpu) {
+//         const auto blockDim = 256u;
+//         kernel::skip_ahead<<<this->num_states / blockDim + 1u, blockDim>>>(
+//             this->rng_states_device,
+//             this->num_states,
+//             steps
+//         );
+//     }
+//     else {
+//         for(auto i = 0u; i < this->num_states; i++) {
+//             this->rng_states_host[i].discard(steps);
+//         }
+//     }
+// }
 
 
 }
