@@ -105,15 +105,15 @@ struct PsiClassical_t {
 
     template<typename Basis_t>
     HDINLINE
-    void init_payload(Payload& payload, const Basis_t& configuration, const unsigned int conf_idx) const {
-        this->psi_ref.init_payload(payload.ref_payload, configuration, conf_idx);
+    void init_payload(Payload& payload, const Basis_t& configuration) const {
+        this->psi_ref.init_payload(payload.ref_payload, configuration);
         this->psi_ref.log_psi_s(payload.log_psi_ref, configuration, payload.ref_payload);
 
         this->compute_local_energies(configuration, payload);
     }
 
     HDINLINE
-    void save_payload(Payload& payload, const unsigned int conf_idx) const {}
+    void save_payload(Payload& payload) const {}
 
     template<typename Basis_t>
     HDINLINE
@@ -212,7 +212,7 @@ struct PsiClassical_t {
         #include "cuda_kernel_defines.h"
         // CAUTION: 'result' has to be a shared variable.
 
-        // this->init_payload(payload, configuration);
+        this->init_payload(payload, configuration);
 
         SINGLE {
             result = payload.log_psi_ref;

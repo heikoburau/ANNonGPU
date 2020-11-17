@@ -80,7 +80,7 @@ std::complex<double> log_psi_s(Psi_t& psi, const Basis_t& configuration) {
         SHARED typename Psi_t::Payload payload;
         SHARED typename Psi_t::dtype   log_psi;
 
-        psi_kernel.init_payload(payload, conf, 0u);
+        psi_kernel.init_payload(payload, conf);
         psi_kernel.log_psi_s(log_psi, conf, payload);
 
         SINGLE {

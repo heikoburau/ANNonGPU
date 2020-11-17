@@ -49,9 +49,8 @@ namespace PsiDeep {
         dtype angles[max_width];
         dtype activations[max_width];
 
-
         struct __align__(16) {
-            char data[sizeof(curandState_t) + sizeof(mt19937)];
+            char data[0];
         } rng_state;
     };
 
@@ -161,9 +160,15 @@ struct PsiDeepT {
 
     template<typename Basis_t>
     HDINLINE
-    void init_payload(Payload& payload, const Basis_t& configuration, const unsigned int conf_idx) const {
+    void init_payload(Payload& payload, const Basis_t& configuration) const {
         if(symmetric) {
-            this->rng_states.get_state((void*)&payload.rng_state, conf_idx);
+            #ifdef __CUDA_ARCH__
+                if(threadIdx.x == 0) {
+                    this->rng_states.get_state((void*)&payload.rng_state, blockIdx.x);
+                }
+            #else
+                this->rng_states.get_state((void*)&payload.rng_state, 0u);
+            #endif
         }
         else {
             this->compute_angles(payload.angles, configuration);
@@ -171,13 +176,15 @@ struct PsiDeepT {
     }
 
     HDINLINE
-    void save_payload(Payload& payload, const unsigned int conf_idx) const {
-        #include "cuda_kernel_defines.h"
-
+    void save_payload(Payload& payload) const {
         if(symmetric) {
-            SINGLE {
-                this->rng_states.set_state((const void*)&payload.rng_state, conf_idx);
-            }
+            #ifdef __CUDA_ARCH__
+                if(threadIdx.x == 0) {
+                    this->rng_states.set_state((const void*)&payload.rng_state, blockIdx.x);
+                }
+            #else
+                this->rng_states.set_state((const void*)&payload.rng_state, 0u);
+            #endif
         }
     }
 
@@ -253,10 +260,10 @@ struct PsiDeepT {
                 this->forward_pass(result, payload.activations, payload.activations, nullptr);
 
                 SINGLE {
-                    shifted_configuration = shifted_configuration.roll(
-                        random_uint32((void*)&payload.rng_state) % this->num_sites,
-                        this->num_sites
-                    );
+                    // shifted_configuration = shifted_configuration.roll(
+                    //     random_uint32((void*)&payload.rng_state) % this->num_sites,
+                    //     this->num_sites
+                    // );
                 }
 
                 SHARED_MEM_LOOP_END(n);

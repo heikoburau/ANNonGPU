@@ -56,7 +56,7 @@ struct ExactSummation_t {
 
             SYNC;
 
-            psi.init_payload(payload, configuration, conf_index);
+            psi.init_payload(payload, configuration);
             psi.log_psi_s(log_psi, configuration, payload);
 
             SYNC;
@@ -69,7 +69,7 @@ struct ExactSummation_t {
 
             function(conf_index, configuration, log_psi, payload, weight);
 
-            psi.save_payload(payload, conf_index);
+            psi.save_payload(payload);
         }
     }
 

@@ -82,7 +82,7 @@ struct MonteCarlo_t {
         SHARED typename Psi_t::Payload      payload;
         SHARED typename Psi_t::dtype        log_psi;
 
-        psi.init_payload(payload, configuration, markov_index * this->num_mc_steps_per_chain);
+        psi.init_payload(payload, configuration);
         psi.log_psi_s(log_psi, configuration, payload);
 
         // thermalization
@@ -125,7 +125,7 @@ struct MonteCarlo_t {
             SHARED_MEM_LOOP_END(mc_step_within_chain);
         }
 
-        psi.save_payload(payload, markov_index * this->num_mc_steps_per_chain);
+        psi.save_payload(payload);
 
         SINGLE {
             this->rng_states.set_state(rng_state, markov_index);
@@ -221,8 +221,6 @@ struct MonteCarlo_t : public kernel::MonteCarlo_t<Basis_t, Init_Policy, typename
 
         this->acceptances_ar.clear();
         this->rejections_ar.clear();
-
-        psi.prepare(this->num_samples);
 
         if(this->gpu) {
             const auto blockDim_ = blockDim == -1 ? psi.get_width() : blockDim;

@@ -33,10 +33,10 @@ struct PsiFullyPolarized_t {
 
     template<typename Basis_t>
     HDINLINE
-    void init_payload(Payload&, const Basis_t&, const unsigned int) const {}
+    void init_payload(Payload&, const Basis_t&) const {}
 
     HDINLINE
-    void save_payload(Payload& payload, const unsigned int conf_idx) const {}
+    void save_payload(Payload& payload) const {}
 
 #ifdef ENABLE_SPINS
     template<typename result_dtype>

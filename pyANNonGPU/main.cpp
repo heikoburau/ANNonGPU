@@ -65,6 +65,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             const bool
         >())
         .def("copy", &PsiDeep::copy)
+        .def("prepare", &PsiDeep::prepare)
         .def_readwrite("num_sites", &PsiDeep::num_sites)
         .def_readwrite("prefactor", &PsiDeep::prefactor)
         .def_property(
