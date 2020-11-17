@@ -48,7 +48,8 @@ void kernel::HilbertSpaceDistance::compute_averages(
             SHARED dtype                            log_psi_prime;
             SHARED typename Psi_t_prime::Payload    payload_prime;
 
-            psi_prime_kernel.init_payload(payload_prime, configuration);
+            psi_prime_kernel.init_payload(payload_prime, configuration, spin_index);
+            psi_prime_kernel.save_payload(payload_prime, spin_index);
             psi_prime_kernel.log_psi_s(log_psi_prime, configuration, payload_prime);
 
             SHARED dtype       omega;

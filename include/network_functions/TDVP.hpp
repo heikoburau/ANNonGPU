@@ -30,7 +30,7 @@ struct TDVP {
     {}
 
     template<typename Psi_t, typename Ensemble>
-    void eval(const Operator& op, const Psi_t& psi, Ensemble& ensemble);
+    void eval(const Operator& op, Psi_t& psi, Ensemble& ensemble);
 };
 
 

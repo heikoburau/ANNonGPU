@@ -88,8 +88,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("final_weights", [](const PsiDeep& psi) {return psi.final_weights.to_pytensor_1d();})
         #ifdef ENABLE_EXACT_SUMMATION
         //! begin template
-        .def("_vector", [](const PsiDeep& psi, ExactSummation_t<Basis>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
-        .def("norm", [](const PsiDeep& psi, ExactSummation_t<Basis>& exact_summation) {return psi_norm(psi, exact_summation);})
+        .def("_vector", [](PsiDeep& psi, ExactSummation_t<Basis>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
+        .def("norm", [](PsiDeep& psi, ExactSummation_t<Basis>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("calibrate", &PsiDeep::calibrate<ExactSummation_t<Basis>>)
         //! end template
         #endif // ENABLE_EXACT_SUMMATION
@@ -129,14 +129,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("update_psi_ref_kernel", &ClPsi::update_psi_ref_kernel)
         #ifdef ENABLE_EXACT_SUMMATION
         #ifdef ENABLE_SPINS
-        .def("vector", [](const ClPsi& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
-        .def("norm", [](const ClPsi& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
+        .def("vector", [](ClPsi& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
+        .def("norm", [](ClPsi& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("normalize", [](ClPsi& psi, ExactSummation_t<Spins>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
         .def("calibrate", &ClPsi::calibrate<ExactSummation_t<Spins>>)
         #endif // ENABLE_SPINS
         #ifdef ENABLE_PAULIS
-        .def("vector", [](const ClPsi& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
-        .def("norm", [](const ClPsi& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
+        .def("vector", [](ClPsi& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
+        .def("norm", [](ClPsi& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("normalize", [](ClPsi& psi, ExactSummation_t<PauliString>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
         .def("calibrate", &ClPsi::calibrate<ExactSummation_t<PauliString>>)
         #endif // ENABLE_PAULIS
@@ -262,27 +262,27 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 
 
     //! begin template
-    m.def("log_psi_s", [](const AllPsi& psi, const Basis& basis) {
+    m.def("log_psi_s", [](AllPsi& psi, const Basis& basis) {
         return log_psi_s(psi, basis);
     });
-    m.def("psi_O_k", [](const AllPsi& psi, const Basis& basis) {
+    m.def("psi_O_k", [](AllPsi& psi, const Basis& basis) {
         return psi_O_k(psi, basis).to_pytensor_1d();
     });
     //! end template
 
     #ifdef ENABLE_EXACT_SUMMATION
     //! begin template
-    m.def("psi_O_k_vector", [](const AllPsi& psi, ExactSummation_t<Basis>& ensemble) {
+    m.def("psi_O_k_vector", [](AllPsi& psi, ExactSummation_t<Basis>& ensemble) {
         return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
     });
     //! end template
     #endif // ENABLE_EXACT_SUMMATION
 
     //! begin template
-    m.def("log_psi", [](const AllPsi& psi, Ensemble<Basis>& ensemble) {
+    m.def("log_psi", [](AllPsi& psi, Ensemble<Basis>& ensemble) {
         return log_psi(psi, ensemble);
     });
-    m.def("psi_vector", [](const AllPsi& psi, Ensemble<Basis>& ensemble) {
+    m.def("psi_vector", [](AllPsi& psi, Ensemble<Basis>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
     //! end template
