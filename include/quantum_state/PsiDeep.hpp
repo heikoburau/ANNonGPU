@@ -260,10 +260,10 @@ struct PsiDeepT {
                 this->forward_pass(result, payload.activations, payload.activations, nullptr);
 
                 SINGLE {
-                    // shifted_configuration = shifted_configuration.roll(
-                    //     random_uint32((void*)&payload.rng_state) % this->num_sites,
-                    //     this->num_sites
-                    // );
+                    shifted_configuration = shifted_configuration.roll(
+                        random_uint32((void*)&payload.rng_state) % this->num_sites,
+                        this->num_sites
+                    );
                 }
 
                 SHARED_MEM_LOOP_END(n);

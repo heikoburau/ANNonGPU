@@ -16,7 +16,8 @@ namespace ann_on_gpu {
 
 template<typename Psi_t, typename Ensemble>
 void TDVP::eval(const Operator& op, Psi_t& psi, Ensemble& ensemble) {
-    this->E_local_ar.clear();
+    this->E_local.clear();
+    this->E_local2.clear();
     this->O_k_ar.clear();
     this->S_matrix.clear();
     this->F_vector.clear();
@@ -26,7 +27,8 @@ void TDVP::eval(const Operator& op, Psi_t& psi, Ensemble& ensemble) {
     auto op_kernel = op.kernel();
     auto psi_kernel = psi.kernel();
     auto psi_ref_kernel = psi.psi_ref.kernel();
-    auto E_local_ptr = this->E_local_ar.data();
+    auto E_local_ptr = this->E_local.data();
+    auto E_local2_ptr = this->E_local2.data();
     auto O_k_ptr = this->O_k_ar.data();
     auto S_ptr = this->S_matrix.data();
     auto F_ptr = this->F_vector.data();
@@ -58,6 +60,7 @@ void TDVP::eval(const Operator& op, Psi_t& psi, Ensemble& ensemble) {
                 prob_ratio = exp(2.0 * (log_psi.real() - log_psi_ref.real()));
                 generic_atomicAdd(prob_ratio_ptr, weight * prob_ratio);
                 generic_atomicAdd(E_local_ptr, weight * prob_ratio * local_energy);
+                generic_atomicAdd(E_local2_ptr, weight * prob_ratio * abs2(local_energy));
             }
 
             psi_kernel.foreach_O_k(
@@ -78,13 +81,15 @@ void TDVP::eval(const Operator& op, Psi_t& psi, Ensemble& ensemble) {
         }
     );
 
-    this->E_local_ar.update_host();
+    this->E_local.update_host();
+    this->E_local2.update_host();
     this->O_k_ar.update_host();
     this->S_matrix.update_host();
     this->F_vector.update_host();
     this->prob_ratio.update_host();
 
-    this->E_local_ar.front() /= this->prob_ratio.front();
+    this->E_local.front() /= this->prob_ratio.front();
+    this->E_local2.front() /= this->prob_ratio.front();
     for(auto k = 0u; k < num_params; k++) {
         this->O_k_ar[k] /= this->prob_ratio.front();
         this->F_vector[k] /= this->prob_ratio.front();
@@ -101,10 +106,13 @@ void TDVP::eval(const Operator& op, Psi_t& psi, Ensemble& ensemble) {
             );
         }
 
-        this->F_vector[k] -= this->E_local_ar.front() * conj(this->O_k_ar[k]);
+        this->F_vector[k] -= this->E_local.front() * conj(this->O_k_ar[k]);
     }
 }
 
+double TDVP::var_H() const {
+    return this->E_local2.front() - abs2(this->E_local.front());
+}
 
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template void TDVP::eval(const Operator&, PsiClassicalFP<1u>&, MonteCarlo_tt<Spins>&);
