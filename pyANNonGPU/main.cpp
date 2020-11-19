@@ -125,9 +125,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("H_2_local", [](const PsiClassicalFP<1u>& psi){return psi.H_2_local_op.to_expr_list();})
         .def_readwrite("prefactor", &PsiClassicalFP<1u>::prefactor)
         .def_property(
+            "log_prefactor",
+            [](const PsiClassicalFP<1u>& psi) {return psi.log_prefactor.to_std();},
+            [](PsiClassicalFP<1u>& psi, complex<double> value) {psi.log_prefactor = complex_t(value);}
+        )
+        // return just a copy obviously, so writing has no effect..
+        .def_property_readonly(
             "psi_ref",
-            [](const PsiClassicalFP<1u>& psi) {return psi.psi_ref;},
-            [](PsiClassicalFP<1u>& psi, const PsiClassicalFP<1u>::PsiRef& psi_ref) {psi.psi_ref = psi_ref; psi.update_psi_ref_kernel();}
+            [](const PsiClassicalFP<1u>& psi) {return psi.psi_ref;}
         )
         .def_readonly("gpu", &PsiClassicalFP<1u>::gpu)
         .def_readonly("num_params", &PsiClassicalFP<1u>::num_params)
@@ -171,9 +176,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("H_2_local", [](const PsiClassicalFP<2u>& psi){return psi.H_2_local_op.to_expr_list();})
         .def_readwrite("prefactor", &PsiClassicalFP<2u>::prefactor)
         .def_property(
+            "log_prefactor",
+            [](const PsiClassicalFP<2u>& psi) {return psi.log_prefactor.to_std();},
+            [](PsiClassicalFP<2u>& psi, complex<double> value) {psi.log_prefactor = complex_t(value);}
+        )
+        // return just a copy obviously, so writing has no effect..
+        .def_property_readonly(
             "psi_ref",
-            [](const PsiClassicalFP<2u>& psi) {return psi.psi_ref;},
-            [](PsiClassicalFP<2u>& psi, const PsiClassicalFP<2u>::PsiRef& psi_ref) {psi.psi_ref = psi_ref; psi.update_psi_ref_kernel();}
+            [](const PsiClassicalFP<2u>& psi) {return psi.psi_ref;}
         )
         .def_readonly("gpu", &PsiClassicalFP<2u>::gpu)
         .def_readonly("num_params", &PsiClassicalFP<2u>::num_params)
@@ -217,9 +227,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("H_2_local", [](const PsiClassicalANN<1u>& psi){return psi.H_2_local_op.to_expr_list();})
         .def_readwrite("prefactor", &PsiClassicalANN<1u>::prefactor)
         .def_property(
+            "log_prefactor",
+            [](const PsiClassicalANN<1u>& psi) {return psi.log_prefactor.to_std();},
+            [](PsiClassicalANN<1u>& psi, complex<double> value) {psi.log_prefactor = complex_t(value);}
+        )
+        // return just a copy obviously, so writing has no effect..
+        .def_property_readonly(
             "psi_ref",
-            [](const PsiClassicalANN<1u>& psi) {return psi.psi_ref;},
-            [](PsiClassicalANN<1u>& psi, const PsiClassicalANN<1u>::PsiRef& psi_ref) {psi.psi_ref = psi_ref; psi.update_psi_ref_kernel();}
+            [](const PsiClassicalANN<1u>& psi) {return psi.psi_ref;}
         )
         .def_readonly("gpu", &PsiClassicalANN<1u>::gpu)
         .def_readonly("num_params", &PsiClassicalANN<1u>::num_params)
@@ -263,9 +278,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("H_2_local", [](const PsiClassicalANN<2u>& psi){return psi.H_2_local_op.to_expr_list();})
         .def_readwrite("prefactor", &PsiClassicalANN<2u>::prefactor)
         .def_property(
+            "log_prefactor",
+            [](const PsiClassicalANN<2u>& psi) {return psi.log_prefactor.to_std();},
+            [](PsiClassicalANN<2u>& psi, complex<double> value) {psi.log_prefactor = complex_t(value);}
+        )
+        // return just a copy obviously, so writing has no effect..
+        .def_property_readonly(
             "psi_ref",
-            [](const PsiClassicalANN<2u>& psi) {return psi.psi_ref;},
-            [](PsiClassicalANN<2u>& psi, const PsiClassicalANN<2u>::PsiRef& psi_ref) {psi.psi_ref = psi_ref; psi.update_psi_ref_kernel();}
+            [](const PsiClassicalANN<2u>& psi) {return psi.psi_ref;}
         )
         .def_readonly("gpu", &PsiClassicalANN<2u>::gpu)
         .def_readonly("num_params", &PsiClassicalANN<2u>::num_params)
@@ -809,6 +829,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     m.def("psi_vector", [](PsiDeep& psi, MonteCarlo_tt<Spins>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
+    m.def("log_psi_vector", [](PsiDeep& psi, MonteCarlo_tt<Spins>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
     m.def("log_psi", [](PsiFullyPolarized& psi, MonteCarlo_tt<Spins>& ensemble) {
@@ -816,6 +839,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     });
     m.def("psi_vector", [](PsiFullyPolarized& psi, MonteCarlo_tt<Spins>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiFullyPolarized& psi, MonteCarlo_tt<Spins>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
@@ -825,6 +851,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     m.def("psi_vector", [](PsiClassicalFP<1u>& psi, MonteCarlo_tt<Spins>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
+    m.def("log_psi_vector", [](PsiClassicalFP<1u>& psi, MonteCarlo_tt<Spins>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
     m.def("log_psi", [](PsiClassicalFP<2u>& psi, MonteCarlo_tt<Spins>& ensemble) {
@@ -832,6 +861,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     });
     m.def("psi_vector", [](PsiClassicalFP<2u>& psi, MonteCarlo_tt<Spins>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiClassicalFP<2u>& psi, MonteCarlo_tt<Spins>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
@@ -841,6 +873,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     m.def("psi_vector", [](PsiClassicalANN<1u>& psi, MonteCarlo_tt<Spins>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
+    m.def("log_psi_vector", [](PsiClassicalANN<1u>& psi, MonteCarlo_tt<Spins>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
     m.def("log_psi", [](PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>& ensemble) {
@@ -848,6 +883,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     });
     m.def("psi_vector", [](PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
@@ -857,6 +895,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     m.def("psi_vector", [](PsiDeep& psi, MonteCarlo_tt<PauliString>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
+    m.def("log_psi_vector", [](PsiDeep& psi, MonteCarlo_tt<PauliString>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
     m.def("log_psi", [](PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>& ensemble) {
@@ -864,6 +905,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     });
     m.def("psi_vector", [](PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
@@ -873,6 +917,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     m.def("psi_vector", [](PsiClassicalFP<1u>& psi, MonteCarlo_tt<PauliString>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
+    m.def("log_psi_vector", [](PsiClassicalFP<1u>& psi, MonteCarlo_tt<PauliString>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
     m.def("log_psi", [](PsiClassicalFP<2u>& psi, MonteCarlo_tt<PauliString>& ensemble) {
@@ -880,6 +927,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     });
     m.def("psi_vector", [](PsiClassicalFP<2u>& psi, MonteCarlo_tt<PauliString>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiClassicalFP<2u>& psi, MonteCarlo_tt<PauliString>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
@@ -889,6 +939,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     m.def("psi_vector", [](PsiClassicalANN<1u>& psi, MonteCarlo_tt<PauliString>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
+    m.def("log_psi_vector", [](PsiClassicalANN<1u>& psi, MonteCarlo_tt<PauliString>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
     m.def("log_psi", [](PsiClassicalANN<2u>& psi, MonteCarlo_tt<PauliString>& ensemble) {
@@ -896,6 +949,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     });
     m.def("psi_vector", [](PsiClassicalANN<2u>& psi, MonteCarlo_tt<PauliString>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiClassicalANN<2u>& psi, MonteCarlo_tt<PauliString>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
@@ -905,6 +961,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     m.def("psi_vector", [](PsiDeep& psi, ExactSummation_t<Spins>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
+    m.def("log_psi_vector", [](PsiDeep& psi, ExactSummation_t<Spins>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
     m.def("log_psi", [](PsiFullyPolarized& psi, ExactSummation_t<Spins>& ensemble) {
@@ -912,6 +971,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     });
     m.def("psi_vector", [](PsiFullyPolarized& psi, ExactSummation_t<Spins>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiFullyPolarized& psi, ExactSummation_t<Spins>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
@@ -921,6 +983,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     m.def("psi_vector", [](PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
+    m.def("log_psi_vector", [](PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
     m.def("log_psi", [](PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& ensemble) {
@@ -928,6 +993,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     });
     m.def("psi_vector", [](PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
@@ -937,6 +1005,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     m.def("psi_vector", [](PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
+    m.def("log_psi_vector", [](PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
     m.def("log_psi", [](PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& ensemble) {
@@ -944,6 +1015,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     });
     m.def("psi_vector", [](PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
@@ -953,6 +1027,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     m.def("psi_vector", [](PsiDeep& psi, ExactSummation_t<PauliString>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
+    m.def("log_psi_vector", [](PsiDeep& psi, ExactSummation_t<PauliString>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
     m.def("log_psi", [](PsiFullyPolarized& psi, ExactSummation_t<PauliString>& ensemble) {
@@ -960,6 +1037,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     });
     m.def("psi_vector", [](PsiFullyPolarized& psi, ExactSummation_t<PauliString>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiFullyPolarized& psi, ExactSummation_t<PauliString>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
@@ -969,6 +1049,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     m.def("psi_vector", [](PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
+    m.def("log_psi_vector", [](PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
     m.def("log_psi", [](PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>& ensemble) {
@@ -976,6 +1059,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     });
     m.def("psi_vector", [](PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
@@ -985,6 +1071,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     m.def("psi_vector", [](PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
+    m.def("log_psi_vector", [](PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
     m.def("log_psi", [](PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>& ensemble) {
@@ -992,6 +1081,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     });
     m.def("psi_vector", [](PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
 

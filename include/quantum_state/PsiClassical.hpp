@@ -90,6 +90,7 @@ struct PsiClassical_t {
     };
 
     double       prefactor;
+    complex_t    log_prefactor;
 
     Operator     H_local_diagonal;
     Operator     H_local;
@@ -215,7 +216,7 @@ struct PsiClassical_t {
         this->init_payload(payload, configuration);
 
         SINGLE {
-            result = payload.log_psi_ref;
+            result = this->log_prefactor + payload.log_psi_ref;
         }
 
         LOOP(k, this->num_params) {
@@ -351,6 +352,7 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, order, typename Psi
     {
         this->num_sites = other.num_sites;
         this->prefactor = other.prefactor;
+        this->log_prefactor = other.log_prefactor;
         this->gpu = other.gpu;
 
         this->init_kernel();
@@ -383,6 +385,7 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, order, typename Psi
     {
         this->num_sites = num_sites;
         this->prefactor = prefactor;
+        this->log_prefactor = complex_t(0.0);
         this->gpu = gpu;
 
         this->init_kernel();

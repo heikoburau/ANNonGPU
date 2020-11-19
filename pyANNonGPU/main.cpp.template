@@ -114,6 +114,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("H_local", [](const ClPsi& psi){return psi.H_local_op.to_expr_list();})
         .def_property_readonly("H_2_local", [](const ClPsi& psi){return psi.H_2_local_op.to_expr_list();})
         .def_readwrite("prefactor", &ClPsi::prefactor)
+        .def_property(
+            "log_prefactor",
+            [](const ClPsi& psi) {return psi.log_prefactor.to_std();},
+            [](ClPsi& psi, complex<double> value) {psi.log_prefactor = complex_t(value);}
+        )
         // return just a copy obviously, so writing has no effect..
         .def_property_readonly(
             "psi_ref",
@@ -285,6 +290,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     });
     m.def("psi_vector", [](AllPsi& psi, Ensemble<Basis>& ensemble) {
         return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](AllPsi& psi, Ensemble<Basis>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
     //! end template
 

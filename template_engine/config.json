@@ -84,6 +84,26 @@
                 "code": "PsiClassicalANN<2u>",
                 "name": "PsiClassicalANN_2"
             }
+        ],
+        "PsiClANN": [
+            {
+                "flag": null,
+                "code": "PsiDeep"
+            },
+            {
+                "flag": [
+                    "ENABLE_PSI_CLASSICAL",
+                    "ENABLE_PSI_CLASSICAL_ANN"
+                ],
+                "code": "PsiClassicalANN<1u>"
+            },
+            {
+                "flag": [
+                    "ENABLE_PSI_CLASSICAL",
+                    "ENABLE_PSI_CLASSICAL_ANN"
+                ],
+                "code": "PsiClassicalANN<2u>"
+            }
         ]
     }
 }

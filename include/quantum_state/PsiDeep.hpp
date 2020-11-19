@@ -49,9 +49,7 @@ namespace PsiDeep {
         dtype angles[max_width];
         dtype activations[max_width];
 
-        struct __align__(16) {
-            char data[0];
-        } rng_state;
+        curandState_t rng_state;
     };
 
     template<typename dtype, unsigned int max_width>
@@ -59,9 +57,11 @@ namespace PsiDeep {
         dtype angles[max_width];
         dtype activations[max_width];
 
-        struct __align__(16) {
-            char data[sizeof(curandState_t) + sizeof(mt19937)];
-        } rng_state;
+
+
+        // struct {
+        //     char data[sizeof(curandState_t) + sizeof(mt19937)];
+        curandState_t rng_state;
     };
 
 } // namespace PsiDeep
@@ -164,10 +164,10 @@ struct PsiDeepT {
         if(symmetric) {
             #ifdef __CUDA_ARCH__
                 if(threadIdx.x == 0) {
-                    this->rng_states.get_state((void*)&payload.rng_state, blockIdx.x);
+                    this->rng_states.get_state(payload.rng_state, blockIdx.x);
                 }
             #else
-                this->rng_states.get_state((void*)&payload.rng_state, 0u);
+                // this->rng_states.get_state((void*)&payload.rng_state, 0u);
             #endif
         }
         else {
@@ -180,10 +180,10 @@ struct PsiDeepT {
         if(symmetric) {
             #ifdef __CUDA_ARCH__
                 if(threadIdx.x == 0) {
-                    this->rng_states.set_state((const void*)&payload.rng_state, blockIdx.x);
+                    this->rng_states.set_state(payload.rng_state, blockIdx.x);
                 }
             #else
-                this->rng_states.set_state((const void*)&payload.rng_state, 0u);
+                // this->rng_states.set_state((const void*)&payload.rng_state, 0u);
             #endif
         }
     }
@@ -252,6 +252,8 @@ struct PsiDeepT {
 
         if(symmetric) {
             SHARED_MEM_LOOP_BEGIN(n, this->num_random_shifts) {
+
+
                 MULTI(i, this->N) {
                     generic_atomicAdd(&result, result_dtype(shifted_configuration.network_unit_at(i)) * this->input_weights[i]);
                 }
@@ -261,7 +263,7 @@ struct PsiDeepT {
 
                 SINGLE {
                     shifted_configuration = shifted_configuration.roll(
-                        random_uint32((void*)&payload.rng_state) % this->num_sites,
+                        1,
                         this->num_sites
                     );
                 }

@@ -33,13 +33,13 @@ struct RNGStates {
         #endif
     }
 
-    HDINLINE void get_state(void* result, const unsigned int idx) const {
-        #ifdef __CUDA_ARCH__
-        *reinterpret_cast<curandState_t*>(result) = this->rng_states_device[idx];
-        #else
-        *reinterpret_cast<mt19937*>(result) = this->rng_states_host[idx];
-        #endif
-    }
+    // HDINLINE void get_state(void* result, const unsigned int idx) const {
+    //     #ifdef __CUDA_ARCH__
+    //     *reinterpret_cast<curandState_t*>(result) = this->rng_states_device[idx];
+    //     #else
+    //     *reinterpret_cast<mt19937*>(result) = this->rng_states_host[idx];
+    //     #endif
+    // }
 
     template<typename RNGState_t>
     HDINLINE void set_state(const RNGState_t& new_state, const unsigned int idx) const {
@@ -50,13 +50,13 @@ struct RNGStates {
         #endif
     }
 
-    HDINLINE void set_state(const void* new_state, const unsigned int idx) const {
-        #ifdef __CUDA_ARCH__
-        this->rng_states_device[idx] = *reinterpret_cast<const curandState_t*>(new_state);
-        #else
-        this->rng_states_host[idx] = *reinterpret_cast<const mt19937*>(new_state);
-        #endif
-    }
+    // HDINLINE void set_state(const void* new_state, const unsigned int idx) const {
+    //     #ifdef __CUDA_ARCH__
+    //     this->rng_states_device[idx] = *reinterpret_cast<const curandState_t*>(new_state);
+    //     #else
+    //     this->rng_states_host[idx] = *reinterpret_cast<const mt19937*>(new_state);
+    //     #endif
+    // }
 
 #endif // __CUDACC__
 

@@ -15,6 +15,37 @@ namespace ann_on_gpu {
 
 
 template<typename Psi_t, typename Ensemble>
+Array<complex_t> log_psi_vector(Psi_t& psi, Ensemble& ensemble) {
+
+    Array<complex_t> result(ensemble.get_num_steps(), ensemble.gpu);
+
+    auto result_ptr = result.data();
+    auto log_prefactor = log(psi.prefactor);
+    auto psi_kernel = psi.kernel();
+
+    ensemble.foreach(
+        psi,
+        [=] __host__ __device__ (
+            const unsigned int conf_index,
+            const typename Ensemble::Basis_t& configuration,
+            const complex_t log_psi,
+            typename Psi_t::Payload& payload,
+            const double weight
+        ) {
+            #include "cuda_kernel_defines.h"
+
+            SINGLE {
+                result_ptr[conf_index] = log_psi;
+            }
+        }
+    );
+    result.update_host();
+
+    return result;
+}
+
+
+template<typename Psi_t, typename Ensemble>
 Array<complex_t> psi_vector(Psi_t& psi, Ensemble& ensemble) {
 
     Array<complex_t> result(ensemble.get_num_steps(), ensemble.gpu);
@@ -146,98 +177,122 @@ template std::complex<double> log_psi_s(PsiClassicalANN<2u>&, const PauliString&
 
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
 template std::complex<double> log_psi(PsiDeep& psi, MonteCarlo_tt<Spins>& ensemble);
+template Array<complex_t> log_psi_vector(PsiDeep& psi, MonteCarlo_tt<Spins>& ensemble);
 template Array<complex_t> psi_vector(PsiDeep& psi, MonteCarlo_tt<Spins>& ensemble);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template std::complex<double> log_psi(PsiFullyPolarized& psi, MonteCarlo_tt<Spins>& ensemble);
+template Array<complex_t> log_psi_vector(PsiFullyPolarized& psi, MonteCarlo_tt<Spins>& ensemble);
 template Array<complex_t> psi_vector(PsiFullyPolarized& psi, MonteCarlo_tt<Spins>& ensemble);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template std::complex<double> log_psi(PsiClassicalFP<1u>& psi, MonteCarlo_tt<Spins>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalFP<1u>& psi, MonteCarlo_tt<Spins>& ensemble);
 template Array<complex_t> psi_vector(PsiClassicalFP<1u>& psi, MonteCarlo_tt<Spins>& ensemble);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template std::complex<double> log_psi(PsiClassicalFP<2u>& psi, MonteCarlo_tt<Spins>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalFP<2u>& psi, MonteCarlo_tt<Spins>& ensemble);
 template Array<complex_t> psi_vector(PsiClassicalFP<2u>& psi, MonteCarlo_tt<Spins>& ensemble);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template std::complex<double> log_psi(PsiClassicalANN<1u>& psi, MonteCarlo_tt<Spins>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalANN<1u>& psi, MonteCarlo_tt<Spins>& ensemble);
 template Array<complex_t> psi_vector(PsiClassicalANN<1u>& psi, MonteCarlo_tt<Spins>& ensemble);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template std::complex<double> log_psi(PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>& ensemble);
 template Array<complex_t> psi_vector(PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>& ensemble);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
 template std::complex<double> log_psi(PsiDeep& psi, MonteCarlo_tt<PauliString>& ensemble);
+template Array<complex_t> log_psi_vector(PsiDeep& psi, MonteCarlo_tt<PauliString>& ensemble);
 template Array<complex_t> psi_vector(PsiDeep& psi, MonteCarlo_tt<PauliString>& ensemble);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template std::complex<double> log_psi(PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>& ensemble);
+template Array<complex_t> log_psi_vector(PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>& ensemble);
 template Array<complex_t> psi_vector(PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>& ensemble);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template std::complex<double> log_psi(PsiClassicalFP<1u>& psi, MonteCarlo_tt<PauliString>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalFP<1u>& psi, MonteCarlo_tt<PauliString>& ensemble);
 template Array<complex_t> psi_vector(PsiClassicalFP<1u>& psi, MonteCarlo_tt<PauliString>& ensemble);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template std::complex<double> log_psi(PsiClassicalFP<2u>& psi, MonteCarlo_tt<PauliString>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalFP<2u>& psi, MonteCarlo_tt<PauliString>& ensemble);
 template Array<complex_t> psi_vector(PsiClassicalFP<2u>& psi, MonteCarlo_tt<PauliString>& ensemble);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template std::complex<double> log_psi(PsiClassicalANN<1u>& psi, MonteCarlo_tt<PauliString>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalANN<1u>& psi, MonteCarlo_tt<PauliString>& ensemble);
 template Array<complex_t> psi_vector(PsiClassicalANN<1u>& psi, MonteCarlo_tt<PauliString>& ensemble);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template std::complex<double> log_psi(PsiClassicalANN<2u>& psi, MonteCarlo_tt<PauliString>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalANN<2u>& psi, MonteCarlo_tt<PauliString>& ensemble);
 template Array<complex_t> psi_vector(PsiClassicalANN<2u>& psi, MonteCarlo_tt<PauliString>& ensemble);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
 template std::complex<double> log_psi(PsiDeep& psi, ExactSummation_t<Spins>& ensemble);
+template Array<complex_t> log_psi_vector(PsiDeep& psi, ExactSummation_t<Spins>& ensemble);
 template Array<complex_t> psi_vector(PsiDeep& psi, ExactSummation_t<Spins>& ensemble);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template std::complex<double> log_psi(PsiFullyPolarized& psi, ExactSummation_t<Spins>& ensemble);
+template Array<complex_t> log_psi_vector(PsiFullyPolarized& psi, ExactSummation_t<Spins>& ensemble);
 template Array<complex_t> psi_vector(PsiFullyPolarized& psi, ExactSummation_t<Spins>& ensemble);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template std::complex<double> log_psi(PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& ensemble);
 template Array<complex_t> psi_vector(PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& ensemble);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template std::complex<double> log_psi(PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& ensemble);
 template Array<complex_t> psi_vector(PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& ensemble);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template std::complex<double> log_psi(PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& ensemble);
 template Array<complex_t> psi_vector(PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& ensemble);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template std::complex<double> log_psi(PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& ensemble);
 template Array<complex_t> psi_vector(PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& ensemble);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
 template std::complex<double> log_psi(PsiDeep& psi, ExactSummation_t<PauliString>& ensemble);
+template Array<complex_t> log_psi_vector(PsiDeep& psi, ExactSummation_t<PauliString>& ensemble);
 template Array<complex_t> psi_vector(PsiDeep& psi, ExactSummation_t<PauliString>& ensemble);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template std::complex<double> log_psi(PsiFullyPolarized& psi, ExactSummation_t<PauliString>& ensemble);
+template Array<complex_t> log_psi_vector(PsiFullyPolarized& psi, ExactSummation_t<PauliString>& ensemble);
 template Array<complex_t> psi_vector(PsiFullyPolarized& psi, ExactSummation_t<PauliString>& ensemble);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template std::complex<double> log_psi(PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>& ensemble);
 template Array<complex_t> psi_vector(PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>& ensemble);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template std::complex<double> log_psi(PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>& ensemble);
 template Array<complex_t> psi_vector(PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>& ensemble);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template std::complex<double> log_psi(PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>& ensemble);
 template Array<complex_t> psi_vector(PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>& ensemble);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template std::complex<double> log_psi(PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>& ensemble);
 template Array<complex_t> psi_vector(PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>& ensemble);
 #endif
 

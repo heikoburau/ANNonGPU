@@ -49,6 +49,7 @@ void kernel::KullbackLeibler::compute_averages(
                 prob_ratio = exp(2.0 * (log_psi.real() - log_psi_prime.real()));
                 generic_atomicAdd(this_.log_ratio, weight * prob_ratio * (log_psi_prime - log_psi));
                 generic_atomicAdd(this_.log_ratio_abs2, weight * prob_ratio * abs2(log_psi_prime - log_psi));
+                generic_atomicAdd(this_.prob_ratio, weight * prob_ratio);
             }
             SYNC;
 

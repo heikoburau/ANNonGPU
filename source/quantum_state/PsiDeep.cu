@@ -310,6 +310,7 @@ void PsiDeepT<dtype, symmetric>::prepare(const unsigned int num_configurations) 
 
     if(num_configurations != this->rng_states->num_states) {
         this->rng_states = unique_ptr<RNGStates>(new RNGStates(num_configurations, this->gpu));
+        this->kernel().rng_states = this->rng_states->kernel();
     }
 }
 
