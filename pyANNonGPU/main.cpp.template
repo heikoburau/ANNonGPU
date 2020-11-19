@@ -227,6 +227,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def(py::init<bool>())
         //! begin template
         .def("__call__", &ExpectationValue::__call__<AllPsi, Ensemble<Basis>>)
+        .def("__call__", &ExpectationValue::__call__<AllPsi, PsiDeep, Ensemble<Basis>>)
         .def("fluctuation", &ExpectationValue::fluctuation<AllPsi, Ensemble<Basis>>)
         //! end template
     ;

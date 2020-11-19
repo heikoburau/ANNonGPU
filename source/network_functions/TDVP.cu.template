@@ -35,7 +35,7 @@ void TDVP::eval(const Operator& op, Psi_t& psi, Ensemble& ensemble) {
         [=] __device__ __host__ (
             const unsigned int index,
             const typename Ensemble::Basis_t& configuration,
-            const typename PsiRef::dtype log_psi_ref,
+            const typename PsiRef::dtype& log_psi_ref,
             typename PsiRef::Payload& payload_ref,
             const typename PsiRef::real_dtype weight
         ) {
