@@ -49,7 +49,7 @@ namespace PsiDeep {
         dtype angles[max_width];
         dtype activations[max_width];
 
-        curandState_t rng_state;
+        // curandState_t rng_state;
     };
 
     template<typename dtype, unsigned int max_width>
@@ -61,7 +61,7 @@ namespace PsiDeep {
 
         // struct {
         //     char data[sizeof(curandState_t) + sizeof(mt19937)];
-        curandState_t rng_state;
+        // curandState_t rng_state;
     };
 
 } // namespace PsiDeep
@@ -162,13 +162,13 @@ struct PsiDeepT {
     HDINLINE
     void init_payload(Payload& payload, const Basis_t& configuration) const {
         if(symmetric) {
-            #ifdef __CUDA_ARCH__
-                if(threadIdx.x == 0) {
-                    this->rng_states.get_state(payload.rng_state, blockIdx.x);
-                }
-            #else
-                // this->rng_states.get_state((void*)&payload.rng_state, 0u);
-            #endif
+            // #ifdef __CUDA_ARCH__
+            //     if(threadIdx.x == 0) {
+            //         this->rng_states.get_state(payload.rng_state, blockIdx.x);
+            //     }
+            // #else
+            //     // this->rng_states.get_state((void*)&payload.rng_state, 0u);
+            // #endif
         }
         else {
             this->compute_angles(payload.angles, configuration);
@@ -179,9 +179,9 @@ struct PsiDeepT {
     void save_payload(Payload& payload) const {
         if(symmetric) {
             #ifdef __CUDA_ARCH__
-                if(threadIdx.x == 0) {
-                    this->rng_states.set_state(payload.rng_state, blockIdx.x);
-                }
+                // if(threadIdx.x == 0) {
+                //     this->rng_states.set_state(payload.rng_state, blockIdx.x);
+                // }
             #else
                 // this->rng_states.set_state((const void*)&payload.rng_state, 0u);
             #endif
