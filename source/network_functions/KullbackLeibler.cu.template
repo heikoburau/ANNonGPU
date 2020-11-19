@@ -13,35 +13,38 @@ namespace ann_on_gpu {
 namespace kernel {
 
 
-template<bool compute_gradient, typename Psi_t, typename Psi_t_prime, typename Ensemble>
+template<bool compute_gradient, typename Psi_t, typename PsiPrime_t, typename Ensemble>
 void kernel::KullbackLeibler::compute_averages(
-    Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& ensemble
+    Psi_t& psi, PsiPrime_t& psi_prime, Ensemble& ensemble
 ) const {
     const auto this_ = *this;
+    const auto psi_kernel = psi.kernel();
     const auto psi_prime_kernel = psi_prime.kernel();
 
     ensemble.foreach(
-        psi,
+        psi_prime,
         [=] __device__ __host__ (
             const unsigned int spin_index,
             const typename Ensemble::Basis_t& configuration,
-            const complex_t& log_psi,
-            typename Psi_t::Payload& payload,
+            const complex_t& log_psi_prime,
+            typename PsiPrime_t::Payload& payload_prime,
             const double& weight
         ) {
             #include "cuda_kernel_defines.h"
 
-            SHARED typename Psi_t_prime::dtype    log_psi_prime;
-            SHARED typename Psi_t_prime::Payload  payload_prime;
+            SHARED typename Psi_t::dtype    log_psi;
+            SHARED typename Psi_t::Payload  payload;
+            SHARED double                   prob_ratio;
 
-            psi_prime_kernel.init_payload(payload_prime, configuration);
-            psi_prime_kernel.log_psi_s(log_psi_prime, configuration, payload_prime);
+            psi_kernel.init_payload(payload, configuration);
+            psi_kernel.log_psi_s(log_psi, configuration, payload);
 
-            SINGLE
-            {
-                generic_atomicAdd(this_.log_ratio, weight * (log_psi_prime - log_psi));
-                generic_atomicAdd(this_.log_ratio_abs2, weight * abs2(log_psi_prime - log_psi));
+            SINGLE {
+                prob_ratio = exp(2.0 * (log_psi.real() - log_psi_prime.real()));
+                generic_atomicAdd(this_.log_ratio, weight * prob_ratio * (log_psi_prime - log_psi));
+                generic_atomicAdd(this_.log_ratio_abs2, weight * prob_ratio * abs2(log_psi_prime - log_psi));
             }
+            SYNC;
 
             if(compute_gradient) {
                 psi_prime_kernel.foreach_O_k(
@@ -50,11 +53,11 @@ void kernel::KullbackLeibler::compute_averages(
                     [&](const unsigned int k, const complex_t& O_k_element) {
                         generic_atomicAdd(
                             &this_.O_k[k],
-                            weight * conj(O_k_element)
+                            weight * prob_ratio * conj(O_k_element)
                         );
                         generic_atomicAdd(
                             &this_.log_ratio_O_k[k],
-                            weight * (log_psi_prime - log_psi) * conj(O_k_element)
+                            weight * prob_ratio * (log_psi_prime - log_psi) * conj(O_k_element)
                         );
                     }
                 );
@@ -68,99 +71,115 @@ void kernel::KullbackLeibler::compute_averages(
 
 KullbackLeibler::KullbackLeibler(const unsigned int num_params, const bool gpu)
       : num_params(num_params),
-        log_ratio_ar(1, gpu),
-        log_ratio_abs2_ar(1, gpu),
-        O_k_ar(num_params, gpu),
-        log_ratio_O_k_ar(num_params, gpu)
+        log_ratio(1, gpu),
+        log_ratio_abs2(1, gpu),
+        O_k(num_params, gpu),
+        log_ratio_O_k(num_params, gpu),
+        prob_ratio(1, gpu)
     {
     this->gpu = gpu;
 
-    this->log_ratio = this->log_ratio_ar.data();
-    this->log_ratio_abs2 = this->log_ratio_abs2_ar.data();
-    this->O_k = this->O_k_ar.data();
-    this->log_ratio_O_k = this->log_ratio_O_k_ar.data();
+    this->kernel().log_ratio = this->log_ratio.data();
+    this->kernel().log_ratio_abs2 = this->log_ratio_abs2.data();
+    this->kernel().O_k = this->O_k.data();
+    this->kernel().log_ratio_O_k = this->log_ratio_O_k.data();
+    this->kernel().prob_ratio = this->prob_ratio.data();
 }
 
 
 void KullbackLeibler::clear() {
-    this->log_ratio_ar.clear();
-    this->log_ratio_abs2_ar.clear();
-    this->O_k_ar.clear();
-    this->log_ratio_O_k_ar.clear();
+    this->log_ratio.clear();
+    this->log_ratio_abs2.clear();
+    this->O_k.clear();
+    this->log_ratio_O_k.clear();
+    this->prob_ratio.clear();
 }
 
 
-template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
+template<typename Psi_t, typename PsiPrime_t, typename Ensemble>
 double KullbackLeibler::value(
-    Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& ensemble
+    Psi_t& psi, PsiPrime_t& psi_prime, Ensemble& ensemble
 ) {
     this->clear();
     this->compute_averages<false>(psi, psi_prime, ensemble);
 
-    this->log_ratio_ar.update_host();
-    this->log_ratio_abs2_ar.update_host();
+    this->log_ratio.update_host();
+    this->log_ratio_abs2.update_host();
+    this->prob_ratio.update_host();
+
+    this->log_ratio.front() /= this->prob_ratio.front();
+    this->log_ratio_abs2.front() /= this->prob_ratio.front();
 
     return sqrt(max(
         1e-8,
-        this->log_ratio_abs2_ar.front() - abs2(this->log_ratio_ar.front())
+        this->log_ratio_abs2.front() - abs2(this->log_ratio.front())
     ));
 
-    // return this->log_ratio_abs2_ar.front() - abs2(this->log_ratio_ar.front());
+    // return this->log_ratio_abs2.front() - abs2(this->log_ratio.front());
 }
 
 
-template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
+template<typename Psi_t, typename PsiPrime_t, typename Ensemble>
 double KullbackLeibler::gradient(
-    complex<double>* result, Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& ensemble, const double nu
+    complex<double>* result, Psi_t& psi, PsiPrime_t& psi_prime, Ensemble& ensemble, const double nu
 ) {
     this->clear();
 
-    std::cout << psi.gpu << std::endl;
-    std::cout << psi_prime.gpu << std::endl;
-    std::cout << ensemble.gpu << std::endl;
+    // std::cout << psi.gpu << std::endl;
+    // std::cout << psi_prime.gpu << std::endl;
+    // std::cout << ensemble.gpu << std::endl;
 
-    std::cout << std::endl;
+    // std::cout << std::endl;
 
-    std::cout << psi.get_width() << std::endl;
-    std::cout << psi_prime.get_width() << std::endl;
+    // std::cout << psi.get_width() << std::endl;
+    // std::cout << psi_prime.get_width() << std::endl;
 
     this->compute_averages<true>(psi, psi_prime, ensemble);
 
-    std::cout << std::endl;
+    // std::cout << std::endl;
 
-    std::cout << this->log_ratio_ar.gpu << std::endl;
-    std::cout << this->log_ratio_abs2_ar.gpu << std::endl;
-    std::cout << this->O_k_ar.gpu << std::endl;
-    std::cout << this->log_ratio_O_k_ar.gpu << std::endl;
+    // std::cout << this->log_ratio.gpu << std::endl;
+    // std::cout << this->log_ratio_abs2.gpu << std::endl;
+    // std::cout << this->O_k.gpu << std::endl;
+    // std::cout << this->log_ratio_O_k.gpu << std::endl;
 
-    std::cout << std::endl;
+    // std::cout << std::endl;
 
-    std::cout << this->log_ratio_ar.size() << std::endl;
-    std::cout << this->log_ratio_abs2_ar.size() << std::endl;
-    std::cout << this->O_k_ar.size() << std::endl;
-    std::cout << this->log_ratio_O_k_ar.size() << std::endl;
+    // std::cout << this->log_ratio.size() << std::endl;
+    // std::cout << this->log_ratio_abs2.size() << std::endl;
+    // std::cout << this->O_k.size() << std::endl;
+    // std::cout << this->log_ratio_O_k.size() << std::endl;
 
-    std::cout << std::endl;
+    // std::cout << std::endl;
 
-    std::cout << this->log_ratio_ar.data() << std::endl;
-    std::cout << this->log_ratio_abs2_ar.data() << std::endl;
-    std::cout << this->O_k_ar.data() << std::endl;
-    std::cout << this->log_ratio_O_k_ar.data() << std::endl;
+    // std::cout << this->log_ratio.data() << std::endl;
+    // std::cout << this->log_ratio_abs2.data() << std::endl;
+    // std::cout << this->O_k.data() << std::endl;
+    // std::cout << this->log_ratio_O_k.data() << std::endl;
 
-    this->log_ratio_ar.update_host();
-    this->log_ratio_abs2_ar.update_host();
-    this->O_k_ar.update_host();
-    this->log_ratio_O_k_ar.update_host();
+    this->log_ratio.update_host();
+    this->log_ratio_abs2.update_host();
+    this->O_k.update_host();
+    this->log_ratio_O_k.update_host();
+    this->prob_ratio.update_host();
+
+    this->log_ratio.front() /= this->prob_ratio.front();
+    this->log_ratio_abs2.front() /= this->prob_ratio.front();
+    for(auto k = 0u; k < this->num_params; k++) {
+        this->O_k[k] /= this->prob_ratio.front();
+        this->log_ratio_O_k[k] /= this->prob_ratio.front();
+    }
+
 
     const auto value = sqrt(max(
         1e-8,
-        this->log_ratio_abs2_ar.front() - abs2(this->log_ratio_ar.front())
+        this->log_ratio_abs2.front() - abs2(this->log_ratio.front())
     ));
     const auto factor = pow(value, nu);
 
     for(auto k = 0u; k < this->num_params; k++) {
         result[k] = (
-            this->log_ratio_O_k_ar[k] - this->log_ratio_ar.front() * this->O_k_ar[k]
+            this->log_ratio_O_k[k] - this->log_ratio.front() * this->O_k[k]
         ).to_std() / factor;
     }
 

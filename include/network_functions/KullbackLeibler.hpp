@@ -25,25 +25,16 @@ public:
     double*     log_ratio_abs2;
     complex_t*  O_k;
     complex_t*  log_ratio_O_k;
+    double*     prob_ratio;
 
     template<bool compute_gradient, typename Psi_t, typename Psi_t_prime, typename Ensemble>
     void compute_averages(
         Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& spin_ensemble
     ) const;
 
-
-    // template<bool compute_gradient, typename Psi_t, typename Psi_t_prime, typename Ensemble>
-    // void compute_averages(
-    //     Psi_t& psi, Psi_t_prime& psi_prime, const Operator& operator_,
-    //     const bool is_unitary, Ensemble& spin_ensemble
-    // ) const;
-
-    // template<bool compute_gradient, typename Psi_t, typename Psi_t_prime, typename Ensemble>
-    // void compute_averages_2nd_order(
-    //     Psi_t& psi, Psi_t_prime& psi_prime,
-    //     const Operator& op, const Operator& op2,
-    //     Ensemble& spin_ensemble
-    // ) const;
+    inline KullbackLeibler& kernel() {
+        return *this;
+    }
 };
 
 } // namespace kernel
@@ -53,10 +44,11 @@ class KullbackLeibler : public kernel::KullbackLeibler {
 private:
     const unsigned int  num_params;
 
-    Array<complex_t> log_ratio_ar;
-    Array<double>    log_ratio_abs2_ar;
-    Array<complex_t> O_k_ar;
-    Array<complex_t> log_ratio_O_k_ar;
+    Array<complex_t> log_ratio;
+    Array<double>    log_ratio_abs2;
+    Array<complex_t> O_k;
+    Array<complex_t> log_ratio_O_k;
+    Array<double>    prob_ratio;
 
     void clear();
 
