@@ -94,7 +94,7 @@ def test_psi_classical_s(psi_classical, gpu):
     params = 0.1 * complex_noise(psi.num_params)
     # params = np.ones(psi.num_params)
     psi.params = params
-    psi.calibrate(ExactSummationSpins(num_sites, gpu))
+    # psi.calibrate(ExactSummationSpins(num_sites, gpu))
 
     local_dim = 2 if use_spins else 4
 

@@ -1,4 +1,5 @@
 #include "quantum_state/PsiDeep.hpp"
+#include "ensembles.hpp"
 
 #include <complex>
 #include <vector>

@@ -107,6 +107,10 @@ double KullbackLeibler::value(
     this->log_ratio_abs2.update_host();
     this->prob_ratio.update_host();
 
+    cout << this->log_ratio.front() << endl;
+    cout << this->log_ratio_abs2.front() << endl;
+    cout << this->prob_ratio.front() << endl;
+
     this->log_ratio.front() /= this->prob_ratio.front();
     this->log_ratio_abs2.front() /= this->prob_ratio.front();
 

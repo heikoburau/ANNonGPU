@@ -13,6 +13,7 @@
 #include "network_functions/TDVP.hpp"
 #endif // LEAN_AND_MEAN
 
+#include "network_functions/CalibratePsi.hpp"
 #include "network_functions/PsiVector.hpp"
 #include "network_functions/PsiNorm.hpp"
 #include "network_functions/PsiOkVector.hpp"
@@ -97,12 +98,10 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #if defined(ENABLE_SPINS)
         .def("_vector", [](PsiDeep& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiDeep& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
-        .def("calibrate", &PsiDeep::calibrate<ExactSummation_t<Spins>>)
 #endif
 #if defined(ENABLE_PAULIS)
         .def("_vector", [](PsiDeep& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiDeep& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
-        .def("calibrate", &PsiDeep::calibrate<ExactSummation_t<PauliString>>)
 #endif
         #endif // ENABLE_EXACT_SUMMATION
         ;
@@ -144,13 +143,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("vector", [](PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("normalize", [](PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
-        .def("calibrate", &PsiClassicalFP<1u>::calibrate<ExactSummation_t<Spins>>)
         #endif // ENABLE_SPINS
         #ifdef ENABLE_PAULIS
         .def("vector", [](PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("normalize", [](PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
-        .def("calibrate", &PsiClassicalFP<1u>::calibrate<ExactSummation_t<PauliString>>)
         #endif // ENABLE_PAULIS
         #endif // ENABLE_EXACT_SUMMATION
         ;
@@ -192,13 +189,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("vector", [](PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("normalize", [](PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
-        .def("calibrate", &PsiClassicalFP<2u>::calibrate<ExactSummation_t<Spins>>)
         #endif // ENABLE_SPINS
         #ifdef ENABLE_PAULIS
         .def("vector", [](PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("normalize", [](PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
-        .def("calibrate", &PsiClassicalFP<2u>::calibrate<ExactSummation_t<PauliString>>)
         #endif // ENABLE_PAULIS
         #endif // ENABLE_EXACT_SUMMATION
         ;
@@ -240,13 +235,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("vector", [](PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("normalize", [](PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
-        .def("calibrate", &PsiClassicalANN<1u>::calibrate<ExactSummation_t<Spins>>)
         #endif // ENABLE_SPINS
         #ifdef ENABLE_PAULIS
         .def("vector", [](PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("normalize", [](PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
-        .def("calibrate", &PsiClassicalANN<1u>::calibrate<ExactSummation_t<PauliString>>)
         #endif // ENABLE_PAULIS
         #endif // ENABLE_EXACT_SUMMATION
         ;
@@ -288,13 +281,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("vector", [](PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("normalize", [](PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
-        .def("calibrate", &PsiClassicalANN<2u>::calibrate<ExactSummation_t<Spins>>)
         #endif // ENABLE_SPINS
         #ifdef ENABLE_PAULIS
         .def("vector", [](PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
         .def("normalize", [](PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
-        .def("calibrate", &PsiClassicalANN<2u>::calibrate<ExactSummation_t<PauliString>>)
         #endif // ENABLE_PAULIS
         #endif // ENABLE_EXACT_SUMMATION
         ;

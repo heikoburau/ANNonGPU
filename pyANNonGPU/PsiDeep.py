@@ -1,4 +1,4 @@
-from ._pyANNonGPU import PsiDeep
+from ._pyANNonGPU import PsiDeep, log_psi
 from .json_numpy import NumpyEncoder, NumpyDecoder
 import json
 
@@ -47,6 +47,18 @@ def normalize(self, exact_summation):
     self.prefactor /= self.norm(exact_summation)
 
 
+def calibrate(self, ensemble):
+    if ensemble.__class__.__name__.startswith("ExactSummation"):
+        self.prefactor = 1
+        self.log_prefactor = 0
+        self.prefactor /= self.norm(ensemble)
+        self.log_prefactor -= log_psi(self, ensemble)
+        self.prefactor /= self.norm(ensemble)
+    else:
+        self.log_prefactor = 0
+        self.log_prefactor -= log_psi(self, ensemble)
+
+
 def __pos__(self):
     return self.copy()
 
@@ -64,6 +76,7 @@ def first_layer_params_slice(self):
 setattr(PsiDeep, "to_json", to_json)
 setattr(PsiDeep, "from_json", from_json)
 setattr(PsiDeep, "normalize", normalize)
+setattr(PsiDeep, "calibrate", calibrate)
 setattr(PsiDeep, "__pos__", __pos__)
 setattr(PsiDeep, "vector", vector)
 setattr(PsiDeep, "first_layer_params_slice", first_layer_params_slice)

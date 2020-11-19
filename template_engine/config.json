@@ -1,6 +1,7 @@
 {
     "file_patterns": [
         "source/**/*.cu.template",
+        "source/**/*.cpp.template",
         "pyANNonGPU/main.cpp.template"
     ],
     "keywords": {

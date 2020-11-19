@@ -360,13 +360,6 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, order, typename Psi
         this->kernel().psi_ref = this->psi_ref.kernel();
     }
 
-
-    template<typename Ensemble>
-    inline void calibrate(Ensemble& ensemble) {
-        this->psi_ref.calibrate(ensemble);
-        this->kernel().psi_ref = this->psi_ref.kernel();
-    }
-
 #ifdef __PYTHONCC__
 
     inline PsiClassical_t(
