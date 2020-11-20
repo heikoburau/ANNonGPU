@@ -21,10 +21,10 @@ class KullbackLeibler {
 public:
     bool gpu;
 
-    complex_t*  log_ratio;
-    double*     log_ratio_abs2;
+    complex_t*  deviation;
+    double*     deviation_abs2;
     complex_t*  O_k;
-    complex_t*  log_ratio_O_k;
+    complex_t*  deviation_O_k;
     double*     prob_ratio;
 
     template<bool compute_gradient, typename Psi_t, typename Psi_t_prime, typename Ensemble>
@@ -44,10 +44,10 @@ class KullbackLeibler : public kernel::KullbackLeibler {
 private:
     const unsigned int  num_params;
 
-    Array<complex_t> log_ratio;
-    Array<double>    log_ratio_abs2;
+    Array<complex_t> deviation;
+    Array<double>    deviation_abs2;
     Array<complex_t> O_k;
-    Array<complex_t> log_ratio_O_k;
+    Array<complex_t> deviation_O_k;
     Array<double>    prob_ratio;
 
     void clear();

@@ -36,17 +36,21 @@ void kernel::KullbackLeibler::compute_averages(
             SHARED typename Psi_t::dtype    log_psi;
             SHARED typename Psi_t::Payload  payload;
             SHARED double                   prob_ratio;
+            SHARED complex_t                deviation;
             SHARED double                   deviation2;
 
             psi_kernel.init_payload(payload, configuration);
             psi_kernel.log_psi_s(log_psi, configuration, payload);
 
             SINGLE {
-                prob_ratio = exp(2.0 * (log_psi.real() - log_psi_prime.real()));
-                deviation2 = abs2(log_psi_prime - log_psi);
+                deviation = log_psi_prime - log_psi;
+                deviation.__im_ = remainder(deviation.imag(), 6.283185307179586);
+
+                prob_ratio = exp(-2.0 * deviation.real());
+                deviation2 = abs2(deviation);
                 if(deviation2 > threshold2) {
-                    generic_atomicAdd(this_.log_ratio, weight * prob_ratio * (log_psi_prime - log_psi));
-                    generic_atomicAdd(this_.log_ratio_abs2, weight * prob_ratio * deviation2);
+                    generic_atomicAdd(this_.deviation, weight * prob_ratio * deviation);
+                    generic_atomicAdd(this_.deviation_abs2, weight * prob_ratio * deviation2);
                 }
                 generic_atomicAdd(this_.prob_ratio, weight * prob_ratio);
             }
@@ -63,8 +67,8 @@ void kernel::KullbackLeibler::compute_averages(
                         );
                         if(deviation2 > threshold2) {
                             generic_atomicAdd(
-                                &this_.log_ratio_O_k[k],
-                                weight * prob_ratio * (log_psi_prime - log_psi) * conj(O_k_element)
+                                &this_.deviation_O_k[k],
+                                weight * prob_ratio * deviation * conj(O_k_element)
                             );
                         }
                     }
@@ -79,27 +83,27 @@ void kernel::KullbackLeibler::compute_averages(
 
 KullbackLeibler::KullbackLeibler(const unsigned int num_params, const bool gpu)
       : num_params(num_params),
-        log_ratio(1, gpu),
-        log_ratio_abs2(1, gpu),
+        deviation(1, gpu),
+        deviation_abs2(1, gpu),
         O_k(num_params, gpu),
-        log_ratio_O_k(num_params, gpu),
+        deviation_O_k(num_params, gpu),
         prob_ratio(1, gpu)
     {
     this->gpu = gpu;
 
-    this->kernel().log_ratio = this->log_ratio.data();
-    this->kernel().log_ratio_abs2 = this->log_ratio_abs2.data();
+    this->kernel().deviation = this->deviation.data();
+    this->kernel().deviation_abs2 = this->deviation_abs2.data();
     this->kernel().O_k = this->O_k.data();
-    this->kernel().log_ratio_O_k = this->log_ratio_O_k.data();
+    this->kernel().deviation_O_k = this->deviation_O_k.data();
     this->kernel().prob_ratio = this->prob_ratio.data();
 }
 
 
 void KullbackLeibler::clear() {
-    this->log_ratio.clear();
-    this->log_ratio_abs2.clear();
+    this->deviation.clear();
+    this->deviation_abs2.clear();
     this->O_k.clear();
-    this->log_ratio_O_k.clear();
+    this->deviation_O_k.clear();
     this->prob_ratio.clear();
 }
 
@@ -111,23 +115,19 @@ double KullbackLeibler::value(
     this->clear();
     this->compute_averages<false>(psi, psi_prime, ensemble, threshold);
 
-    this->log_ratio.update_host();
-    this->log_ratio_abs2.update_host();
+    this->deviation.update_host();
+    this->deviation_abs2.update_host();
     this->prob_ratio.update_host();
 
-    cout << this->log_ratio.front() << endl;
-    cout << this->log_ratio_abs2.front() << endl;
-    cout << this->prob_ratio.front() << endl;
-
-    this->log_ratio.front() /= this->prob_ratio.front();
-    this->log_ratio_abs2.front() /= this->prob_ratio.front();
+    this->deviation.front() /= this->prob_ratio.front();
+    this->deviation_abs2.front() /= this->prob_ratio.front();
 
     return sqrt(max(
         1e-8,
-        this->log_ratio_abs2.front() - abs2(this->log_ratio.front())
+        this->deviation_abs2.front() - abs2(this->deviation.front())
     ));
 
-    // return this->log_ratio_abs2.front() - abs2(this->log_ratio.front());
+    // return this->deviation_abs2.front() - abs2(this->deviation.front());
 }
 
 
@@ -136,62 +136,31 @@ double KullbackLeibler::gradient(
     complex<double>* result, Psi_t& psi, PsiPrime_t& psi_prime, Ensemble& ensemble, const double nu, double threshold
 ) {
     this->clear();
-
-    // std::cout << psi.gpu << std::endl;
-    // std::cout << psi_prime.gpu << std::endl;
-    // std::cout << ensemble.gpu << std::endl;
-
-    // std::cout << std::endl;
-
-    // std::cout << psi.get_width() << std::endl;
-    // std::cout << psi_prime.get_width() << std::endl;
-
     this->compute_averages<true>(psi, psi_prime, ensemble, threshold);
 
-    // std::cout << std::endl;
-
-    // std::cout << this->log_ratio.gpu << std::endl;
-    // std::cout << this->log_ratio_abs2.gpu << std::endl;
-    // std::cout << this->O_k.gpu << std::endl;
-    // std::cout << this->log_ratio_O_k.gpu << std::endl;
-
-    // std::cout << std::endl;
-
-    // std::cout << this->log_ratio.size() << std::endl;
-    // std::cout << this->log_ratio_abs2.size() << std::endl;
-    // std::cout << this->O_k.size() << std::endl;
-    // std::cout << this->log_ratio_O_k.size() << std::endl;
-
-    // std::cout << std::endl;
-
-    // std::cout << this->log_ratio.data() << std::endl;
-    // std::cout << this->log_ratio_abs2.data() << std::endl;
-    // std::cout << this->O_k.data() << std::endl;
-    // std::cout << this->log_ratio_O_k.data() << std::endl;
-
-    this->log_ratio.update_host();
-    this->log_ratio_abs2.update_host();
+    this->deviation.update_host();
+    this->deviation_abs2.update_host();
     this->O_k.update_host();
-    this->log_ratio_O_k.update_host();
+    this->deviation_O_k.update_host();
     this->prob_ratio.update_host();
 
-    this->log_ratio.front() /= this->prob_ratio.front();
-    this->log_ratio_abs2.front() /= this->prob_ratio.front();
+    this->deviation.front() /= this->prob_ratio.front();
+    this->deviation_abs2.front() /= this->prob_ratio.front();
     for(auto k = 0u; k < this->num_params; k++) {
         this->O_k[k] /= this->prob_ratio.front();
-        this->log_ratio_O_k[k] /= this->prob_ratio.front();
+        this->deviation_O_k[k] /= this->prob_ratio.front();
     }
 
 
     const auto value = sqrt(max(
         1e-8,
-        this->log_ratio_abs2.front() - abs2(this->log_ratio.front())
+        this->deviation_abs2.front() - abs2(this->deviation.front())
     ));
     const auto factor = pow(value, nu);
 
     for(auto k = 0u; k < this->num_params; k++) {
         result[k] = (
-            this->log_ratio_O_k[k] - this->log_ratio.front() * this->O_k[k]
+            this->deviation_O_k[k] - this->deviation.front() * this->O_k[k]
         ).to_std() / factor;
     }
 

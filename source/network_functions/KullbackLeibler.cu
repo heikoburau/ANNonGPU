@@ -42,14 +42,18 @@ void kernel::KullbackLeibler::compute_averages(
             SHARED typename Psi_t::dtype    log_psi;
             SHARED typename Psi_t::Payload  payload;
             SHARED double                   prob_ratio;
+            SHARED complex_t                deviation;
             SHARED double                   deviation2;
 
             psi_kernel.init_payload(payload, configuration);
             psi_kernel.log_psi_s(log_psi, configuration, payload);
 
             SINGLE {
-                prob_ratio = exp(2.0 * (log_psi.real() - log_psi_prime.real()));
-                deviation2 = abs2(log_psi_prime - log_psi);
+                deviation = log_psi_prime - log_psi;
+                deviation.__im_ = remainder(deviation.imag(), 6.283185307179586);
+
+                prob_ratio = exp(-2.0 * deviation.real());
+                deviation2 = abs2(deviation);
                 if(deviation2 > threshold2) {
                     generic_atomicAdd(this_.log_ratio, weight * prob_ratio * (log_psi_prime - log_psi));
                     generic_atomicAdd(this_.log_ratio_abs2, weight * prob_ratio * deviation2);
@@ -70,7 +74,7 @@ void kernel::KullbackLeibler::compute_averages(
                         if(deviation2 > threshold2) {
                             generic_atomicAdd(
                                 &this_.log_ratio_O_k[k],
-                                weight * prob_ratio * (log_psi_prime - log_psi) * conj(O_k_element)
+                                weight * prob_ratio * deviation * conj(O_k_element)
                             );
                         }
                     }
