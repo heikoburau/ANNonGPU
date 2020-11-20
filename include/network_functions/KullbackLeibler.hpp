@@ -29,7 +29,7 @@ public:
 
     template<bool compute_gradient, typename Psi_t, typename Psi_t_prime, typename Ensemble>
     void compute_averages(
-        Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& spin_ensemble
+        Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& spin_ensemble, double threshold
     ) const;
 
     inline KullbackLeibler& kernel() {
@@ -57,23 +57,23 @@ public:
 
     template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
     double value(
-        Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& spin_ensemble
+        Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& spin_ensemble, double threshold
     );
 
     template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
     double gradient(
-        complex<double>* result, Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& spin_ensemble, const double nu
+        complex<double>* result, Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& spin_ensemble, const double nu, double threshold
     );
 
 #ifdef __PYTHONCC__
 
     template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
     pair<xt::pytensor<complex<double>, 1u>, double> gradient_py(
-        Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& spin_ensemble, const double nu
+        Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& spin_ensemble, const double nu, double threshold
     ) {
         xt::pytensor<complex<double>, 1u> grad(std::array<long int, 1u>({(long int)psi_prime.num_params}));
 
-        const double value = this->gradient(grad.data(), psi, psi_prime, spin_ensemble, nu);
+        const double value = this->gradient(grad.data(), psi, psi_prime, spin_ensemble, nu, threshold);
 
         return {grad, value};
     }
