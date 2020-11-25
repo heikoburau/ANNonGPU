@@ -729,6 +729,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             );
         })
 #endif
+        .def_property_readonly("deviations", [](const KullbackLeibler& kl){return kl.deviations.to_pytensor_1d();})
     ;
 
 

@@ -49,11 +49,14 @@ void kernel::KullbackLeibler::compute_averages(
             psi_kernel.log_psi_s(log_psi, configuration, payload);
 
             SINGLE {
-                deviation = log_psi_prime - log_psi;
+                generic_atomicAdd(this_.mean_deviation, weight * (log_psi_prime - log_psi));
+                deviation = log_psi_prime - log_psi - *this_.last_mean_deviation;
+
+                this_.deviations[spin_index] = deviation;
                 // deviation.__im_ = remainder(deviation.imag(), 6.283185307179586);
 
                 deviation2 = abs2(deviation);
-                prob_ratio = exp(-2.0 * deviation.real());
+                prob_ratio = 1.0; //exp(-2.0 * (log_psi.real() - log_psi_prime.real()));
                 if(deviation2 > threshold2) {
                     generic_atomicAdd(this_.deviation, weight * prob_ratio * deviation);
                     generic_atomicAdd(this_.deviation2, weight * prob_ratio * deviation2);
@@ -126,7 +129,10 @@ KullbackLeibler::KullbackLeibler(const unsigned int num_params, const bool gpu)
         deviation2_O_k(num_params, gpu),
         deviation_O_k2(num_params, gpu),
         O_k2(num_params, gpu),
-        prob_ratio(1, gpu)
+        prob_ratio(1, gpu),
+        mean_deviation(1, gpu),
+        last_mean_deviation(1, gpu),
+        deviations(1, gpu)
     {
     this->gpu = gpu;
 
@@ -141,7 +147,12 @@ KullbackLeibler::KullbackLeibler(const unsigned int num_params, const bool gpu)
     this->kernel().deviation_O_k2 = this->deviation_O_k2.data();
     this->kernel().O_k2 = this->O_k2.data();
 
+    this->kernel().mean_deviation = this->mean_deviation.data();
+    this->kernel().last_mean_deviation = this->last_mean_deviation.data();
+
     this->kernel().prob_ratio = this->prob_ratio.data();
+
+    this->last_mean_deviation.clear();
 }
 
 
@@ -158,15 +169,29 @@ void KullbackLeibler::clear() {
     this->O_k2.clear();
 
     this->prob_ratio.clear();
+    this->mean_deviation.clear();
+
+    this->deviations.clear();
 }
 
+void KullbackLeibler::update_last_mean_deviation() {
+    this->mean_deviation.update_host();
+    this->last_mean_deviation.front() = this->mean_deviation.front();
+    this->last_mean_deviation.update_device();
+}
 
 template<typename Psi_t, typename PsiPrime_t, typename Ensemble>
 double KullbackLeibler::value(
     Psi_t& psi, PsiPrime_t& psi_prime, Ensemble& ensemble, double threshold
 ) {
+    this->deviations.resize(ensemble.get_num_steps());
+    this->kernel().deviations = this->deviations.data();
+
     this->clear();
     this->compute_averages<false, false>(psi, psi_prime, ensemble, threshold);
+    this->update_last_mean_deviation();
+
+    this->deviations.update_host();
 
     this->deviation.update_host();
     this->deviation2.update_host();
@@ -188,8 +213,12 @@ template<typename Psi_t, typename PsiPrime_t, typename Ensemble>
 double KullbackLeibler::gradient(
     complex<double>* result, Psi_t& psi, PsiPrime_t& psi_prime, Ensemble& ensemble, const double nu, double threshold
 ) {
+    this->deviations.resize(ensemble.get_num_steps());
+    this->kernel().deviations = this->deviations.data();
+
     this->clear();
     this->compute_averages<true, false>(psi, psi_prime, ensemble, threshold);
+    this->update_last_mean_deviation();
 
     this->deviation.update_host();
     this->deviation2.update_host();
@@ -228,8 +257,12 @@ tuple<
 > KullbackLeibler::gradient_with_noise(
     Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& ensemble, const double nu, double threshold
 ) {
+    this->deviations.resize(ensemble.get_num_steps());
+    this->kernel().deviations = this->deviations.data();
+
     this->clear();
     this->compute_averages<true, true>(psi, psi_prime, ensemble, threshold);
+    this->update_last_mean_deviation();
 
     this->deviation.update_host();
     this->deviation2.update_host();

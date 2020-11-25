@@ -18,8 +18,7 @@ namespace ann_on_gpu {
 
 namespace kernel {
 
-class KullbackLeibler {
-public:
+struct KullbackLeibler {
     bool gpu;
 
     complex_t*  deviation;
@@ -37,6 +36,12 @@ public:
 
     double*     prob_ratio;
 
+    complex_t*  mean_deviation;
+    complex_t*  last_mean_deviation;
+
+
+    complex_t*  deviations;
+
 
     template<bool compute_gradient, bool noise, typename Psi_t, typename Psi_t_prime, typename Ensemble>
     void compute_averages(
@@ -51,8 +56,7 @@ public:
 } // namespace kernel
 
 
-class KullbackLeibler : public kernel::KullbackLeibler {
-private:
+struct KullbackLeibler : public kernel::KullbackLeibler {
     const unsigned int  num_params;
 
     Array<complex_t>  deviation;
@@ -67,13 +71,16 @@ private:
     Array<double>     O_k2;
 
     Array<double>     prob_ratio;
+    Array<complex_t>  mean_deviation;
+    Array<complex_t>  last_mean_deviation;
 
-
+    Array<complex_t>  deviations;
 
     void clear();
 
-public:
     KullbackLeibler(const unsigned int num_params, const bool gpu);
+
+    void update_last_mean_deviation();
 
     template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
     double value(
