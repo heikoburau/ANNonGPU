@@ -250,6 +250,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         //! begin template
         .def("__call__", &KullbackLeibler::value<ClPsi, PsiDeep, Ensemble<Basis>>)
         .def("gradient", &KullbackLeibler::gradient_py<ClPsi, PsiDeep, Ensemble<Basis>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, ClPsi& psi, PsiDeep& psi_prime, Ensemble<Basis>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
         //! end template
     ;
 

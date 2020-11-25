@@ -540,66 +540,194 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<1u>& psi, PsiDeep& psi_prime, MonteCarlo_tt<Spins>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &KullbackLeibler::value<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<2u>& psi, PsiDeep& psi_prime, MonteCarlo_tt<Spins>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("__call__", &KullbackLeibler::value<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<1u>& psi, PsiDeep& psi_prime, MonteCarlo_tt<Spins>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<2u>& psi, PsiDeep& psi_prime, MonteCarlo_tt<Spins>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<1u>& psi, PsiDeep& psi_prime, MonteCarlo_tt<PauliString>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &KullbackLeibler::value<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<2u>& psi, PsiDeep& psi_prime, MonteCarlo_tt<PauliString>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("__call__", &KullbackLeibler::value<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<1u>& psi, PsiDeep& psi_prime, MonteCarlo_tt<PauliString>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<2u>& psi, PsiDeep& psi_prime, MonteCarlo_tt<PauliString>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<Spins>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<1u>& psi, PsiDeep& psi_prime, ExactSummation_t<Spins>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &KullbackLeibler::value<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<Spins>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<2u>& psi, PsiDeep& psi_prime, ExactSummation_t<Spins>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("__call__", &KullbackLeibler::value<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<Spins>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<1u>& psi, PsiDeep& psi_prime, ExactSummation_t<Spins>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<Spins>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<2u>& psi, PsiDeep& psi_prime, ExactSummation_t<Spins>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<PauliString>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<1u>& psi, PsiDeep& psi_prime, ExactSummation_t<PauliString>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &KullbackLeibler::value<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<PauliString>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<2u>& psi, PsiDeep& psi_prime, ExactSummation_t<PauliString>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("__call__", &KullbackLeibler::value<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<PauliString>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<1u>& psi, PsiDeep& psi_prime, ExactSummation_t<PauliString>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<PauliString>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<2u>& psi, PsiDeep& psi_prime, ExactSummation_t<PauliString>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
 #endif
     ;
 

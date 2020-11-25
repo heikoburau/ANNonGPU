@@ -10,6 +10,7 @@
 #endif // __CUDACC__
 
 #include <complex>
+#include <tuple>
 // #include <memory>
 
 
@@ -22,12 +23,22 @@ public:
     bool gpu;
 
     complex_t*  deviation;
-    double*     deviation_abs2;
+    double*     deviation2;
     complex_t*  O_k;
+    complex_t*  deviation_O_k_conj;
+
+    // for estimating the noise
+    double*     deviation2_O_k2;
     complex_t*  deviation_O_k;
+    complex_t*  deviation2_O_k;
+    complex_t*  deviation_O_k2;
+    double*     O_k2;
+
+
     double*     prob_ratio;
 
-    template<bool compute_gradient, typename Psi_t, typename Psi_t_prime, typename Ensemble>
+
+    template<bool compute_gradient, bool noise, typename Psi_t, typename Psi_t_prime, typename Ensemble>
     void compute_averages(
         Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& spin_ensemble, double threshold
     ) const;
@@ -44,11 +55,20 @@ class KullbackLeibler : public kernel::KullbackLeibler {
 private:
     const unsigned int  num_params;
 
-    Array<complex_t> deviation;
-    Array<double>    deviation_abs2;
-    Array<complex_t> O_k;
-    Array<complex_t> deviation_O_k;
-    Array<double>    prob_ratio;
+    Array<complex_t>  deviation;
+    Array<double>     deviation2;
+    Array<complex_t>  O_k;
+    Array<complex_t>  deviation_O_k_conj;
+
+    Array<double>     deviation2_O_k2;
+    Array<complex_t>  deviation_O_k;
+    Array<complex_t>  deviation2_O_k;
+    Array<complex_t>  deviation_O_k2;
+    Array<double>     O_k2;
+
+    Array<double>     prob_ratio;
+
+
 
     void clear();
 
@@ -63,6 +83,15 @@ public:
     template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
     double gradient(
         complex<double>* result, Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& spin_ensemble, const double nu, double threshold
+    );
+
+    template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
+    tuple<
+        Array<complex_t>,
+        Array<double>,
+        double
+    > gradient_with_noise(
+        Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& ensemble, const double nu, double threshold
     );
 
 #ifdef __PYTHONCC__

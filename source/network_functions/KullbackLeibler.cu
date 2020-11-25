@@ -19,7 +19,7 @@ namespace ann_on_gpu {
 namespace kernel {
 
 
-template<bool compute_gradient, typename Psi_t, typename PsiPrime_t, typename Ensemble>
+template<bool compute_gradient, bool noise, typename Psi_t, typename PsiPrime_t, typename Ensemble>
 void kernel::KullbackLeibler::compute_averages(
     Psi_t& psi, PsiPrime_t& psi_prime, Ensemble& ensemble, double threshold
 ) const {
@@ -50,13 +50,13 @@ void kernel::KullbackLeibler::compute_averages(
 
             SINGLE {
                 deviation = log_psi_prime - log_psi;
-                deviation.__im_ = remainder(deviation.imag(), 6.283185307179586);
+                // deviation.__im_ = remainder(deviation.imag(), 6.283185307179586);
 
-                prob_ratio = exp(-2.0 * deviation.real());
                 deviation2 = abs2(deviation);
+                prob_ratio = exp(-2.0 * deviation.real());
                 if(deviation2 > threshold2) {
-                    generic_atomicAdd(this_.log_ratio, weight * prob_ratio * (log_psi_prime - log_psi));
-                    generic_atomicAdd(this_.log_ratio_abs2, weight * prob_ratio * deviation2);
+                    generic_atomicAdd(this_.deviation, weight * prob_ratio * deviation);
+                    generic_atomicAdd(this_.deviation2, weight * prob_ratio * deviation2);
                 }
                 generic_atomicAdd(this_.prob_ratio, weight * prob_ratio);
             }
@@ -66,15 +66,43 @@ void kernel::KullbackLeibler::compute_averages(
                 psi_prime_kernel.foreach_O_k(
                     configuration,
                     payload_prime,
-                    [&](const unsigned int k, const complex_t& O_k_element) {
+                    [&](const unsigned int k, const complex_t& O_k) {
                         generic_atomicAdd(
                             &this_.O_k[k],
-                            weight * prob_ratio * conj(O_k_element)
+                            weight * prob_ratio * O_k
                         );
                         if(deviation2 > threshold2) {
                             generic_atomicAdd(
-                                &this_.log_ratio_O_k[k],
-                                weight * prob_ratio * deviation * conj(O_k_element)
+                                &this_.deviation_O_k_conj[k],
+                                weight * prob_ratio * deviation * conj(O_k)
+                            );
+                        }
+
+                        if(noise) {
+                            const auto O_k2 = abs2(O_k);
+
+                            if(deviation2 > threshold2) {
+                                generic_atomicAdd(
+                                    &this_.deviation2_O_k2[k],
+                                    weight * prob_ratio * deviation2 * O_k2
+                                );
+                                generic_atomicAdd(
+                                    &this_.deviation_O_k[k],
+                                    weight * prob_ratio * deviation * O_k
+                                );
+                                generic_atomicAdd(
+                                    &this_.deviation_O_k2[k],
+                                    weight * prob_ratio * deviation * O_k2
+                                );
+                                generic_atomicAdd(
+                                    &this_.deviation2_O_k[k],
+                                    weight * prob_ratio * deviation2 * O_k
+                                );
+
+                            }
+                            generic_atomicAdd(
+                                &this_.O_k2[k],
+                                weight * prob_ratio * O_k2
                             );
                         }
                     }
@@ -89,27 +117,46 @@ void kernel::KullbackLeibler::compute_averages(
 
 KullbackLeibler::KullbackLeibler(const unsigned int num_params, const bool gpu)
       : num_params(num_params),
-        log_ratio(1, gpu),
-        log_ratio_abs2(1, gpu),
+        deviation(1, gpu),
+        deviation2(1, gpu),
         O_k(num_params, gpu),
-        log_ratio_O_k(num_params, gpu),
+        deviation_O_k_conj(num_params, gpu),
+        deviation2_O_k2(num_params, gpu),
+        deviation_O_k(num_params, gpu),
+        deviation2_O_k(num_params, gpu),
+        deviation_O_k2(num_params, gpu),
+        O_k2(num_params, gpu),
         prob_ratio(1, gpu)
     {
     this->gpu = gpu;
 
-    this->kernel().log_ratio = this->log_ratio.data();
-    this->kernel().log_ratio_abs2 = this->log_ratio_abs2.data();
+    this->kernel().deviation = this->deviation.data();
+    this->kernel().deviation2 = this->deviation2.data();
     this->kernel().O_k = this->O_k.data();
-    this->kernel().log_ratio_O_k = this->log_ratio_O_k.data();
+    this->kernel().deviation_O_k_conj = this->deviation_O_k_conj.data();
+
+    this->kernel().deviation2_O_k2 = this->deviation2_O_k2.data();
+    this->kernel().deviation_O_k = this->deviation_O_k.data();
+    this->kernel().deviation2_O_k = this->deviation2_O_k.data();
+    this->kernel().deviation_O_k2 = this->deviation_O_k2.data();
+    this->kernel().O_k2 = this->O_k2.data();
+
     this->kernel().prob_ratio = this->prob_ratio.data();
 }
 
 
 void KullbackLeibler::clear() {
-    this->log_ratio.clear();
-    this->log_ratio_abs2.clear();
+    this->deviation.clear();
+    this->deviation2.clear();
     this->O_k.clear();
-    this->log_ratio_O_k.clear();
+    this->deviation_O_k_conj.clear();
+
+    this->deviation2_O_k2.clear();
+    this->deviation_O_k.clear();
+    this->deviation2_O_k.clear();
+    this->deviation_O_k2.clear();
+    this->O_k2.clear();
+
     this->prob_ratio.clear();
 }
 
@@ -119,25 +166,21 @@ double KullbackLeibler::value(
     Psi_t& psi, PsiPrime_t& psi_prime, Ensemble& ensemble, double threshold
 ) {
     this->clear();
-    this->compute_averages<false>(psi, psi_prime, ensemble, threshold);
+    this->compute_averages<false, false>(psi, psi_prime, ensemble, threshold);
 
-    this->log_ratio.update_host();
-    this->log_ratio_abs2.update_host();
+    this->deviation.update_host();
+    this->deviation2.update_host();
     this->prob_ratio.update_host();
 
-    cout << this->log_ratio.front() << endl;
-    cout << this->log_ratio_abs2.front() << endl;
-    cout << this->prob_ratio.front() << endl;
-
-    this->log_ratio.front() /= this->prob_ratio.front();
-    this->log_ratio_abs2.front() /= this->prob_ratio.front();
+    this->deviation.front() /= this->prob_ratio.front();
+    this->deviation2.front() /= this->prob_ratio.front();
 
     return sqrt(max(
         1e-8,
-        this->log_ratio_abs2.front() - abs2(this->log_ratio.front())
+        this->deviation2.front() - abs2(this->deviation.front())
     ));
 
-    // return this->log_ratio_abs2.front() - abs2(this->log_ratio.front());
+    // return this->deviation2.front() - abs2(this->deviation.front());
 }
 
 
@@ -146,132 +189,194 @@ double KullbackLeibler::gradient(
     complex<double>* result, Psi_t& psi, PsiPrime_t& psi_prime, Ensemble& ensemble, const double nu, double threshold
 ) {
     this->clear();
+    this->compute_averages<true, false>(psi, psi_prime, ensemble, threshold);
 
-    // std::cout << psi.gpu << std::endl;
-    // std::cout << psi_prime.gpu << std::endl;
-    // std::cout << ensemble.gpu << std::endl;
-
-    // std::cout << std::endl;
-
-    // std::cout << psi.get_width() << std::endl;
-    // std::cout << psi_prime.get_width() << std::endl;
-
-    this->compute_averages<true>(psi, psi_prime, ensemble, threshold);
-
-    // std::cout << std::endl;
-
-    // std::cout << this->log_ratio.gpu << std::endl;
-    // std::cout << this->log_ratio_abs2.gpu << std::endl;
-    // std::cout << this->O_k.gpu << std::endl;
-    // std::cout << this->log_ratio_O_k.gpu << std::endl;
-
-    // std::cout << std::endl;
-
-    // std::cout << this->log_ratio.size() << std::endl;
-    // std::cout << this->log_ratio_abs2.size() << std::endl;
-    // std::cout << this->O_k.size() << std::endl;
-    // std::cout << this->log_ratio_O_k.size() << std::endl;
-
-    // std::cout << std::endl;
-
-    // std::cout << this->log_ratio.data() << std::endl;
-    // std::cout << this->log_ratio_abs2.data() << std::endl;
-    // std::cout << this->O_k.data() << std::endl;
-    // std::cout << this->log_ratio_O_k.data() << std::endl;
-
-    this->log_ratio.update_host();
-    this->log_ratio_abs2.update_host();
+    this->deviation.update_host();
+    this->deviation2.update_host();
     this->O_k.update_host();
-    this->log_ratio_O_k.update_host();
+    this->deviation_O_k_conj.update_host();
     this->prob_ratio.update_host();
 
-    this->log_ratio.front() /= this->prob_ratio.front();
-    this->log_ratio_abs2.front() /= this->prob_ratio.front();
+    this->deviation.front() /= this->prob_ratio.front();
+    this->deviation2.front() /= this->prob_ratio.front();
     for(auto k = 0u; k < this->num_params; k++) {
         this->O_k[k] /= this->prob_ratio.front();
-        this->log_ratio_O_k[k] /= this->prob_ratio.front();
+        this->deviation_O_k_conj[k] /= this->prob_ratio.front();
     }
 
 
     const auto value = sqrt(max(
         1e-8,
-        this->log_ratio_abs2.front() - abs2(this->log_ratio.front())
+        this->deviation2.front() - abs2(this->deviation.front())
     ));
     const auto factor = pow(value, nu);
 
     for(auto k = 0u; k < this->num_params; k++) {
         result[k] = (
-            this->log_ratio_O_k[k] - this->log_ratio.front() * this->O_k[k]
+            this->deviation_O_k_conj[k] - this->deviation.front() * conj(this->O_k[k])
         ).to_std() / factor;
     }
 
     return value;
 }
 
+template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
+tuple<
+    Array<complex_t>,
+    Array<double>,
+    double
+> KullbackLeibler::gradient_with_noise(
+    Psi_t& psi, Psi_t_prime& psi_prime, Ensemble& ensemble, const double nu, double threshold
+) {
+    this->clear();
+    this->compute_averages<true, true>(psi, psi_prime, ensemble, threshold);
+
+    this->deviation.update_host();
+    this->deviation2.update_host();
+    this->O_k.update_host();
+    this->deviation_O_k_conj.update_host();
+
+    this->deviation2_O_k2.update_host();
+    this->deviation_O_k.update_host();
+    this->deviation_O_k2.update_host();
+    this->deviation2_O_k.update_host();
+    this->O_k2.update_host();
+
+    this->prob_ratio.update_host();
+
+    this->deviation.front() /= this->prob_ratio.front();
+    this->deviation2.front() /= this->prob_ratio.front();
+    for(auto k = 0u; k < this->num_params; k++) {
+        this->O_k[k] /= this->prob_ratio.front();
+        this->deviation_O_k_conj[k] /= this->prob_ratio.front();
+
+        this->deviation2_O_k2[k] /= this->prob_ratio.front();
+        this->deviation_O_k[k] /= this->prob_ratio.front();
+        this->deviation_O_k2[k] /= this->prob_ratio.front();
+        this->deviation2_O_k[k] /= this->prob_ratio.front();
+        this->O_k2[k] /= this->prob_ratio.front();
+    }
+
+
+    const auto value = sqrt(max(
+        1e-8,
+        this->deviation2.front() - abs2(this->deviation.front())
+    ));
+    const auto factor = pow(value, nu);
+
+    Array<complex_t> result(this->num_params, false);
+    Array<double> noise(this->num_params, false);
+
+    const auto d = this->deviation.front();
+    const auto d2 = this->deviation2.front();
+
+    for(auto k = 0u; k < this->num_params; k++) {
+        const auto O_k = this->O_k[k];
+        const auto d_O_k_conj = this->deviation_O_k_conj[k];
+
+        const auto d2_O_k2 = this->deviation2_O_k2[k];
+        const auto d_O_k = this->deviation_O_k[k];
+        const auto d_O_k2 = this->deviation_O_k2[k];
+        const auto d2_O_k = this->deviation2_O_k[k];
+        const auto O_k2 = this->O_k2[k];
+
+        result[k] = (
+            d_O_k_conj - d * conj(O_k)
+        ) / factor;
+
+        noise[k] = sqrt(
+            (
+                d2_O_k2 - abs2(d_O_k_conj) + 2.0 * (
+                    d_O_k * conj(d) * conj(O_k) + 2.0 * conj(d_O_k_conj) * d * conj(O_k)
+                    -d2_O_k * conj(O_k) - d_O_k2 * conj(d)
+                ).real() + d2 * abs2(O_k) + abs2(d) * O_k2 - 4.0 * abs2(d) * abs2(O_k)
+            ) / ensemble.get_num_steps()
+        ) / factor;
+    }
+
+    return make_tuple(move(result), move(noise), value);
+}
+
 
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template double KullbackLeibler::value(PsiClassicalFP<1u>&, PsiDeep&, MonteCarlo_tt<Spins>&, double);
 template double KullbackLeibler::gradient(complex<double>*, PsiClassicalFP<1u>&, PsiDeep&, MonteCarlo_tt<Spins>&, const double, double);
+template tuple<Array<complex_t>, Array<double>, double> KullbackLeibler::gradient_with_noise(PsiClassicalFP<1u>&, PsiDeep&, MonteCarlo_tt<Spins>&, const double, double);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template double KullbackLeibler::value(PsiClassicalFP<2u>&, PsiDeep&, MonteCarlo_tt<Spins>&, double);
 template double KullbackLeibler::gradient(complex<double>*, PsiClassicalFP<2u>&, PsiDeep&, MonteCarlo_tt<Spins>&, const double, double);
+template tuple<Array<complex_t>, Array<double>, double> KullbackLeibler::gradient_with_noise(PsiClassicalFP<2u>&, PsiDeep&, MonteCarlo_tt<Spins>&, const double, double);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template double KullbackLeibler::value(PsiClassicalANN<1u>&, PsiDeep&, MonteCarlo_tt<Spins>&, double);
 template double KullbackLeibler::gradient(complex<double>*, PsiClassicalANN<1u>&, PsiDeep&, MonteCarlo_tt<Spins>&, const double, double);
+template tuple<Array<complex_t>, Array<double>, double> KullbackLeibler::gradient_with_noise(PsiClassicalANN<1u>&, PsiDeep&, MonteCarlo_tt<Spins>&, const double, double);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template double KullbackLeibler::value(PsiClassicalANN<2u>&, PsiDeep&, MonteCarlo_tt<Spins>&, double);
 template double KullbackLeibler::gradient(complex<double>*, PsiClassicalANN<2u>&, PsiDeep&, MonteCarlo_tt<Spins>&, const double, double);
+template tuple<Array<complex_t>, Array<double>, double> KullbackLeibler::gradient_with_noise(PsiClassicalANN<2u>&, PsiDeep&, MonteCarlo_tt<Spins>&, const double, double);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template double KullbackLeibler::value(PsiClassicalFP<1u>&, PsiDeep&, MonteCarlo_tt<PauliString>&, double);
 template double KullbackLeibler::gradient(complex<double>*, PsiClassicalFP<1u>&, PsiDeep&, MonteCarlo_tt<PauliString>&, const double, double);
+template tuple<Array<complex_t>, Array<double>, double> KullbackLeibler::gradient_with_noise(PsiClassicalFP<1u>&, PsiDeep&, MonteCarlo_tt<PauliString>&, const double, double);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template double KullbackLeibler::value(PsiClassicalFP<2u>&, PsiDeep&, MonteCarlo_tt<PauliString>&, double);
 template double KullbackLeibler::gradient(complex<double>*, PsiClassicalFP<2u>&, PsiDeep&, MonteCarlo_tt<PauliString>&, const double, double);
+template tuple<Array<complex_t>, Array<double>, double> KullbackLeibler::gradient_with_noise(PsiClassicalFP<2u>&, PsiDeep&, MonteCarlo_tt<PauliString>&, const double, double);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template double KullbackLeibler::value(PsiClassicalANN<1u>&, PsiDeep&, MonteCarlo_tt<PauliString>&, double);
 template double KullbackLeibler::gradient(complex<double>*, PsiClassicalANN<1u>&, PsiDeep&, MonteCarlo_tt<PauliString>&, const double, double);
+template tuple<Array<complex_t>, Array<double>, double> KullbackLeibler::gradient_with_noise(PsiClassicalANN<1u>&, PsiDeep&, MonteCarlo_tt<PauliString>&, const double, double);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template double KullbackLeibler::value(PsiClassicalANN<2u>&, PsiDeep&, MonteCarlo_tt<PauliString>&, double);
 template double KullbackLeibler::gradient(complex<double>*, PsiClassicalANN<2u>&, PsiDeep&, MonteCarlo_tt<PauliString>&, const double, double);
+template tuple<Array<complex_t>, Array<double>, double> KullbackLeibler::gradient_with_noise(PsiClassicalANN<2u>&, PsiDeep&, MonteCarlo_tt<PauliString>&, const double, double);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template double KullbackLeibler::value(PsiClassicalFP<1u>&, PsiDeep&, ExactSummation_t<Spins>&, double);
 template double KullbackLeibler::gradient(complex<double>*, PsiClassicalFP<1u>&, PsiDeep&, ExactSummation_t<Spins>&, const double, double);
+template tuple<Array<complex_t>, Array<double>, double> KullbackLeibler::gradient_with_noise(PsiClassicalFP<1u>&, PsiDeep&, ExactSummation_t<Spins>&, const double, double);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template double KullbackLeibler::value(PsiClassicalFP<2u>&, PsiDeep&, ExactSummation_t<Spins>&, double);
 template double KullbackLeibler::gradient(complex<double>*, PsiClassicalFP<2u>&, PsiDeep&, ExactSummation_t<Spins>&, const double, double);
+template tuple<Array<complex_t>, Array<double>, double> KullbackLeibler::gradient_with_noise(PsiClassicalFP<2u>&, PsiDeep&, ExactSummation_t<Spins>&, const double, double);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template double KullbackLeibler::value(PsiClassicalANN<1u>&, PsiDeep&, ExactSummation_t<Spins>&, double);
 template double KullbackLeibler::gradient(complex<double>*, PsiClassicalANN<1u>&, PsiDeep&, ExactSummation_t<Spins>&, const double, double);
+template tuple<Array<complex_t>, Array<double>, double> KullbackLeibler::gradient_with_noise(PsiClassicalANN<1u>&, PsiDeep&, ExactSummation_t<Spins>&, const double, double);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template double KullbackLeibler::value(PsiClassicalANN<2u>&, PsiDeep&, ExactSummation_t<Spins>&, double);
 template double KullbackLeibler::gradient(complex<double>*, PsiClassicalANN<2u>&, PsiDeep&, ExactSummation_t<Spins>&, const double, double);
+template tuple<Array<complex_t>, Array<double>, double> KullbackLeibler::gradient_with_noise(PsiClassicalANN<2u>&, PsiDeep&, ExactSummation_t<Spins>&, const double, double);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template double KullbackLeibler::value(PsiClassicalFP<1u>&, PsiDeep&, ExactSummation_t<PauliString>&, double);
 template double KullbackLeibler::gradient(complex<double>*, PsiClassicalFP<1u>&, PsiDeep&, ExactSummation_t<PauliString>&, const double, double);
+template tuple<Array<complex_t>, Array<double>, double> KullbackLeibler::gradient_with_noise(PsiClassicalFP<1u>&, PsiDeep&, ExactSummation_t<PauliString>&, const double, double);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template double KullbackLeibler::value(PsiClassicalFP<2u>&, PsiDeep&, ExactSummation_t<PauliString>&, double);
 template double KullbackLeibler::gradient(complex<double>*, PsiClassicalFP<2u>&, PsiDeep&, ExactSummation_t<PauliString>&, const double, double);
+template tuple<Array<complex_t>, Array<double>, double> KullbackLeibler::gradient_with_noise(PsiClassicalFP<2u>&, PsiDeep&, ExactSummation_t<PauliString>&, const double, double);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template double KullbackLeibler::value(PsiClassicalANN<1u>&, PsiDeep&, ExactSummation_t<PauliString>&, double);
 template double KullbackLeibler::gradient(complex<double>*, PsiClassicalANN<1u>&, PsiDeep&, ExactSummation_t<PauliString>&, const double, double);
+template tuple<Array<complex_t>, Array<double>, double> KullbackLeibler::gradient_with_noise(PsiClassicalANN<1u>&, PsiDeep&, ExactSummation_t<PauliString>&, const double, double);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template double KullbackLeibler::value(PsiClassicalANN<2u>&, PsiDeep&, ExactSummation_t<PauliString>&, double);
 template double KullbackLeibler::gradient(complex<double>*, PsiClassicalANN<2u>&, PsiDeep&, ExactSummation_t<PauliString>&, const double, double);
+template tuple<Array<complex_t>, Array<double>, double> KullbackLeibler::gradient_with_noise(PsiClassicalANN<2u>&, PsiDeep&, ExactSummation_t<PauliString>&, const double, double);
 #endif
 
 
