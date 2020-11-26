@@ -33,9 +33,6 @@ struct KullbackLeibler {
     complex_t*  deviation_O_k2;
     double*     O_k2;
 
-
-    double*     prob_ratio;
-
     complex_t*  mean_deviation;
     complex_t*  last_mean_deviation;
 
@@ -70,7 +67,6 @@ struct KullbackLeibler : public kernel::KullbackLeibler {
     Array<complex_t>  deviation_O_k2;
     Array<double>     O_k2;
 
-    Array<double>     prob_ratio;
     Array<complex_t>  mean_deviation;
     Array<complex_t>  last_mean_deviation;
 

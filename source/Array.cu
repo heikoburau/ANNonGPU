@@ -49,6 +49,10 @@ Array<T>::~Array() noexcept(false) {
 
 template<typename T>
 void Array<T>::resize(const size_t& new_size) {
+    if(new_size == this->size()) {
+        return;
+    }
+
     vector<T>::resize(new_size);
     if(this->gpu) {
         FREE(this->device, true);

@@ -41,7 +41,6 @@ void kernel::KullbackLeibler::compute_averages(
 
             SHARED typename Psi_t::dtype    log_psi;
             SHARED typename Psi_t::Payload  payload;
-            SHARED double                   prob_ratio;
             SHARED complex_t                deviation;
             SHARED double                   deviation2;
 
@@ -56,12 +55,10 @@ void kernel::KullbackLeibler::compute_averages(
                 // deviation.__im_ = remainder(deviation.imag(), 6.283185307179586);
 
                 deviation2 = abs2(deviation);
-                prob_ratio = 1.0; //exp(-2.0 * (log_psi.real() - log_psi_prime.real()));
                 if(deviation2 > threshold2) {
-                    generic_atomicAdd(this_.deviation, weight * prob_ratio * deviation);
-                    generic_atomicAdd(this_.deviation2, weight * prob_ratio * deviation2);
+                    generic_atomicAdd(this_.deviation, weight * deviation);
+                    generic_atomicAdd(this_.deviation2, weight * deviation2);
                 }
-                generic_atomicAdd(this_.prob_ratio, weight * prob_ratio);
             }
             SYNC;
 
@@ -72,12 +69,12 @@ void kernel::KullbackLeibler::compute_averages(
                     [&](const unsigned int k, const complex_t& O_k) {
                         generic_atomicAdd(
                             &this_.O_k[k],
-                            weight * prob_ratio * O_k
+                            weight * O_k
                         );
                         if(deviation2 > threshold2) {
                             generic_atomicAdd(
                                 &this_.deviation_O_k_conj[k],
-                                weight * prob_ratio * deviation * conj(O_k)
+                                weight * deviation * conj(O_k)
                             );
                         }
 
@@ -87,25 +84,25 @@ void kernel::KullbackLeibler::compute_averages(
                             if(deviation2 > threshold2) {
                                 generic_atomicAdd(
                                     &this_.deviation2_O_k2[k],
-                                    weight * prob_ratio * deviation2 * O_k2
+                                    weight * deviation2 * O_k2
                                 );
                                 generic_atomicAdd(
                                     &this_.deviation_O_k[k],
-                                    weight * prob_ratio * deviation * O_k
+                                    weight * deviation * O_k
                                 );
                                 generic_atomicAdd(
                                     &this_.deviation_O_k2[k],
-                                    weight * prob_ratio * deviation * O_k2
+                                    weight * deviation * O_k2
                                 );
                                 generic_atomicAdd(
                                     &this_.deviation2_O_k[k],
-                                    weight * prob_ratio * deviation2 * O_k
+                                    weight * deviation2 * O_k
                                 );
 
                             }
                             generic_atomicAdd(
                                 &this_.O_k2[k],
-                                weight * prob_ratio * O_k2
+                                weight * O_k2
                             );
                         }
                     }
@@ -129,7 +126,6 @@ KullbackLeibler::KullbackLeibler(const unsigned int num_params, const bool gpu)
         deviation2_O_k(num_params, gpu),
         deviation_O_k2(num_params, gpu),
         O_k2(num_params, gpu),
-        prob_ratio(1, gpu),
         mean_deviation(1, gpu),
         last_mean_deviation(1, gpu),
         deviations(1, gpu)
@@ -150,8 +146,6 @@ KullbackLeibler::KullbackLeibler(const unsigned int num_params, const bool gpu)
     this->kernel().mean_deviation = this->mean_deviation.data();
     this->kernel().last_mean_deviation = this->last_mean_deviation.data();
 
-    this->kernel().prob_ratio = this->prob_ratio.data();
-
     this->last_mean_deviation.clear();
 }
 
@@ -168,7 +162,6 @@ void KullbackLeibler::clear() {
     this->deviation_O_k2.clear();
     this->O_k2.clear();
 
-    this->prob_ratio.clear();
     this->mean_deviation.clear();
 
     this->deviations.clear();
@@ -195,10 +188,6 @@ double KullbackLeibler::value(
 
     this->deviation.update_host();
     this->deviation2.update_host();
-    this->prob_ratio.update_host();
-
-    this->deviation.front() /= this->prob_ratio.front();
-    this->deviation2.front() /= this->prob_ratio.front();
 
     return sqrt(max(
         1e-8,
@@ -224,15 +213,6 @@ double KullbackLeibler::gradient(
     this->deviation2.update_host();
     this->O_k.update_host();
     this->deviation_O_k_conj.update_host();
-    this->prob_ratio.update_host();
-
-    this->deviation.front() /= this->prob_ratio.front();
-    this->deviation2.front() /= this->prob_ratio.front();
-    for(auto k = 0u; k < this->num_params; k++) {
-        this->O_k[k] /= this->prob_ratio.front();
-        this->deviation_O_k_conj[k] /= this->prob_ratio.front();
-    }
-
 
     const auto value = sqrt(max(
         1e-8,
@@ -274,21 +254,6 @@ tuple<
     this->deviation_O_k2.update_host();
     this->deviation2_O_k.update_host();
     this->O_k2.update_host();
-
-    this->prob_ratio.update_host();
-
-    this->deviation.front() /= this->prob_ratio.front();
-    this->deviation2.front() /= this->prob_ratio.front();
-    for(auto k = 0u; k < this->num_params; k++) {
-        this->O_k[k] /= this->prob_ratio.front();
-        this->deviation_O_k_conj[k] /= this->prob_ratio.front();
-
-        this->deviation2_O_k2[k] /= this->prob_ratio.front();
-        this->deviation_O_k[k] /= this->prob_ratio.front();
-        this->deviation_O_k2[k] /= this->prob_ratio.front();
-        this->deviation2_O_k[k] /= this->prob_ratio.front();
-        this->O_k2[k] /= this->prob_ratio.front();
-    }
 
 
     const auto value = sqrt(max(
