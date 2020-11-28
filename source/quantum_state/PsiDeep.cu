@@ -95,9 +95,6 @@ PsiDeepT<dtype, symmetric>::PsiDeepT(const unsigned int N, const unsigned int M,
 
     this->input_weights.clear();
 
-    this->rng_states = unique_ptr<RNGStates>(new RNGStates(1u, this->gpu));
-    this->num_random_shifts = 1u;
-
     this->init_kernel();
 }
 
@@ -118,9 +115,6 @@ PsiDeepT<dtype, symmetric>::PsiDeepT(const PsiDeepT<dtype, symmetric>& other)
     this->num_units = other.num_units;
     this->num_final_weights = other.num_final_weights;
 
-    this->rng_states = unique_ptr<RNGStates>(new RNGStates(other.rng_states->num_states, this->gpu));
-    this->num_random_shifts = other.num_random_shifts;
-
     this->init_kernel();
 }
 
@@ -139,9 +133,6 @@ PsiDeepT<dtype, symmetric>& PsiDeepT<dtype, symmetric>::operator=(const PsiDeepT
     this->width = other.width;
     this->num_units = other.num_units;
     this->num_final_weights = other.num_final_weights;
-
-    this->rng_states = unique_ptr<RNGStates>(new RNGStates(other.rng_states->num_states, this->gpu));
-    this->num_random_shifts = other.num_random_shifts;
 
     this->init_kernel();
 
@@ -210,8 +201,6 @@ void PsiDeepT<dtype, symmetric>::update_kernel() {
 
     this->kernel().input_weights = this->input_weights.data();
     this->kernel().final_weights = this->final_weights.data();
-
-    this->kernel().rng_states = this->rng_states->kernel();
 }
 
 
@@ -299,19 +288,6 @@ void PsiDeepT<dtype, symmetric>::set_params(const Array<dtype>& new_params) {
     it += this->num_final_weights;
 
     this->update_kernel();
-}
-
-
-template<typename dtype, bool symmetric>
-void PsiDeepT<dtype, symmetric>::prepare(const unsigned int num_configurations) {
-    if(!symmetric) {
-        return;
-    }
-
-    if(num_configurations != this->rng_states->num_states) {
-        this->rng_states = unique_ptr<RNGStates>(new RNGStates(num_configurations, this->gpu));
-        this->kernel().rng_states = this->rng_states->kernel();
-    }
 }
 
 

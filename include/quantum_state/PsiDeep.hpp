@@ -131,9 +131,6 @@ struct PsiDeepT {
     unsigned int   width;                   // size of largest layer
     unsigned int   num_units;
 
-    RNGStates      rng_states;
-    unsigned int   num_random_shifts;
-
     unsigned int   N_i;
     unsigned int   N_j;
 
@@ -161,31 +158,13 @@ struct PsiDeepT {
     template<typename Basis_t>
     HDINLINE
     void init_payload(Payload& payload, const Basis_t& configuration) const {
-        if(symmetric) {
-            // #ifdef __CUDA_ARCH__
-            //     if(threadIdx.x == 0) {
-            //         this->rng_states.get_state(payload.rng_state, blockIdx.x);
-            //     }
-            // #else
-            //     // this->rng_states.get_state((void*)&payload.rng_state, 0u);
-            // #endif
-        }
-        else {
+        if(!symmetric) {
             this->compute_angles(payload.angles, configuration);
         }
     }
 
     HDINLINE
     void save_payload(Payload& payload) const {
-        if(symmetric) {
-            #ifdef __CUDA_ARCH__
-                // if(threadIdx.x == 0) {
-                //     this->rng_states.set_state(payload.rng_state, blockIdx.x);
-                // }
-            #else
-                // this->rng_states.set_state((const void*)&payload.rng_state, 0u);
-            #endif
-        }
     }
 
     template<typename result_dtype>
@@ -222,7 +201,7 @@ struct PsiDeepT {
             }
             SYNC;
             MULTI(k, layer.size) {
-                activations[k] = my_logcosh(REGISTER(activation, k));
+                activations[k] = deep_activation(REGISTER(activation, k));
             }
             SHARED_MEM_LOOP_END(layer_idx);
         }
@@ -245,14 +224,13 @@ struct PsiDeepT {
 
             if(symmetric) {
                 shifted_configuration = configuration;
-                result *= this->num_random_shifts;
+                result *= this->num_sites;
             }
         }
         SYNC;
 
         if(symmetric) {
-            SHARED_MEM_LOOP_BEGIN(n, this->num_random_shifts) {
-
+            SHARED_MEM_LOOP_BEGIN(n, this->num_sites) {
 
                 MULTI(i, this->N) {
                     generic_atomicAdd(&result, result_dtype(shifted_configuration.network_unit_at(i)) * this->input_weights[i]);
@@ -271,7 +249,7 @@ struct PsiDeepT {
                 SHARED_MEM_LOOP_END(n);
             }
             SINGLE {
-                result *= 1.0 / this->num_random_shifts;
+                result *= 1.0 / this->num_sites;
             }
             SYNC; // might be not neccessary
         }
@@ -401,12 +379,12 @@ struct PsiDeepT {
             // here, these are the back-propagated derivatives.
             if(layer_idx == this->num_layers - 1) {
                 MULTI(j, layer.size) {
-                    payload.activations[j] = this->final_weights[j] * my_tanh(
+                    payload.activations[j] = this->final_weights[j] * (
                         layer_idx == 1 ?
-                        payload.angles[j] :
-                        deep_angles[
+                        my_tanh(payload.angles[j]) :
+                        deep_activation_diff(deep_angles[
                             layer.begin_deep_angles + j
-                        ]
+                        ])
                     );
                 }
             } else {
@@ -424,10 +402,10 @@ struct PsiDeepT {
                             ]
                         );
                     }
-                    REGISTER(unit_activation, i) *= my_tanh(
+                    REGISTER(unit_activation, i) *= (
                         layer_idx == 1 ?
-                        payload.angles[i] :
-                        deep_angles[layer.begin_deep_angles + i]
+                        my_tanh(payload.angles[i]) :
+                        deep_activation_diff(deep_angles[layer.begin_deep_angles + i])
                     );
                 }
                 SYNC;
@@ -449,12 +427,12 @@ struct PsiDeepT {
                             get_real<dtype>(static_cast<real_dtype>(
                                 configuration.network_unit_at(lhs_unit_idx)
                             )) :
-                            my_logcosh(  // TODO: reverse for-loop such that logcosh is only evaluated once
+                            (
                                 layer_idx == 2 ?
-                                payload.angles[lhs_unit_idx] :
-                                deep_angles[
+                                my_logcosh(payload.angles[lhs_unit_idx]) :
+                                deep_activation(deep_angles[
                                     this->layers[layer_idx - 1].begin_deep_angles + lhs_unit_idx
-                                ]
+                                ])
                             )
                         )
                     );
@@ -464,11 +442,9 @@ struct PsiDeepT {
         MULTI(j, this->num_final_weights) {
             function(
                 this->num_params - this->num_final_weights + j,
-                my_logcosh(
-                    this->num_layers == 2u ?
-                    payload.angles[j] :
-                    deep_angles[this->layers[this->num_layers - 1].begin_deep_angles + j]
-                )
+                this->num_layers == 2u ?
+                my_logcosh(payload.angles[j]) :
+                deep_activation(deep_angles[this->layers[this->num_layers - 1].begin_deep_angles + j])
             );
         }
     }
@@ -610,9 +586,6 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
             move(Array<dtype>(1, gpu))
         });
 
-        this->rng_states = unique_ptr<RNGStates>(new RNGStates(1u, this->gpu));
-        this->num_random_shifts = 1u;
-
         this->init_kernel();
 
         // cout << "N: " << this->N << endl;
@@ -716,8 +689,6 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
 
     void init_kernel();
     void update_kernel();
-
-    void prepare(const unsigned int num_configurations);
 
     pair<Array<unsigned int>, Array<dtype>> compile_rhs_connections_and_weights(
         const unsigned int prev_size,

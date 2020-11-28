@@ -1,4 +1,4 @@
-from pyANNonGPU import PsiDeep, Spins, activation_function, psi_O_k, log_psi_s, ExactSummationSpins #, PauliString
+from pyANNonGPU import PsiDeep, Spins, activation_function, deep_activation, psi_O_k, log_psi_s, ExactSummationSpins #, PauliString
 
 from pytest import approx
 import numpy as np
@@ -58,7 +58,7 @@ def test_psi_deep_s(psi_deep, ensemble, gpu):
             input_activations = get_input_activation(conf_idx, shift)
             activations = +input_activations
 
-            for w, b in zip(psi.W, psi.b):
+            for layer, (w, b) in enumerate(zip(psi.W, psi.b)):
                 n, m = len(activations), len(b)
 
                 if m > n:
@@ -68,8 +68,10 @@ def test_psi_deep_s(psi_deep, ensemble, gpu):
                 else:
                     delta = w.shape[0]
 
+                fun = activation_function if layer == 0 else deep_activation
+
                 activations = [
-                    activation_function(
+                    fun(
                         sum(
                             w[i, j] * activations[(j * delta + i) % n]
                             for i in range(w.shape[0])
@@ -197,6 +199,8 @@ def test_O_k(psi_all, gpu):
     # use_spins = ensemble.__name__.endswith("Spins")
     # if not use_spins and psi.N % 3 != 0:
     #     return
+
+    # psi.params = 1e-2 * complex_noise(psi.num_params)
 
     use_spins = True
 

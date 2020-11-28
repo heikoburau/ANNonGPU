@@ -17,6 +17,9 @@ def new_classical_network(
 ):
     assert order in (1, 2)
 
+    H_local = +H_local
+    H_local.assign(1)
+
     if order == 1:
         num_params = len(H_local)
         if params == 0:

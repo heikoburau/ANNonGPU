@@ -103,8 +103,6 @@ struct ExactSummation_t : public kernel::ExactSummation_t<Basis_t> {
         auto this_kernel = this->kernel();
         const auto psi_kernel = psi.kernel();
 
-        psi.prepare(this->num_configurations);
-
         if(this->gpu) {
             const auto blockDim_ = blockDim == -1 ? psi.get_width() : blockDim;
 

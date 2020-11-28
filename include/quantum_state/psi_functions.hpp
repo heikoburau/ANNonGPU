@@ -9,6 +9,23 @@ constexpr auto b = 1.0;
 
 template<typename T>
 HDINLINE
+T deep_activation(const T z) {
+    // return complex_t(1.0, 0.0) * z * log(cosh(z));
+    return tanh(z);
+}
+
+template<typename T>
+HDINLINE
+T deep_activation_diff(const T z) {
+    // return complex_t(1.0, 0.0) * (
+    //     log(cosh(z)) + z * tanh(z)
+    // );
+    const auto co = cosh(z);
+    return complex_t(1.0) / (co * co);
+}
+
+template<typename T>
+HDINLINE
 T my_logcosh(const T z) {
     using scalar = typename T::value_type;
 

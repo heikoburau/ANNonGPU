@@ -57,10 +57,11 @@ def new_deep_neural_network(
         for c, m, next_c in zip(C_linear[1:], M_linear[1:], C_linear[2:] + [1]):
             noise_modulation.append(math.sqrt(6 / (c + next_c)))
 
-    for c, m, next_c, nm in zip(C_linear[1:], M_linear[1:], C_linear[2:] + [1], noise_modulation):
+    for k, (c, m, next_c, nm) in enumerate(zip(C_linear[1:], M_linear[1:], C_linear[2:] + [1], noise_modulation)):
         w = (
             # math.sqrt(6 / (c + next_c)) * real_noise((c, m)) +
-            nm * math.sqrt(6 / (c + next_c)) * real_noise((c, m)) +
+            # Wenn hier complex noise verwendet wird, wirds unbrauchbar. Es scheint die Lokalitaet zu zerstoeren.
+            math.sqrt(6 / (c + next_c)) * real_noise((c, m)) +
             # 1j * math.sqrt(6 / (c + next_c)) / 1e2 * real_noise((c, m)) +
             noise * complex_noise((c, m))
         )

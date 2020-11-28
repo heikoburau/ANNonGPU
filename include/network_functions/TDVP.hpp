@@ -12,7 +12,6 @@ struct TDVP {
     const unsigned int num_params;
 
     Array<complex_t> E_local;
-    Array<double> E_local2;
     Array<complex_t> O_k_ar;
 
     Array<complex_t> S_matrix;
@@ -24,7 +23,6 @@ struct TDVP {
     :
     num_params(num_params),
     E_local(1, gpu),
-    E_local2(1, gpu),
     O_k_ar(num_params, gpu),
     S_matrix(num_params * num_params, gpu),
     F_vector(num_params, gpu),
@@ -33,8 +31,6 @@ struct TDVP {
 
     template<typename Psi_t, typename Ensemble>
     void eval(const Operator& op, Psi_t& psi, Ensemble& ensemble);
-
-    double var_H() const;
 };
 
 

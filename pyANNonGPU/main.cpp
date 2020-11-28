@@ -66,7 +66,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             const bool
         >())
         .def("copy", &PsiDeep::copy)
-        .def("prepare", &PsiDeep::prepare)
         .def_readwrite("num_sites", &PsiDeep::num_sites)
         .def_readwrite("prefactor", &PsiDeep::prefactor)
         .def_property(
@@ -76,7 +75,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         )
         .def_readwrite("N_i", &PsiDeep::N_i)
         .def_readwrite("N_j", &PsiDeep::N_j)
-        .def_readwrite("num_random_shifts", &PsiDeep::num_random_shifts)
         .def_readonly("gpu", &PsiDeep::gpu)
         .def_readonly("N", &PsiDeep::N)
         .def_readonly("num_params", &PsiDeep::num_params)
@@ -737,7 +735,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def(py::init<unsigned int, bool>())
         .def_property_readonly("S_matrix", [](const TDVP& tdvp){return tdvp.S_matrix.to_pytensor_2d({tdvp.num_params, tdvp.num_params});})
         .def_property_readonly("F_vector", [](const TDVP& tdvp){return tdvp.F_vector.to_pytensor_1d();})
-        .def_property_readonly("var_H", &TDVP::var_H)
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
 #endif
@@ -1223,6 +1220,10 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 
     m.def("activation_function", [](const complex<double>& x) {
         return my_logcosh(complex_t(x.real(), x.imag())).to_std();
+    });
+
+    m.def("deep_activation", [](const complex<double>& x) {
+        return deep_activation(complex_t(x.real(), x.imag())).to_std();
     });
 
     m.def("setDevice", setDevice);
