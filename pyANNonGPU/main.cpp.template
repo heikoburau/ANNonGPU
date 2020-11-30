@@ -12,6 +12,7 @@
 #include "network_functions/PsiNorm.hpp"
 #include "network_functions/PsiOkVector.hpp"
 #include "network_functions/PsiAngles.hpp"
+#include "network_functions/ApplyOperator.hpp"
 #include "quantum_states.hpp"
 #include "ensembles.hpp"
 #include "operator/Operator.hpp"
@@ -299,6 +300,12 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     });
     m.def("log_psi_vector", [](AllPsi& psi, Ensemble<Basis>& ensemble) {
         return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    //! end template
+
+    //! begin template
+    m.def("apply_operator", [](AllPsi& psi, const Operator& op, Ensemble<Basis>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
     //! end template
 
