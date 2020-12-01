@@ -131,6 +131,11 @@ if (LEAN_AND_MEAN)
   target_compile_definitions(ANNonGPU PUBLIC LEAN_AND_MEAN)
 endif()
 
+option(ENABLE_SUPER_OPERATOR "enable SuperOperator" OFF)
+if (ENABLE_SUPER_OPERATOR)
+  target_compile_definitions(ANNonGPU PUBLIC ENABLE_SUPER_OPERATOR)
+endif()
+
 # Compile and link ANNonGPU
 # =========================
 

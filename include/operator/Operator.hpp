@@ -110,9 +110,14 @@ struct Operator {
 
 #endif // __CUDACC__
 
-    inline Operator kernel() const {
+    inline Operator& kernel() {
         return *this;
     }
+
+    inline const Operator& kernel() const {
+        return *this;
+    }
+
 };
 
 } // namespace kernel

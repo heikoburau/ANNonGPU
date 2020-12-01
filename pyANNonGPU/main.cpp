@@ -21,7 +21,7 @@
 #include "network_functions/ApplyOperator.hpp"
 #include "quantum_states.hpp"
 #include "ensembles.hpp"
-#include "operator/Operator.hpp"
+#include "operators.hpp"
 #include "bases.hpp"
 #include "RNGStates.hpp"
 #include "types.h"
@@ -325,6 +325,18 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("expr_list", &Operator::to_expr_list)
         .def_readonly("num_strings", &Operator::num_strings);
 
+
+#ifdef ENABLE_SUPER_OPERATOR
+    py::class_<SuperOperator>(m, "SuperOperator")
+        .def(py::init<
+            const vector<complex<double>>&,
+            const vector<vector<unsigned int>>,
+            const vector<vector<xt::pytensor<complex<double>, 2u>>>&,
+            const bool
+        >());
+#endif // ENABLE_SUPER_OPERATOR
+
+
 #ifdef ENABLE_SPINS
     py::class_<ann_on_gpu::Spins>(m, "Spins")
         .def(py::init<ann_on_gpu::Spins::dtype, const unsigned int>())
@@ -391,124 +403,244 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<ExpectationValue>(m, "ExpectationValue")
         .def(py::init<bool>())
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
-        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Spins>>)
-        .def("__call__", &ExpectationValue::__call__<PsiDeep, PsiDeep, MonteCarlo_tt<Spins>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiDeep, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiDeep, MonteCarlo_tt<Spins>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
-        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, PsiDeep, MonteCarlo_tt<Spins>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiFullyPolarized, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiFullyPolarized, MonteCarlo_tt<Spins>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_SUPER_OPERATOR)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiDeep, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiDeep, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_SUPER_OPERATOR) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiFullyPolarized, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_SUPER_OPERATOR) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_SUPER_OPERATOR) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_SUPER_OPERATOR) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_SUPER_OPERATOR) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
-        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
-        .def("__call__", &ExpectationValue::__call__<PsiDeep, PsiDeep, MonteCarlo_tt<PauliString>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiDeep, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiDeep, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
-        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, PsiDeep, MonteCarlo_tt<PauliString>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiFullyPolarized, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_SUPER_OPERATOR)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiDeep, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiDeep, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_SUPER_OPERATOR) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiFullyPolarized, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_SUPER_OPERATOR) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_SUPER_OPERATOR) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_SUPER_OPERATOR) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_SUPER_OPERATOR) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
-        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Spins>>)
-        .def("__call__", &ExpectationValue::__call__<PsiDeep, PsiDeep, ExactSummation_t<Spins>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiDeep, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiDeep, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiDeep, ExactSummation_t<Spins>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Spins>>)
-        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, PsiDeep, ExactSummation_t<Spins>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiFullyPolarized, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiFullyPolarized, ExactSummation_t<Spins>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<Spins>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<Spins>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<Spins>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<Spins>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_SUPER_OPERATOR)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiDeep, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiDeep, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiDeep, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_SUPER_OPERATOR) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiFullyPolarized, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiFullyPolarized, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_SUPER_OPERATOR) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_SUPER_OPERATOR) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_SUPER_OPERATOR) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_SUPER_OPERATOR) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
-        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
-        .def("__call__", &ExpectationValue::__call__<PsiDeep, PsiDeep, ExactSummation_t<PauliString>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiDeep, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiDeep, ExactSummation_t<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<PauliString>>)
-        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, PsiDeep, ExactSummation_t<PauliString>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiFullyPolarized, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiFullyPolarized, ExactSummation_t<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<PauliString>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<PauliString>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<PauliString>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
-        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<PauliString>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<Operator, PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<Operator, PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_SUPER_OPERATOR)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiDeep, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiDeep, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_SUPER_OPERATOR) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiFullyPolarized, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiFullyPolarized, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_SUPER_OPERATOR) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_SUPER_OPERATOR) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_SUPER_OPERATOR) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_SUPER_OPERATOR) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<SuperOperator, PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<SuperOperator, PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
 #endif
     ;
 

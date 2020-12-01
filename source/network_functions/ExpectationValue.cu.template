@@ -1,6 +1,7 @@
 #ifndef LEAN_AND_MEAN
 
 #include "network_functions/ExpectationValue.hpp"
+#include "operators.hpp"
 #include "ensembles.hpp"
 #include "quantum_states.hpp"
 #include "Array.hpp"
@@ -16,9 +17,9 @@ ExpectationValue::ExpectationValue(const bool gpu)
     {}
 
 
-template<typename Psi_t, typename Ensemble>
+template<typename Operator_t, typename Psi_t, typename Ensemble>
 complex<double> ExpectationValue::operator()(
-    const Operator& operator_, Psi_t& psi, Ensemble& ensemble
+    const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble
 ) {
     this->A_local.clear();
     auto A_local_ptr = this->A_local.data();
@@ -50,9 +51,9 @@ complex<double> ExpectationValue::operator()(
 }
 
 
-template<typename Psi_t, typename PsiSampling_t, typename Ensemble>
+template<typename Operator_t, typename Psi_t, typename PsiSampling_t, typename Ensemble>
 complex<double> ExpectationValue::operator()(
-    const Operator& operator_, Psi_t& psi, PsiSampling_t& psi_sampling, Ensemble& ensemble
+    const Operator_t& operator_, Psi_t& psi, PsiSampling_t& psi_sampling, Ensemble& ensemble
 ) {
     this->A_local.clear();
     this->prob_ratio.clear();
@@ -95,9 +96,9 @@ complex<double> ExpectationValue::operator()(
 }
 
 
-template<typename Psi_t, typename Ensemble>
+template<typename Operator_t, typename Psi_t, typename Ensemble>
 pair<double, complex<double>> ExpectationValue::fluctuation(
-    const Operator& operator_, Psi_t& psi, Ensemble& ensemble
+    const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble
 ) {
 
     this->A_local.clear();
@@ -139,9 +140,9 @@ pair<double, complex<double>> ExpectationValue::fluctuation(
 }
 
 //! begin template
-template complex<double> ExpectationValue::operator()(const Operator&, AllPsi& psi, Ensemble<Basis>&);
-template complex<double> ExpectationValue::operator()(const Operator&, AllPsi& psi, PsiDeep&, Ensemble<Basis>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, AllPsi&, Ensemble<Basis>&);
+template complex<double> ExpectationValue::operator()(const AllOperators&, AllPsi& psi, Ensemble<Basis>&);
+template complex<double> ExpectationValue::operator()(const AllOperators&, AllPsi& psi, PsiDeep&, Ensemble<Basis>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const AllOperators&, AllPsi&, Ensemble<Basis>&);
 //! end template
 
 } // namespace ann_on_gpu

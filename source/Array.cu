@@ -1,5 +1,6 @@
 #include "basis/Spins.h"
 #include "basis/PauliString.hpp"
+#include "operator/Matrix4x4.hpp"
 #include "Array.hpp"
 #include <algorithm>
 
@@ -119,5 +120,6 @@ template class Array<complex_t>;
 template class Array<cuda_complex::complex<float>>;
 template class Array<Spins>;
 template class Array<PauliString>;
+template class Array<Matrix4x4>;
 
 } // namespace ann_on_gpu
