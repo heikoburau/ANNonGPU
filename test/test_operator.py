@@ -1,5 +1,5 @@
 from pyANNonGPU import apply_operator, Operator
-from pytest import approx
+import numpy as np
 
 
 def test_operator(psi_all, all_operators, ensemble, gpu):
@@ -17,4 +17,4 @@ def test_operator(psi_all, all_operators, ensemble, gpu):
     vector = psi.vector(ensemble)
     vector_prime = apply_operator(psi, op, ensemble)
 
-    assert approx(expr @ vector, vector_prime)
+    assert np.allclose(expr @ vector, vector_prime)
