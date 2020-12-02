@@ -15,7 +15,7 @@ namespace ann_on_gpu {
 
 
 template<typename Psi_t, typename Ensemble>
-void TDVP::eval(const Operator& op, Psi_t& psi, Ensemble& ensemble) {
+void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
     this->E_local.clear();
     this->O_k_ar.clear();
     this->S_matrix.clear();
@@ -106,52 +106,52 @@ void TDVP::eval(const Operator& op, Psi_t& psi, Ensemble& ensemble) {
 }
 
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-template void TDVP::eval(const Operator&, PsiClassicalFP<1u>&, MonteCarlo_tt<Spins>&);
+template void TDVP::eval(const Operator_t&, PsiClassicalFP<1u>&, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-template void TDVP::eval(const Operator&, PsiClassicalFP<2u>&, MonteCarlo_tt<Spins>&);
+template void TDVP::eval(const Operator_t&, PsiClassicalFP<2u>&, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template void TDVP::eval(const Operator&, PsiClassicalANN<1u>&, MonteCarlo_tt<Spins>&);
+template void TDVP::eval(const Operator_t&, PsiClassicalANN<1u>&, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template void TDVP::eval(const Operator&, PsiClassicalANN<2u>&, MonteCarlo_tt<Spins>&);
+template void TDVP::eval(const Operator_t&, PsiClassicalANN<2u>&, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-template void TDVP::eval(const Operator&, PsiClassicalFP<1u>&, MonteCarlo_tt<PauliString>&);
+template void TDVP::eval(const Operator_t&, PsiClassicalFP<1u>&, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-template void TDVP::eval(const Operator&, PsiClassicalFP<2u>&, MonteCarlo_tt<PauliString>&);
+template void TDVP::eval(const Operator_t&, PsiClassicalFP<2u>&, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template void TDVP::eval(const Operator&, PsiClassicalANN<1u>&, MonteCarlo_tt<PauliString>&);
+template void TDVP::eval(const Operator_t&, PsiClassicalANN<1u>&, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template void TDVP::eval(const Operator&, PsiClassicalANN<2u>&, MonteCarlo_tt<PauliString>&);
+template void TDVP::eval(const Operator_t&, PsiClassicalANN<2u>&, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-template void TDVP::eval(const Operator&, PsiClassicalFP<1u>&, ExactSummation_t<Spins>&);
+template void TDVP::eval(const Operator_t&, PsiClassicalFP<1u>&, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-template void TDVP::eval(const Operator&, PsiClassicalFP<2u>&, ExactSummation_t<Spins>&);
+template void TDVP::eval(const Operator_t&, PsiClassicalFP<2u>&, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template void TDVP::eval(const Operator&, PsiClassicalANN<1u>&, ExactSummation_t<Spins>&);
+template void TDVP::eval(const Operator_t&, PsiClassicalANN<1u>&, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template void TDVP::eval(const Operator&, PsiClassicalANN<2u>&, ExactSummation_t<Spins>&);
+template void TDVP::eval(const Operator_t&, PsiClassicalANN<2u>&, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-template void TDVP::eval(const Operator&, PsiClassicalFP<1u>&, ExactSummation_t<PauliString>&);
+template void TDVP::eval(const Operator_t&, PsiClassicalFP<1u>&, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-template void TDVP::eval(const Operator&, PsiClassicalFP<2u>&, ExactSummation_t<PauliString>&);
+template void TDVP::eval(const Operator_t&, PsiClassicalFP<2u>&, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template void TDVP::eval(const Operator&, PsiClassicalANN<1u>&, ExactSummation_t<PauliString>&);
+template void TDVP::eval(const Operator_t&, PsiClassicalANN<1u>&, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template void TDVP::eval(const Operator&, PsiClassicalANN<2u>&, ExactSummation_t<PauliString>&);
+template void TDVP::eval(const Operator_t&, PsiClassicalANN<2u>&, ExactSummation_t<PauliString>&);
 #endif
 
 

@@ -67,12 +67,12 @@ void PsiClassical_t<dtype, Operator_t, order, PsiRef>::init_kernel() {
 }
 
 
-template struct PsiClassical_t<complex_t, SuperOperator, 1u, PsiFullyPolarized>;
-template struct PsiClassical_t<complex_t, SuperOperator, 2u, PsiFullyPolarized>;
+template struct PsiClassical_t<complex_t, Operator_t, 1u, PsiFullyPolarized>;
+template struct PsiClassical_t<complex_t, Operator_t, 2u, PsiFullyPolarized>;
 
 #ifdef ENABLE_PSI_CLASSICAL_ANN
-template struct PsiClassical_t<complex_t, SuperOperator, 1u, PsiDeep>;
-template struct PsiClassical_t<complex_t, SuperOperator, 2u, PsiDeep>;
+template struct PsiClassical_t<complex_t, Operator_t, 1u, PsiDeep>;
+template struct PsiClassical_t<complex_t, Operator_t, 2u, PsiDeep>;
 #endif // ENABLE_PSI_CLASSICAL_ANN
 
 

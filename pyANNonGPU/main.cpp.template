@@ -99,8 +99,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<ClPsi>(m, "ClPsi{name}")
         .def(py::init<
             const unsigned int,
-            const vector<typename ClPsi::Operator>&,
-            const vector<typename ClPsi::Operator>&,
+            const vector<Operator_t>&,
+            const vector<Operator_t>&,
             const complex_tensor<1u>&,
             const typename ClPsi::PsiRef&,
             const double,
@@ -152,6 +152,18 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_readwrite("num_sites", &PsiFullyPolarized::num_sites);
 #endif // ENABLE_PSI_CLASSICAL
 
+#ifdef USE_SUPER_OPERATOR
+
+    py::class_<SuperOperator>(m, "SuperOperator")
+        .def(py::init<
+            const vector<complex<double>>&,
+            const vector<vector<unsigned int>>,
+            const vector<vector<xt::pytensor<complex<double>, 2u>>>&,
+            const bool
+        >());
+
+#else
+
     py::class_<Operator>(m, "Operator")
         .def(py::init<
             const quantum_expression::PauliExpression&,
@@ -161,16 +173,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("expr_list", &Operator::to_expr_list)
         .def_readonly("num_strings", &Operator::num_strings);
 
+#endif // USE_SUPER_OPERATOR
 
-#ifdef ENABLE_SUPER_OPERATOR
-    py::class_<SuperOperator>(m, "SuperOperator")
-        .def(py::init<
-            const vector<complex<double>>&,
-            const vector<vector<unsigned int>>,
-            const vector<vector<xt::pytensor<complex<double>, 2u>>>&,
-            const bool
-        >());
-#endif // ENABLE_SUPER_OPERATOR
 
 
 #ifdef ENABLE_SPINS
@@ -239,9 +243,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<ExpectationValue>(m, "ExpectationValue")
         .def(py::init<bool>())
         //! begin template
-        .def("__call__", &ExpectationValue::__call__<AllOperators, AllPsi, Ensemble<Basis>>)
-        .def("__call__", &ExpectationValue::__call__<AllOperators, AllPsi, PsiDeep, Ensemble<Basis>>)
-        .def("fluctuation", &ExpectationValue::fluctuation<AllOperators, AllPsi, Ensemble<Basis>>)
+        .def("__call__", &ExpectationValue::__call__<AllPsi, Ensemble<Basis>>)
+        .def("__call__", &ExpectationValue::__call__<AllPsi, PsiDeep, Ensemble<Basis>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<AllPsi, Ensemble<Basis>>)
         //! end template
     ;
 
@@ -315,7 +319,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     //! end template
 
     //! begin template
-    m.def("apply_operator", [](AllPsi& psi, const Operator& op, Ensemble<Basis>& ensemble){
+    m.def("apply_operator", [](AllPsi& psi, const Operator_t& op, Ensemble<Basis>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
     //! end template

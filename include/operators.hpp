@@ -1,7 +1,22 @@
 #pragma once
 
+
+
+#ifdef USE_SUPER_OPERATOR
+
+#include "operator/SuperOperator.hpp"
+
+namespace ann_on_gpu {
+    using Operator_t = SuperOperator;
+} // namespace ann_on_gpu
+
+#else
+
 #include "operator/Operator.hpp"
 
-#ifdef ENABLE_SUPER_OPERATOR
-#include "operator/SuperOperator.hpp"
-#endif // ENABLE_SUPER_OPERATOR
+namespace ann_on_gpu {
+    using Operator_t = Operator;
+} // namespace ann_on_gpu
+
+
+#endif // USE_SUPER_OPERATOR

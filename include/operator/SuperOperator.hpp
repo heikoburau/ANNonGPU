@@ -2,6 +2,7 @@
 
 #include "operator/Matrix4x4.hpp"
 #include "bases.hpp"
+#include "Array.hpp"
 #include "types.h"
 
 #ifdef __PYTHONCC__

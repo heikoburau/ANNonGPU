@@ -130,9 +130,6 @@ template class Array<cuda_complex::complex<float>>;
 template class Array<Spins>;
 template class Array<PauliString>;
 template class Array<Matrix4x4>;
-template class Array<kernel::Operator>;
-#ifdef ENABLE_SUPER_OPERATOR
-template class Array<kernel::SuperOperator>;
-#endif // ENABLE_SUPER_OPERATOR
+template class Array<typename Operator_t::Kernel>;
 
 } // namespace ann_on_gpu

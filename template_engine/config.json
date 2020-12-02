@@ -25,16 +25,6 @@
                 "code": "PauliString"
             }
         ],
-        "AllOperators": [
-            {
-                "flag": null,
-                "code": "Operator"
-            },
-            {
-                "flag": "ENABLE_SUPER_OPERATOR",
-                "code": "SuperOperator"
-            }
-        ],
         "AllPsi": [
             {
                 "flag": null,

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "operator/Operator.hpp"
+#include "operators.hpp"
 #include "Array.hpp"
 #include "types.h"
 
@@ -30,7 +30,7 @@ struct TDVP {
     {}
 
     template<typename Psi_t, typename Ensemble>
-    void eval(const Operator& op, Psi_t& psi, Ensemble& ensemble);
+    void eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble);
 };
 
 

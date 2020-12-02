@@ -1,6 +1,5 @@
 #pragma once
 
-#include "operator/Operator.hpp"
 #include "Array.hpp"
 #include "types.h"
 

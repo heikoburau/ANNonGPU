@@ -9,7 +9,7 @@ namespace ann_on_gpu {
 
 
 template<typename Psi_t, typename Ensemble>
-void TDVP::eval(const Operator& op, Psi_t& psi, Ensemble& ensemble) {
+void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
     this->E_local.clear();
     this->O_k_ar.clear();
     this->S_matrix.clear();
@@ -100,7 +100,7 @@ void TDVP::eval(const Operator& op, Psi_t& psi, Ensemble& ensemble) {
 }
 
 //! begin template
-template void TDVP::eval(const Operator&, ClPsi&, Ensemble<Basis>&);
+template void TDVP::eval(const Operator_t&, ClPsi&, Ensemble<Basis>&);
 //! end template
 
 

@@ -1,7 +1,6 @@
 import numpy as np
 import math
 import pyANNonGPU
-from pyANNonGPU import Operator
 from .gradient_descent import *
 from .L2Regularization import L2Regularization
 from itertools import islice
@@ -207,9 +206,9 @@ class LearningByGradientDescent:
     ):
         self.psi_0 = psi_init
         self.psi = +psi_init
-        self.identity = Operator(PauliExpression(0, 0), self.gpu)
-        self.operator = Operator(operator, self.gpu)
-        self.opt_operator = Operator(1 - 0.1 * operator, self.gpu)
+        self.identity = pyANNonGPU.Operator(PauliExpression(0, 0), self.gpu)
+        self.operator = pyANNonGPU.Operator(operator, self.gpu)
+        self.opt_operator = pyANNonGPU.Operator(1 - 0.1 * operator, self.gpu)
         self.excluded_states = excluded_states
         self.energy_history = []
         self.delta_energy_history = []
@@ -258,7 +257,7 @@ class LearningByGradientDescent:
 
     def do_preconditioning(self, psi, psi_ref, **algorithm_kwargs):
         print("preconditioning")
-        id_op = Operator(PauliExpression(1), self.gpu)
+        id_op = pyANNonGPU.Operator(PauliExpression(1), self.gpu)
 
         self.distance_history = []
         def gradient(step, params):
@@ -290,7 +289,7 @@ class LearningByGradientDescent:
         self.algorithm_kwargs = algorithm_kwargs
         self.distance_0 = distance_0
         self.regularization = regularization
-        self.operator = Operator(operator, self.gpu)
+        self.operator = pyANNonGPU.Operator(operator, self.gpu)
         self.is_unitary = is_unitary
         self.mode = modes.unitary_evolution
 

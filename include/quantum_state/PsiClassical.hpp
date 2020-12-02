@@ -380,9 +380,9 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
 };
 
 template<unsigned int order>
-using PsiClassicalFP = PsiClassical_t<complex_t, SuperOperator, order, PsiFullyPolarized>;
+using PsiClassicalFP = PsiClassical_t<complex_t, Operator_t, order, PsiFullyPolarized>;
 
 template<unsigned int order>
-using PsiClassicalANN = PsiClassical_t<complex_t, SuperOperator, order, PsiDeep>;
+using PsiClassicalANN = PsiClassical_t<complex_t, Operator_t, order, PsiDeep>;
 
 }  // namespace ann_on_gpu
