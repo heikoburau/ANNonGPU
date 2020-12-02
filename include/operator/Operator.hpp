@@ -91,7 +91,7 @@ struct Operator {
         // CAUTION: 'result' is only updated by the first thread.
 
         SINGLE {
-            if(init == 0u) {
+            if(init) {
                 result = typename Psi_t::dtype(0.0);
             }
         }
@@ -146,6 +146,7 @@ struct Operator : public kernel::Operator {
     coefficients_ar(other.coefficients_ar),
     pauli_strings_ar(other.pauli_strings_ar)
     {
+        this->kernel().num_strings = this->coefficients_ar.size();
         this->kernel().coefficients = this->coefficients_ar.data();
         this->kernel().pauli_strings = this->pauli_strings_ar.data();
     }
