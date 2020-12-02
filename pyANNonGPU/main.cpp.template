@@ -99,8 +99,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<ClPsi>(m, "ClPsi{name}")
         .def(py::init<
             const unsigned int,
-            const vector<Operator>&,
-            const vector<Operator>&,
+            const vector<typename ClPsi::Operator>&,
+            const vector<typename ClPsi::Operator>&,
             const complex_tensor<1u>&,
             const typename ClPsi::PsiRef&,
             const double,

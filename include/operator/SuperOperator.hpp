@@ -107,14 +107,18 @@ struct SuperOperator {
         const Psi_t& psi,
         const Basis_t& configuration,
         const typename Psi_t::dtype& log_psi,
-        typename Psi_t::Payload& payload
+        typename Psi_t::Payload& payload,
+        const unsigned int shift = 0u,
+        const bool init = true
     ) const {
         #include "cuda_kernel_defines.h"
         using dtype = typename Psi_t::dtype;
         // CAUTION: 'result' is only updated by the first thread.
 
         SINGLE {
-            result = typename Psi_t::dtype(0.0);
+            if(init) {
+                result = typename Psi_t::dtype(0.0);
+            }
         }
 
         SHARED_MEM_LOOP_BEGIN(n, this->num_strings) {
@@ -125,7 +129,8 @@ struct SuperOperator {
                 psi,
                 configuration,
                 log_psi,
-                payload
+                payload,
+                shift
             );
 
             SHARED_MEM_LOOP_END(n);
@@ -150,6 +155,8 @@ struct SuperOperator {
 
 
 struct SuperOperator : public kernel::SuperOperator {
+    using Kernel = kernel::SuperOperator;
+
     bool                    gpu;
 
     Array<complex_t>        coefficients;
@@ -157,7 +164,18 @@ struct SuperOperator : public kernel::SuperOperator {
     Array<unsigned int>     string_lengths;
 
     SuperOperator() = delete;
-    SuperOperator(const SuperOperator& other) = delete;
+    inline SuperOperator(const SuperOperator& other)
+    :
+    gpu(other.gpu),
+    coefficients(other.coefficients),
+    matrices(other.matrices),
+    string_lengths(other.string_lengths)
+    {
+        this->kernel().coefficients = this->coefficients.data();
+        this->kernel().matrices = this->matrices.data();
+        this->kernel().string_lengths = this->string_lengths.data();
+        this->kernel().num_strings = this->coefficients.size();
+    }
 
 #ifdef __PYTHONCC__
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "operator/Operator.hpp"
+#include "operators.hpp"
 #include "bases.hpp"
 
 #include "quantum_state/PsiFullyPolarized.hpp"
@@ -300,6 +300,7 @@ template<typename dtype, typename Operator_t, unsigned int order, typename PsiRe
 struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t::Kernel, order, typename PsiRef_t::Kernel> {
     using PsiRef = PsiRef_t;
     using real_dtype = typename cuda_complex::get_real_type<dtype>::type;
+    using Operator = Operator_t;
 
     vector<Operator_t>        H_local;
     vector<Operator_t>        H_2_local;
@@ -379,9 +380,9 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
 };
 
 template<unsigned int order>
-using PsiClassicalFP = PsiClassical_t<complex_t, Operator, order, PsiFullyPolarized>;
+using PsiClassicalFP = PsiClassical_t<complex_t, SuperOperator, order, PsiFullyPolarized>;
 
 template<unsigned int order>
-using PsiClassicalANN = PsiClassical_t<complex_t, Operator, order, PsiDeep>;
+using PsiClassicalANN = PsiClassical_t<complex_t, SuperOperator, order, PsiDeep>;
 
 }  // namespace ann_on_gpu

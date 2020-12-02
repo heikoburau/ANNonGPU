@@ -109,8 +109,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<PsiClassicalFP<1u>>(m, "PsiClassicalFP_1")
         .def(py::init<
             const unsigned int,
-            const vector<Operator>&,
-            const vector<Operator>&,
+            const vector<typename PsiClassicalFP<1u>::Operator>&,
+            const vector<typename PsiClassicalFP<1u>::Operator>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalFP<1u>::PsiRef&,
             const double,
@@ -159,8 +159,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<PsiClassicalFP<2u>>(m, "PsiClassicalFP_2")
         .def(py::init<
             const unsigned int,
-            const vector<Operator>&,
-            const vector<Operator>&,
+            const vector<typename PsiClassicalFP<2u>::Operator>&,
+            const vector<typename PsiClassicalFP<2u>::Operator>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalFP<2u>::PsiRef&,
             const double,
@@ -209,8 +209,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<PsiClassicalANN<1u>>(m, "PsiClassicalANN_1")
         .def(py::init<
             const unsigned int,
-            const vector<Operator>&,
-            const vector<Operator>&,
+            const vector<typename PsiClassicalANN<1u>::Operator>&,
+            const vector<typename PsiClassicalANN<1u>::Operator>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalANN<1u>::PsiRef&,
             const double,
@@ -259,8 +259,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<PsiClassicalANN<2u>>(m, "PsiClassicalANN_2")
         .def(py::init<
             const unsigned int,
-            const vector<Operator>&,
-            const vector<Operator>&,
+            const vector<typename PsiClassicalANN<2u>::Operator>&,
+            const vector<typename PsiClassicalANN<2u>::Operator>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalANN<2u>::PsiRef&,
             const double,

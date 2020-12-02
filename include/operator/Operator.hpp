@@ -140,6 +140,16 @@ struct Operator : public kernel::Operator {
         const bool gpu
     );
 
+    inline Operator(const Operator& other)
+    :
+    gpu(other.gpu),
+    coefficients_ar(other.coefficients_ar),
+    pauli_strings_ar(other.pauli_strings_ar)
+    {
+        this->kernel().coefficients = this->coefficients_ar.data();
+        this->kernel().pauli_strings = this->pauli_strings_ar.data();
+    }
+
     ::quantum_expression::PauliExpression to_expr() const;
     vector<::quantum_expression::PauliExpression> to_expr_list() const;
 };
