@@ -109,9 +109,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<PsiClassicalFP<1u>>(m, "PsiClassicalFP_1")
         .def(py::init<
             const unsigned int,
-            const quantum_expression::PauliExpression&,
-            const quantum_expression::PauliExpression&,
-            const quantum_expression::PauliExpression&,
+            const vector<Operator>&,
+            const vector<Operator>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalFP<1u>::PsiRef&,
             const double,
@@ -120,8 +119,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("copy", &PsiClassicalFP<1u>::copy)
         .def("__pos__", &PsiClassicalFP<1u>::copy)
         .def_readwrite("num_sites", &PsiClassicalFP<1u>::num_sites)
-        .def_property_readonly("H_local", [](const PsiClassicalFP<1u>& psi){return psi.H_local_op.to_expr_list();})
-        .def_property_readonly("H_2_local", [](const PsiClassicalFP<1u>& psi){return psi.H_2_local_op.to_expr_list();})
+        .def_readonly("H_local", &PsiClassicalFP<1u>::H_local)
+        .def_readonly("H_2_local", &PsiClassicalFP<1u>::H_2_local)
         .def_readwrite("prefactor", &PsiClassicalFP<1u>::prefactor)
         .def_property(
             "log_prefactor",
@@ -160,9 +159,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<PsiClassicalFP<2u>>(m, "PsiClassicalFP_2")
         .def(py::init<
             const unsigned int,
-            const quantum_expression::PauliExpression&,
-            const quantum_expression::PauliExpression&,
-            const quantum_expression::PauliExpression&,
+            const vector<Operator>&,
+            const vector<Operator>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalFP<2u>::PsiRef&,
             const double,
@@ -171,8 +169,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("copy", &PsiClassicalFP<2u>::copy)
         .def("__pos__", &PsiClassicalFP<2u>::copy)
         .def_readwrite("num_sites", &PsiClassicalFP<2u>::num_sites)
-        .def_property_readonly("H_local", [](const PsiClassicalFP<2u>& psi){return psi.H_local_op.to_expr_list();})
-        .def_property_readonly("H_2_local", [](const PsiClassicalFP<2u>& psi){return psi.H_2_local_op.to_expr_list();})
+        .def_readonly("H_local", &PsiClassicalFP<2u>::H_local)
+        .def_readonly("H_2_local", &PsiClassicalFP<2u>::H_2_local)
         .def_readwrite("prefactor", &PsiClassicalFP<2u>::prefactor)
         .def_property(
             "log_prefactor",
@@ -211,9 +209,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<PsiClassicalANN<1u>>(m, "PsiClassicalANN_1")
         .def(py::init<
             const unsigned int,
-            const quantum_expression::PauliExpression&,
-            const quantum_expression::PauliExpression&,
-            const quantum_expression::PauliExpression&,
+            const vector<Operator>&,
+            const vector<Operator>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalANN<1u>::PsiRef&,
             const double,
@@ -222,8 +219,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("copy", &PsiClassicalANN<1u>::copy)
         .def("__pos__", &PsiClassicalANN<1u>::copy)
         .def_readwrite("num_sites", &PsiClassicalANN<1u>::num_sites)
-        .def_property_readonly("H_local", [](const PsiClassicalANN<1u>& psi){return psi.H_local_op.to_expr_list();})
-        .def_property_readonly("H_2_local", [](const PsiClassicalANN<1u>& psi){return psi.H_2_local_op.to_expr_list();})
+        .def_readonly("H_local", &PsiClassicalANN<1u>::H_local)
+        .def_readonly("H_2_local", &PsiClassicalANN<1u>::H_2_local)
         .def_readwrite("prefactor", &PsiClassicalANN<1u>::prefactor)
         .def_property(
             "log_prefactor",
@@ -262,9 +259,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<PsiClassicalANN<2u>>(m, "PsiClassicalANN_2")
         .def(py::init<
             const unsigned int,
-            const quantum_expression::PauliExpression&,
-            const quantum_expression::PauliExpression&,
-            const quantum_expression::PauliExpression&,
+            const vector<Operator>&,
+            const vector<Operator>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalANN<2u>::PsiRef&,
             const double,
@@ -273,8 +269,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("copy", &PsiClassicalANN<2u>::copy)
         .def("__pos__", &PsiClassicalANN<2u>::copy)
         .def_readwrite("num_sites", &PsiClassicalANN<2u>::num_sites)
-        .def_property_readonly("H_local", [](const PsiClassicalANN<2u>& psi){return psi.H_local_op.to_expr_list();})
-        .def_property_readonly("H_2_local", [](const PsiClassicalANN<2u>& psi){return psi.H_2_local_op.to_expr_list();})
+        .def_readonly("H_local", &PsiClassicalANN<2u>::H_local)
+        .def_readonly("H_2_local", &PsiClassicalANN<2u>::H_2_local)
         .def_readwrite("prefactor", &PsiClassicalANN<2u>::prefactor)
         .def_property(
             "log_prefactor",

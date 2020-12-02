@@ -99,9 +99,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<ClPsi>(m, "ClPsi{name}")
         .def(py::init<
             const unsigned int,
-            const quantum_expression::PauliExpression&,
-            const quantum_expression::PauliExpression&,
-            const quantum_expression::PauliExpression&,
+            const vector<Operator>&,
+            const vector<Operator>&,
             const complex_tensor<1u>&,
             const typename ClPsi::PsiRef&,
             const double,
@@ -110,8 +109,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("copy", &ClPsi::copy)
         .def("__pos__", &ClPsi::copy)
         .def_readwrite("num_sites", &ClPsi::num_sites)
-        .def_property_readonly("H_local", [](const ClPsi& psi){return psi.H_local_op.to_expr_list();})
-        .def_property_readonly("H_2_local", [](const ClPsi& psi){return psi.H_2_local_op.to_expr_list();})
+        .def_readonly("H_local", &ClPsi::H_local)
+        .def_readonly("H_2_local", &ClPsi::H_2_local)
         .def_readwrite("prefactor", &ClPsi::prefactor)
         .def_property(
             "log_prefactor",

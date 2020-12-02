@@ -11,22 +11,32 @@
 namespace ann_on_gpu {
 
 
-template<typename dtype, unsigned int order, typename PsiRef>
-void PsiClassical_t<dtype, order, PsiRef>::init_kernel() {
+template<typename dtype, typename Operator_t, unsigned int order, typename PsiRef>
+void PsiClassical_t<dtype, Operator_t, order, PsiRef>::init_kernel() {
     this->kernel().params = this->params.data();
-    this->kernel().H_local_diagonal = this->H_local_diagonal_op.kernel();
-    this->kernel().H_local = this->H_local_op.kernel();
-    this->kernel().H_2_local = this->H_2_local_op.kernel();
+
+    this->kernel().num_ops_H = this->H_local.size();
+    this->kernel().num_ops_H_2 = this->H_2_local.size();
+
+    for(auto i = 0u; i < this->H_local.size(); i++) {
+        this->H_local_kernel[i] = this->H_local[i].kernel();
+    }
+    for(auto i = 0u; i < this->H_2_local.size(); i++) {
+        this->H_2_local_kernel[i] = this->H_2_local[i].kernel();
+    }
+
+    this->H_local_kernel.update_device();
+    this->H_2_local_kernel.update_device();
+
+    this->kernel().H_local = this->H_local_kernel.data();
+    this->kernel().H_2_local = this->H_2_local_kernel.data();
 
     this->num_params = this->params.size();
-    this->num_local_energies = this->num_sites * this->H_local.num_strings;
 
     if(order > 1u) {
-        this->num_local_energies += this->H_2_local.num_strings;
-
-        this->m_2.begin_local_energies = this->num_sites * this->H_local.num_strings;
-        this->m_2.begin_params = this->H_local_diagonal.num_strings + this->H_local.num_strings;
-        this->m_2.end_params = this->m_2.begin_params + this->H_2_local.num_strings;
+        this->m_2.begin_local_energies = this->num_sites * this->H_local.size();
+        this->m_2.begin_params = this->H_local.size();
+        this->m_2.end_params = this->m_2.begin_params + this->H_2_local.size();
 
         // std::cout << "this->m_2.begin_local_energies: " << this->m_2.begin_local_energies << std::endl;
         // std::cout << "this->m_2.begin_params: " << this->m_2.begin_params << std::endl;
@@ -34,9 +44,9 @@ void PsiClassical_t<dtype, order, PsiRef>::init_kernel() {
 
         this->m_1_squared.begin_params = this->m_2.end_params;
 
-        this->m_1_squared.num_ll_pairs = this->H_local.num_strings * (this->H_local.num_strings + 1u) / 2u;
+        this->m_1_squared.num_ll_pairs = this->H_local.size() * (this->H_local.size() + 1u) / 2u;
 
-        for(auto l = 0u; l < this->H_local.num_strings; l++) {
+        for(auto l = 0u; l < this->H_local.size(); l++) {
             for(auto l_prime = 0u; l_prime <= l; l_prime++) {
                 this->ids_l.push_back(l);
                 this->ids_l_prime.push_back(l_prime);
@@ -57,12 +67,12 @@ void PsiClassical_t<dtype, order, PsiRef>::init_kernel() {
 }
 
 
-template struct PsiClassical_t<complex_t, 1u, PsiFullyPolarized>;
-template struct PsiClassical_t<complex_t, 2u, PsiFullyPolarized>;
+template struct PsiClassical_t<complex_t, Operator, 1u, PsiFullyPolarized>;
+template struct PsiClassical_t<complex_t, Operator, 2u, PsiFullyPolarized>;
 
 #ifdef ENABLE_PSI_CLASSICAL_ANN
-template struct PsiClassical_t<complex_t, 1u, PsiDeep>;
-template struct PsiClassical_t<complex_t, 2u, PsiDeep>;
+template struct PsiClassical_t<complex_t, Operator, 1u, PsiDeep>;
+template struct PsiClassical_t<complex_t, Operator, 2u, PsiDeep>;
 #endif // ENABLE_PSI_CLASSICAL_ANN
 
 

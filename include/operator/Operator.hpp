@@ -82,14 +82,18 @@ struct Operator {
         const Psi_t& psi,
         const Basis_t& configuration,
         const typename Psi_t::dtype& log_psi,
-        typename Psi_t::Payload& payload
+        typename Psi_t::Payload& payload,
+        const unsigned int shift = 0u,
+        const bool init = true
     ) const {
         #include "cuda_kernel_defines.h"
         using dtype = typename Psi_t::dtype;
         // CAUTION: 'result' is only updated by the first thread.
 
         SINGLE {
-            result = typename Psi_t::dtype(0.0);
+            if(init == 0u) {
+                result = typename Psi_t::dtype(0.0);
+            }
         }
 
         SHARED_MEM_LOOP_BEGIN(n, this->num_strings) {
@@ -100,7 +104,8 @@ struct Operator {
                 psi,
                 configuration,
                 log_psi,
-                payload
+                payload,
+                shift
             );
 
             SHARED_MEM_LOOP_END(n);
@@ -127,6 +132,8 @@ struct Operator : public kernel::Operator {
     bool                gpu;
     Array<complex_t>    coefficients_ar;
     Array<PauliString>  pauli_strings_ar;
+
+    using Kernel = kernel::Operator;
 
     Operator(
         const ::quantum_expression::PauliExpression& expr,

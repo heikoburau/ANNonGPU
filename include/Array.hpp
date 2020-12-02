@@ -38,6 +38,7 @@ struct Array : public vector<T>, public kernel::Array<T> {
 
     Array(const bool gpu);
     Array(const size_t& size, const bool gpu);
+    Array(const vector<T>& std_vec, const bool gpu);
     Array(const Array<T>& other);
     Array(Array<T>&& other);
     ~Array() noexcept(false);
@@ -82,15 +83,15 @@ struct Array : public vector<T>, public kernel::Array<T> {
     using std_T = typename std_dtype<T>::type;
 
     template<long unsigned int dim>
+    inline Array<T>(const xt::pytensor<std_T, dim>& python_vec, const bool gpu) : Array<T>(python_vec.size(), gpu) {
+        (*this) = python_vec;
+    }
+
+    template<long unsigned int dim>
     inline Array<T>& operator=(const xt::pytensor<std_T, dim>& python_vec) {
         memcpy(this->host_data(), python_vec.data(), sizeof(std_T) * this->size());
         this->update_device();
         return *this;
-    }
-
-    template<long unsigned int dim>
-    inline Array<T>(const xt::pytensor<std_T, dim>& python_vec, const bool gpu) : Array<T>(python_vec.size(), gpu) {
-        (*this) = python_vec;
     }
 
     inline xt::pytensor<std_T, 1u> to_pytensor_1d(shape_t<1u> shape={}) const {

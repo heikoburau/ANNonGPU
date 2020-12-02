@@ -1,3 +1,4 @@
+#include "operators.hpp"
 #include "basis/Spins.h"
 #include "basis/PauliString.hpp"
 #include "operator/Matrix4x4.hpp"
@@ -18,6 +19,14 @@ template<typename T>
 Array<T>::Array(const size_t& size, const bool gpu) : vector<T>(size), gpu(gpu) {
     if(gpu) {
         MALLOC(this->device, sizeof(T) * size, true);
+    }
+}
+
+template<typename T>
+Array<T>::Array(const vector<T>& std_vec, const bool gpu) : vector<T>(std_vec), gpu(gpu) {
+    if(gpu) {
+        MALLOC(this->device, sizeof(T) * this->size(), true);
+        MEMCPY(this->device, this->host_data(), sizeof(T) * this->size(), true, false);
     }
 }
 
@@ -121,5 +130,6 @@ template class Array<cuda_complex::complex<float>>;
 template class Array<Spins>;
 template class Array<PauliString>;
 template class Array<Matrix4x4>;
+template class Array<kernel::Operator>;
 
 } // namespace ann_on_gpu
