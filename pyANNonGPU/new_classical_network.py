@@ -7,44 +7,26 @@ def new_classical_network(
     num_sites,
     order,
     H_local,
-    H_2_local=None,
     distance="max",
     params=0,
     prefactor=1,
     psi_ref="fully polarized",
-    super_operator=False,
+    use_super_operator=False,
     gpu=False
 ):
     assert order in (1, 2)
 
-    if not super_operator:
-        H_local = +H_local
-        H_local.assign(1)
-
-    if super_operator:
-        H_local = [
-            pyANNonGPU.SuperOperator(
-                h["coefficients"],
-                h["site_indices"],
-                h["matrices"],
-                gpu
-            )
-            for h in H_local
-        ]
+    H_local = +H_local
+    H_local.assign(1)
 
     if order == 1:
         num_params = len(H_local)
         if params == 0:
             params = np.zeros(num_params, dtype=complex)
 
-        if super_operator:
-            H_2_local = [pyANNonGPU.SuperOperator(
-                [0.0],
-                [[0]],
-                [[np.eye(4)]],
-                gpu
-            )]
-
+        if use_super_operator:
+            H_local = [pyANNonGPU.SuperOperator.from_expr(h, gpu) for h in H_local]
+            H_2_local = [pyANNonGPU.SuperOperator.from_expr(PauliExpression(1), gpu)]
         else:
             H_local = [pyANNonGPU.Operator(h, gpu) for h in H_local]
             H_2_local = [pyANNonGPU.Operator(PauliExpression(1), gpu)]
@@ -63,13 +45,12 @@ def new_classical_network(
         if distance == "max":
             distance = num_sites // 2
 
-        if H_2_local is None:
-            H = sum(H_local.roll(l, num_sites) for l in range(distance))
-            H_2_local = (H**2).translationally_invariant(distance)
-            H_2_local.assign(1)
-            H_2_local -= H_2_local[PauliExpression(1).pauli_string]
+        H = sum(H_local.roll(l, num_sites) for l in range(distance))
+        H_2_local = (H**2).translationally_invariant(distance)
+        H_2_local.assign(1)
+        H_2_local -= H_2_local[PauliExpression(1).pauli_string]
 
-            H_local.assign(1)
+        H_local.assign(1)
 
         num_params = (
             len(H_local) +
@@ -79,16 +60,9 @@ def new_classical_network(
         if params == 0:
             params = np.zeros(num_params, dtype=complex)
 
-        if super_operator:
-            H_2_local = [
-                pyANNonGPU.SuperOperator(
-                    h["coefficients"],
-                    h["site_indices"],
-                    h["matrices"],
-                    gpu
-                )
-                for h in H_2_local
-            ]
+        if use_super_operator:
+            H_local = [pyANNonGPU.SuperOperator.from_expr(h, gpu) for h in H_local]
+            H_2_local = [pyANNonGPU.SuperOperator.from_expr(h, gpu) for h in H_2_local]
         else:
             H_local = [pyANNonGPU.Operator(h, gpu) for h in H_local]
             H_2_local = [pyANNonGPU.Operator(h, gpu) for h in H_2_local]
