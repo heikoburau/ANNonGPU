@@ -7,6 +7,7 @@ def new_classical_network(
     num_sites,
     order,
     H_local,
+    H_2_local=None,
     distance="max",
     params=0,
     prefactor=1,
@@ -15,6 +16,21 @@ def new_classical_network(
     gpu=False
 ):
     assert order in (1, 2)
+
+    if not super_operator:
+        H_local = +H_local
+        H_local.assign(1)
+
+    if super_operator:
+        H_local = [
+            pyANNonGPU.SuperOperator(
+                h["coefficients"],
+                h["site_indices"],
+                h["matrices"],
+                gpu
+            )
+            for h in H_local
+        ]
 
     if order == 1:
         num_params = len(H_local)
@@ -28,18 +44,10 @@ def new_classical_network(
                 [[np.eye(4)]],
                 gpu
             )]
-            H_local = [
-                pyANNonGPU.SuperOperator(
-                    h["coefficients"],
-                    h["site_indices"],
-                    h["matrices"],
-                    gpu
-                )
-                for h in H_local
-            ]
+
         else:
-            H_2_local = [pyANNonGPU.Operator(PauliExpression(1), gpu)]
             H_local = [pyANNonGPU.Operator(h, gpu) for h in H_local]
+            H_2_local = [pyANNonGPU.Operator(PauliExpression(1), gpu)]
 
         if psi_ref == "fully polarized":
             psi_ref = pyANNonGPU.PsiFullyPolarized(num_sites)
@@ -55,15 +63,13 @@ def new_classical_network(
         if distance == "max":
             distance = num_sites // 2
 
-        H_local = +H_local
-        H_local.assign(1)
+        if H_2_local is None:
+            H = sum(H_local.roll(l, num_sites) for l in range(distance))
+            H_2_local = (H**2).translationally_invariant(distance)
+            H_2_local.assign(1)
+            H_2_local -= H_2_local[PauliExpression(1).pauli_string]
 
-        H = sum(H_local.roll(l, num_sites) for l in range(distance))
-        H_2_local = (H**2).translationally_invariant(distance)
-        H_2_local.assign(1)
-        H_2_local -= H_2_local[PauliExpression(1).pauli_string]
-
-        H_local.assign(1)
+            H_local.assign(1)
 
         num_params = (
             len(H_local) +
@@ -73,8 +79,19 @@ def new_classical_network(
         if params == 0:
             params = np.zeros(num_params, dtype=complex)
 
-        H_local = [pyANNonGPU.Operator(h, gpu) for h in H_local]
-        H_2_local = [pyANNonGPU.Operator(h, gpu) for h in H_2_local]
+        if super_operator:
+            H_2_local = [
+                pyANNonGPU.SuperOperator(
+                    h["coefficients"],
+                    h["site_indices"],
+                    h["matrices"],
+                    gpu
+                )
+                for h in H_2_local
+            ]
+        else:
+            H_local = [pyANNonGPU.Operator(h, gpu) for h in H_local]
+            H_2_local = [pyANNonGPU.Operator(h, gpu) for h in H_2_local]
 
         if psi_ref == "fully polarized":
             psi_ref = pyANNonGPU.PsiFullyPolarized(num_sites)

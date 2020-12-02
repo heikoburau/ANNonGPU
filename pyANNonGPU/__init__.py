@@ -12,3 +12,8 @@ from .LearningByGradientDescent import LearningByGradientDescent, DidNotConverge
 from .L2Regularization import L2Regularization
 
 from .gradient_descent import *
+
+try:
+    from .SuperOperator import SuperOperator
+except ImportError:
+    pass
