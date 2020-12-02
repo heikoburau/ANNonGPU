@@ -59,7 +59,7 @@ struct PsiFullyPolarized_t {
         // CAUTION: 'result' has to be a shared variable.
 
         SINGLE {
-            result = paulis.has_no_sigma_yz() ? result_dtype(0.0) : complex_t(-6.0);
+            result = result_dtype(0.0);
         }
     }
 #endif // ENABLE_PAULIS
