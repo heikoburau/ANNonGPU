@@ -124,8 +124,11 @@ def test_psi_classical_s(psi_classical, gpu):
         return sum((1 if a_i == 1 else 0) * 2**i for i, a_i in enumerate(a))
 
     H_local = psi.H_local
+    H_local = [h.expr for h in H_local]
+
     if psi.order > 1:
         H_2_local = psi.H_2_local
+        H_2_local = [h.expr for h in H_2_local]
 
     # print("params", params)
 
@@ -193,7 +196,7 @@ def test_psi_classical_s(psi_classical, gpu):
         assert log_psi_s(psi, conf) == approx(log_psi_s_ref)
 
 
-def _test_O_k(psi_all, gpu):
+def test_O_k(psi_all, gpu):
     psi = psi_all(gpu)
 
     # use_spins = ensemble.__name__.endswith("Spins")
