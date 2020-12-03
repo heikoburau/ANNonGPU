@@ -148,7 +148,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 
 #ifdef ENABLE_PSI_CLASSICAL
     py::class_<PsiFullyPolarized>(m, "PsiFullyPolarized")
-        .def(py::init<unsigned int>())
+        .def(py::init<unsigned int, double>())
         .def_readwrite("num_sites", &PsiFullyPolarized::num_sites);
 #endif // ENABLE_PSI_CLASSICAL
 

@@ -9,7 +9,6 @@ def new_classical_network(
     H_local,
     distance="max",
     params=0,
-    prefactor=1,
     psi_ref="fully polarized",
     use_super_operator=False,
     gpu=False
@@ -18,6 +17,8 @@ def new_classical_network(
 
     H_local = +H_local
     H_local.assign(1)
+
+    prefactor = 1 / 4**(num_sites / 2) if use_super_operator else 1 / 2**(num_sites / 2)
 
     if order == 1:
         num_params = len(H_local)
@@ -32,7 +33,7 @@ def new_classical_network(
             H_2_local = [pyANNonGPU.Operator(PauliExpression(1), gpu)]
 
         if psi_ref == "fully polarized":
-            psi_ref = pyANNonGPU.PsiFullyPolarized(num_sites)
+            psi_ref = pyANNonGPU.PsiFullyPolarized(num_sites, prefactor)
             return pyANNonGPU.PsiClassicalFP_1(
                 num_sites, H_local, H_2_local, params, psi_ref, prefactor, gpu
             )
@@ -68,7 +69,7 @@ def new_classical_network(
             H_2_local = [pyANNonGPU.Operator(h, gpu) for h in H_2_local]
 
         if psi_ref == "fully polarized":
-            psi_ref = pyANNonGPU.PsiFullyPolarized(num_sites)
+            psi_ref = pyANNonGPU.PsiFullyPolarized(num_sites, prefactor)
             return pyANNonGPU.PsiClassicalFP_2(
                 num_sites, H_local, H_2_local, params, psi_ref, prefactor, gpu
             )

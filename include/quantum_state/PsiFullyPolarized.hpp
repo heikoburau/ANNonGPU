@@ -102,7 +102,7 @@ struct PsiFullyPolarized_t {
 
     HDINLINE
     double probability_s(const double log_psi_s_real) const {
-        return exp(2.0 * log_psi_s_real);
+        return exp(2.0 * (log(this->prefactor) + log_psi_s_real));
     }
 };
 
@@ -121,16 +121,16 @@ struct PsiFullyPolarized_t : public kernel::PsiFullyPolarized_t<dtype> {
     inline PsiFullyPolarized_t(const PsiFullyPolarized_t& other)
     {
         this->num_sites = other.num_sites;
-        this->prefactor = 1.0;
+        this->prefactor = other.prefactor;
         this->num_params = 0u;
         this->gpu = false;
     }
 
 #ifdef __PYTHONCC__
 
-    inline PsiFullyPolarized_t(unsigned int num_sites) {
+    inline PsiFullyPolarized_t(unsigned int num_sites, double prefactor) {
         this->num_sites = num_sites;
-        this->prefactor = 1.0;
+        this->prefactor = prefactor;
         this->num_params = 0u;
         this->gpu = false;
     }
@@ -141,10 +141,6 @@ struct PsiFullyPolarized_t : public kernel::PsiFullyPolarized_t<dtype> {
 
 #endif // __PYTHONCC__
 
-    template<typename Ensemble>
-    inline void calibrate(Ensemble& ensemble) {}
-
-    inline void prepare(const unsigned int num_configurations) {}
 };
 
 
