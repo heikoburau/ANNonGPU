@@ -11,8 +11,8 @@
 namespace ann_on_gpu {
 
 
-template<typename dtype, typename Operator_t, unsigned int order, typename PsiRef>
-void PsiClassical_t<dtype, Operator_t, order, PsiRef>::init_kernel() {
+template<typename dtype, typename Operator_t, unsigned int order, bool symmetric, typename PsiRef>
+void PsiClassical_t<dtype, Operator_t, order, symmetric, PsiRef>::init_kernel() {
     this->kernel().params = this->params.data();
 
     this->kernel().num_ops_H = this->H_local.size();
@@ -34,7 +34,13 @@ void PsiClassical_t<dtype, Operator_t, order, PsiRef>::init_kernel() {
     this->num_params = this->params.size();
 
     if(order > 1u) {
-        this->m_2.begin_local_energies = this->num_sites * this->H_local.size();
+        if(symmetric) {
+            this->m_2.begin_local_energies = this->num_sites * this->H_local.size();
+        }
+        else {
+            this->m_2.begin_local_energies = this->H_local.size();
+        }
+
         this->m_2.begin_params = this->H_local.size();
         this->m_2.end_params = this->m_2.begin_params + this->H_2_local.size();
 
@@ -66,14 +72,27 @@ void PsiClassical_t<dtype, Operator_t, order, PsiRef>::init_kernel() {
     this->kernel().psi_ref = this->psi_ref.kernel();
 }
 
+#ifdef PSI_CLASSICAL_SYMMETRIC
 
-template struct PsiClassical_t<complex_t, Operator_t, 1u, PsiFullyPolarized>;
-template struct PsiClassical_t<complex_t, Operator_t, 2u, PsiFullyPolarized>;
+template struct PsiClassical_t<complex_t, Operator_t, 1u, true, PsiFullyPolarized>;
+template struct PsiClassical_t<complex_t, Operator_t, 2u, true, PsiFullyPolarized>;
 
 #ifdef ENABLE_PSI_CLASSICAL_ANN
-template struct PsiClassical_t<complex_t, Operator_t, 1u, PsiDeep>;
-template struct PsiClassical_t<complex_t, Operator_t, 2u, PsiDeep>;
+template struct PsiClassical_t<complex_t, Operator_t, 1u, true, PsiDeep>;
+template struct PsiClassical_t<complex_t, Operator_t, 2u, true, PsiDeep>;
 #endif // ENABLE_PSI_CLASSICAL_ANN
+
+#else
+
+template struct PsiClassical_t<complex_t, Operator_t, 1u, false, PsiFullyPolarized>;
+template struct PsiClassical_t<complex_t, Operator_t, 2u, false, PsiFullyPolarized>;
+
+#ifdef ENABLE_PSI_CLASSICAL_ANN
+template struct PsiClassical_t<complex_t, Operator_t, 1u, false, PsiDeep>;
+template struct PsiClassical_t<complex_t, Operator_t, 2u, false, PsiDeep>;
+#endif // ENABLE_PSI_CLASSICAL_ANN
+
+#endif // PSI_CLASSICAL_SYMMETRIC
 
 
 } // namespace ann_on_gpu

@@ -96,6 +96,11 @@ if (PSI_DEEP_SYMMETRIC)
   target_compile_definitions(ANNonGPU PUBLIC PSI_DEEP_SYMMETRIC)
 endif()
 
+option(PSI_CLASSICAL_SYMMETRIC "use a symmetric PsiClassical" OFF)
+if (PSI_CLASSICAL_SYMMETRIC)
+  target_compile_definitions(ANNonGPU PUBLIC PSI_CLASSICAL_SYMMETRIC)
+endif()
+
 option(ENABLE_SPINS "enable Spins" ON)
 if (ENABLE_SPINS)
   target_compile_definitions(ANNonGPU PUBLIC ENABLE_SPINS)

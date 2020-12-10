@@ -7,6 +7,7 @@ def new_classical_network(
     num_sites,
     order,
     H_local,
+    symmetric=True,
     distance="max",
     params=0,
     psi_ref="fully polarized",
@@ -46,18 +47,31 @@ def new_classical_network(
         if distance == "max":
             distance = num_sites // 2
 
-        H = sum(H_local.roll(l, num_sites) for l in range(distance))
-        H_2_local = (H**2).translationally_invariant(distance)
-        H_2_local.assign(1)
-        H_2_local -= H_2_local[PauliExpression(1).pauli_string]
+        if symmetric:
+            H = sum(H_local.roll(l, num_sites) for l in range(distance))
+            H_2_local = (H**2).translationally_invariant(distance)
+            H_2_local.assign(1)
+            H_2_local -= H_2_local[PauliExpression(1).pauli_string]
+        else:
+            H_2_local = H_local**2
+            H_2_local.assign(1)
+            H_2_local -= H_2_local[PauliExpression(1).pauli_string]
 
         H_local.assign(1)
 
-        num_params = (
-            len(H_local) +
-            len(H_2_local) +
-            distance * len(H_local) * (len(H_local) + 1) // 2
-        )
+        if symmetric:
+            num_params = (
+                len(H_local) +
+                len(H_2_local) +
+                distance * len(H_local) * (len(H_local) + 1) // 2
+            )
+        else:
+            num_params = (
+                len(H_local) +
+                len(H_2_local) +
+                len(H_local) * (len(H_local) + 1) // 2
+            )
+
         if params == 0:
             params = np.zeros(num_params, dtype=complex)
 

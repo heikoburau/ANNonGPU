@@ -32,36 +32,54 @@ using namespace cuda_complex;
 #define RESTRICT
 #endif
 
+namespace PsiClassicalPayload {
 
-template<typename dtype_t, typename Operator_t, unsigned int order, typename PsiRef>
+template<bool, typename PsiRefPayload, int max_local_terms, int max_sites>
+struct Payload_t;
+
+template<typename PsiRefPayload, int max_local_terms, int max_sites>
+struct Payload_t<true, PsiRefPayload, max_local_terms, max_sites> {
+    // todo: add configuration to detect whether re-calculation is neccessary at all.
+
+    complex_t       log_psi_ref;
+
+    // structure:
+    //
+    // first-order:
+    // [this->num_sites] x [this->num_ops_H]
+    //
+    // second-order:
+    // H^2_local terms
+    //
+    complex_t   local_energies[max_local_terms * max_sites];
+
+    complex_t   local_energy_H_full[max_local_terms];
+
+    PsiRefPayload ref_payload;
+};
+
+template<typename PsiRefPayload, int max_local_terms, int max_sites>
+struct Payload_t<false, PsiRefPayload, max_local_terms, max_sites> {
+    complex_t       log_psi_ref;
+
+    complex_t   local_energies[max_local_terms * max_sites * (max_sites + 1)];
+    complex_t   local_energy_H_full[1];
+
+    PsiRefPayload ref_payload;
+};
+
+} // namespace PsiClassicalPayload
+
+template<typename dtype_t, typename Operator_t, unsigned int order, bool symmetric, typename PsiRef>
 struct PsiClassical_t {
 
     using dtype = dtype_t;
     using real_dtype = typename cuda_complex::get_real_type<dtype>::type;
 
-    static constexpr unsigned int max_sites = MAX_SPINS;
-    static constexpr unsigned int max_local_terms = 4u;
-    static constexpr unsigned int max_local_energies = max_local_terms * max_sites;
+    static constexpr unsigned int max_sites = 32u;
+    static constexpr unsigned int max_local_terms = 2u;
 
-    struct Payload {
-        // todo: add configuration to detect whether re-calculation is neccessary at all.
-
-        dtype       log_psi_ref;
-
-        // structure:
-        //
-        // first-order:
-        // [this->num_sites] x [this->num_ops_H]
-        //
-        // second-order:
-        // H^2_local terms
-        //
-        complex_t   local_energies[max_local_energies];
-
-        complex_t   local_energy_H_full[max_local_terms];
-
-        typename PsiRef::Payload ref_payload;
-    };
+    using Payload = PsiClassicalPayload::Payload_t<symmetric, typename PsiRef::Payload, max_local_terms, max_sites>;
 
     dtype*          params;
     unsigned int    num_params;
@@ -112,9 +130,6 @@ struct PsiClassical_t {
         this->compute_local_energies(configuration, payload);
     }
 
-    HDINLINE
-    void save_payload(Payload& payload) const {}
-
     template<typename Basis_t>
     HDINLINE
     void compute_local_energies(const Basis_t& configuration, Payload& payload) const {
@@ -129,27 +144,43 @@ struct PsiClassical_t {
     HDINLINE
     void compute_1st_order_local_energies(const Basis_t& configuration, Payload& payload) const {
         SHARED_MEM_LOOP_BEGIN(n, this->num_ops_H) {
-            SINGLE {
-                payload.local_energy_H_full[n] = complex_t(0.0);
-            }
 
-            SHARED_MEM_LOOP_BEGIN(m, this->num_sites) {
+            if(symmetric) {
+
+                SINGLE {
+                    payload.local_energy_H_full[n] = complex_t(0.0);
+                }
+
+                SHARED_MEM_LOOP_BEGIN(m, this->num_sites) {
+                    this->H_local[n].local_energy(
+                        payload.local_energies[m * this->num_ops_H + n],
+                        this->psi_ref,
+                        configuration,
+                        payload.log_psi_ref,
+                        payload.ref_payload,
+                        m,
+                        true
+                    );
+
+                    SHARED_MEM_LOOP_END(m);
+                }
+                MULTI(i, this->num_sites) {
+                    generic_atomicAdd(
+                        &payload.local_energy_H_full[n],
+                        payload.local_energies[i * this->num_ops_H + n]
+                    );
+                }
+
+            }
+            else {
                 this->H_local[n].local_energy(
-                    payload.local_energies[m * this->num_ops_H + n],
+                    payload.local_energies[n],
                     this->psi_ref,
                     configuration,
                     payload.log_psi_ref,
                     payload.ref_payload,
-                    m,
+                    0,
                     true
-                );
-
-                SHARED_MEM_LOOP_END(m);
-            }
-            MULTI(i, this->num_sites) {
-                generic_atomicAdd(
-                    &payload.local_energy_H_full[n],
-                    payload.local_energies[i * this->num_ops_H + n]
                 );
             }
 
@@ -161,23 +192,38 @@ struct PsiClassical_t {
     HDINLINE
     void compute_2nd_order_local_energies(const Basis_t& configuration, Payload& payload) const {
         SHARED_MEM_LOOP_BEGIN(n, this->num_ops_H_2) {
-            SINGLE {
-                payload.local_energies[this->m_2.begin_local_energies + n] = complex_t(0.0);
-            }
 
-            SHARED_MEM_LOOP_BEGIN(m, this->num_sites) {
+            if(symmetric) {
+                SINGLE {
+                    payload.local_energies[this->m_2.begin_local_energies + n] = complex_t(0.0);
+                }
+
+                SHARED_MEM_LOOP_BEGIN(m, this->num_sites) {
+                    this->H_2_local[n].local_energy(
+                        payload.local_energies[this->m_2.begin_local_energies + n],
+                        this->psi_ref,
+                        configuration,
+                        payload.log_psi_ref,
+                        payload.ref_payload,
+                        m,
+                        false
+                    );
+
+                    SHARED_MEM_LOOP_END(m);
+                }
+            }
+            else {
                 this->H_2_local[n].local_energy(
                     payload.local_energies[this->m_2.begin_local_energies + n],
                     this->psi_ref,
                     configuration,
                     payload.log_psi_ref,
                     payload.ref_payload,
-                    m,
-                    false
+                    0,
+                    true
                 );
-
-                SHARED_MEM_LOOP_END(m);
             }
+
             SHARED_MEM_LOOP_END(n);
         }
     }
@@ -223,7 +269,12 @@ struct PsiClassical_t {
     HDINLINE
     complex_t get_O_k(const unsigned int k, const Payload& payload) const {
         if(k < this->num_ops_H) {
-            return payload.local_energy_H_full[k];
+            if(symmetric) {
+                return payload.local_energy_H_full[k];
+            }
+            else {
+                return payload.local_energies[k];
+            }
         }
 
         if(order > 1u) {
@@ -240,10 +291,19 @@ struct PsiClassical_t {
                 const auto l = this->m_1_squared.ids_l[k_rel % this->m_1_squared.num_ll_pairs];
                 const auto l_prime = this->m_1_squared.ids_l_prime[k_rel % this->m_1_squared.num_ll_pairs];
 
-                for(auto delta = 0u; delta < this->num_sites; delta++) {
-                    result += (
-                        payload.local_energies[delta * this->num_ops_H + l] *
-                        payload.local_energies[((n + delta) % this->num_sites) * this->num_ops_H + l_prime]
+                if(symmetric)
+                {
+                    for(auto delta = 0u; delta < this->num_sites; delta++) {
+                        result += (
+                            payload.local_energies[delta * this->num_ops_H + l] *
+                            payload.local_energies[((n + delta) % this->num_sites) * this->num_ops_H + l_prime]
+                        );
+                    }
+                }
+                else {
+                    result = (
+                        payload.local_energies[l] *
+                        payload.local_energies[l_prime]
                     );
                 }
 
@@ -296,8 +356,8 @@ struct PsiClassical_t {
 
 
 
-template<typename dtype, typename Operator_t, unsigned int order, typename PsiRef_t>
-struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t::Kernel, order, typename PsiRef_t::Kernel> {
+template<typename dtype, typename Operator_t, unsigned int order, bool symmetric, typename PsiRef_t>
+struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t::Kernel, order, symmetric, typename PsiRef_t::Kernel> {
     using PsiRef = PsiRef_t;
     using real_dtype = typename cuda_complex::get_real_type<dtype>::type;
     using Operator = Operator_t;
@@ -379,10 +439,22 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
 
 };
 
-template<unsigned int order>
-using PsiClassicalFP = PsiClassical_t<complex_t, Operator_t, order, PsiFullyPolarized>;
+#ifdef PSI_CLASSICAL_SYMMETRIC
 
 template<unsigned int order>
-using PsiClassicalANN = PsiClassical_t<complex_t, Operator_t, order, PsiDeep>;
+using PsiClassicalFP = PsiClassical_t<complex_t, Operator_t, order, true, PsiFullyPolarized>;
+
+template<unsigned int order>
+using PsiClassicalANN = PsiClassical_t<complex_t, Operator_t, order, true, PsiDeep>;
+
+#else
+
+template<unsigned int order>
+using PsiClassicalFP = PsiClassical_t<complex_t, Operator_t, order, false, PsiFullyPolarized>;
+
+template<unsigned int order>
+using PsiClassicalANN = PsiClassical_t<complex_t, Operator_t, order, false, PsiDeep>;
+
+#endif // PSI_CLASSICAL_SYMMETRIC
 
 }  // namespace ann_on_gpu

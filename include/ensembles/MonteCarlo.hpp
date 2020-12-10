@@ -125,8 +125,6 @@ struct MonteCarlo_t {
             SHARED_MEM_LOOP_END(mc_step_within_chain);
         }
 
-        psi.save_payload(payload);
-
         SINGLE {
             this->rng_states.set_state(rng_state, markov_index);
         }

@@ -68,8 +68,6 @@ struct ExactSummation_t {
             SYNC;
 
             function(conf_index, configuration, log_psi, payload, weight);
-
-            psi.save_payload(payload);
         }
     }
 
