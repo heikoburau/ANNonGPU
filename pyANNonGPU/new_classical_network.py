@@ -12,6 +12,7 @@ def new_classical_network(
     params=0,
     psi_ref="fully polarized",
     use_super_operator=False,
+    U_matrix=None,
     gpu=False
 ):
     assert order in (1, 2)
@@ -27,8 +28,9 @@ def new_classical_network(
             params = np.zeros(num_params, dtype=complex)
 
         if use_super_operator:
-            H_local = [pyANNonGPU.SuperOperator.from_expr(h, gpu) for h in H_local]
-            H_2_local = [pyANNonGPU.SuperOperator.from_expr(PauliExpression(1), gpu)]
+            H_local = [pyANNonGPU.SuperOperator.from_expr(h, U_matrix, gpu) for h in H_local]
+            # H_2_local = [pyANNonGPU.SuperOperator.from_expr(PauliExpression(1), U_matrix, gpu)]
+            H_2_local = []
         else:
             H_local = [pyANNonGPU.Operator(h, gpu) for h in H_local]
             H_2_local = [pyANNonGPU.Operator(PauliExpression(1), gpu)]
@@ -76,8 +78,8 @@ def new_classical_network(
             params = np.zeros(num_params, dtype=complex)
 
         if use_super_operator:
-            H_local = [pyANNonGPU.SuperOperator.from_expr(h, gpu) for h in H_local]
-            H_2_local = [pyANNonGPU.SuperOperator.from_expr(h, gpu) for h in H_2_local]
+            H_local = [pyANNonGPU.SuperOperator.from_expr(h, U_matrix, gpu) for h in H_local]
+            H_2_local = [pyANNonGPU.SuperOperator.from_expr(h, U_matrix, gpu) for h in H_2_local]
         else:
             H_local = [pyANNonGPU.Operator(h, gpu) for h in H_local]
             H_2_local = [pyANNonGPU.Operator(h, gpu) for h in H_2_local]

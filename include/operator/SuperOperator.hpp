@@ -211,7 +211,7 @@ struct SuperOperator : public kernel::SuperOperator {
                 auto is_diagonal = true;
                 for(auto i = 0u; i < 4u; i++) {
                     for(auto j = 0u; j < 4u; j++) {
-                        if(raw_matrix(i, j) != complex<double>(0.0, 0.0)) {
+                        if(abs(raw_matrix(i, j)) > 1e-4) {
                             matrix.values[i] = raw_matrix(i, j);
                             matrix.pauli_types[i] = j;
                             if(i != j) {
