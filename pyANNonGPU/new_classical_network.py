@@ -17,8 +17,9 @@ def new_classical_network(
 ):
     assert order in (1, 2)
 
-    H_local = +H_local
-    H_local.assign(1)
+    H_local = list(H_local)
+    for h in H_local:
+        h.assign(1)
 
     prefactor = 1 / 4**(num_sites / 2) if use_super_operator else 1 / 2**(num_sites / 2)
 
@@ -54,20 +55,26 @@ def new_classical_network(
             H_2_local = (H**2).translationally_invariant(distance)
             H_2_local.assign(1)
             H_2_local -= H_2_local[PauliExpression(1).pauli_string]
-        else:
-            H_2_local = H_local**2
-            H_2_local.assign(1)
-            H_2_local -= H_2_local[PauliExpression(1).pauli_string]
 
-        H_local.assign(1)
-
-        if symmetric:
             num_params = (
                 len(H_local) +
                 len(H_2_local) +
                 distance * len(H_local) * (len(H_local) + 1) // 2
             )
         else:
+            H_2_local = []
+            for i in range(len(H_local)):
+                for j in range(i + 1):
+                    H_ij = H_local[i] * H_local[j]
+                    H_ij.assign(1)
+                    H_ij -= H_ij[PauliExpression(1).pauli_string]
+                    H_ij = H_ij.crop(1e-2)
+
+                    if not H_ij.is_numeric:
+                        H_2_local.append(H_ij)
+
+                        # print(H_ij)
+
             num_params = (
                 len(H_local) +
                 len(H_2_local) +
