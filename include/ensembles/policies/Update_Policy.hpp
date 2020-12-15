@@ -39,19 +39,15 @@ struct Update_Policy<Spins> {
 
 template<>
 struct Update_Policy<PauliString> {
-    Operator op;
-
-
     template<typename Psi_t>
     HDINLINE void operator()(PauliString& next_paulis, const PauliString& paulis, const Psi_t& psi, void* rng_state) const {
         #include "cuda_kernel_defines.h"
 
         SINGLE {
-            next_paulis = paulis.apply(
-                this->op.pauli_strings[
-                    random_uint32(rng_state) % this->op.num_strings
-                ]
-            ).vector;
+            const auto x = random_uint32(rng_state);
+
+            next_paulis = paulis;
+            next_paulis.set_at(x % psi.num_sites, x >> 30u);
         }
     }
 
@@ -84,16 +80,6 @@ struct Update_Policy<Spins> : public kernel::Update_Policy<Spins> {
 template<>
 struct Update_Policy<PauliString> : public kernel::Update_Policy<PauliString> {
     using kernel_t = kernel::Update_Policy<PauliString>;
-
-    Operator op;
-
-    inline Update_Policy(const Operator& op) : op(op) {
-        this->kernel().op = this->op.kernel();
-    }
-
-    inline Update_Policy(const Update_Policy& other) : op(other.op) {
-        this->kernel().op = this->op.kernel();
-    }
 };
 
 #endif // ENABLE_PAULIS

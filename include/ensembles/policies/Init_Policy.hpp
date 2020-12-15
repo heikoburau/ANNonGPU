@@ -36,7 +36,7 @@ struct Init_Policy<PauliString> {
         #include "cuda_kernel_defines.h"
 
         SINGLE {
-            result = PauliString(0lu, 0lu);
+            result.set_randomly(rng_state, psi.num_sites);
         }
     }
 };

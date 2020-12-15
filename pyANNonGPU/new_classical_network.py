@@ -62,23 +62,31 @@ def new_classical_network(
                 distance * len(H_local) * (len(H_local) + 1) // 2
             )
         else:
+            cell_size = len(H_local) // num_sites
+
             H_2_local = []
             for i in range(len(H_local)):
-                for j in range(i + 1):
-                    H_ij = H_local[i] * H_local[j]
-                    H_ij.assign(1)
-                    H_ij -= H_ij[PauliExpression(1).pauli_string]
-                    H_ij = H_ij.crop(1e-2)
+                cell_i = i // cell_size
 
-                    if not H_ij.is_numeric:
-                        H_2_local.append(H_ij)
+                for cell_j in range(cell_i, cell_i + distance):
+                    cell_j_offset = (cell_j % num_sites) * cell_size
+                    for j in range(cell_j_offset, cell_j_offset + cell_size):
+                        H_ij = H_local[i] * H_local[j]
+                        H_ij.assign(1)
+                        H_ij -= H_ij[PauliExpression(1).pauli_string]
+                        H_ij = H_ij.crop(1e-2)
+
+                        if not H_ij.is_numeric:
+                            H_2_local.append(H_ij)
 
                         # print(H_ij)
+
+            num_pairs = len(H_local) * distance * cell_size
 
             num_params = (
                 len(H_local) +
                 len(H_2_local) +
-                len(H_local) * (len(H_local) + 1) // 2
+                num_pairs
             )
 
         if params == 0:

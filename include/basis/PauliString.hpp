@@ -55,6 +55,14 @@ struct PauliString {
         }
     }
 
+    HDINLINE void set_randomly(void* random_state, const unsigned int num_spins) {
+        this->a = random_uint64(random_state);
+        this->b = random_uint64(random_state);
+
+        this->a &= (1lu << (num_spins % 64)) - 1lu;
+        this->b &= (1lu << (num_spins % 64)) - 1lu;
+    }
+
     HDINLINE unsigned int operator[](const unsigned int idx) const {
         return (
             int(bool(this->a & (1lu << idx))) |

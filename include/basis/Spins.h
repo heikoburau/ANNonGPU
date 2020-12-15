@@ -97,7 +97,7 @@ struct Spins_t {
 
         const auto type_idx = num_spins / 64u;
         if(type_idx < num_types) {
-            this->configurations[type_idx] &= (1lu << (num_spins % 64)) - 1u;
+            this->configurations[type_idx] &= (1lu << (num_spins % 64)) - 1lu;
         }
     }
 

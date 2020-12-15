@@ -272,16 +272,10 @@ inline MonteCarloPaulis make_MonteCarloPaulis(
     const unsigned int  num_sweeps,
     const unsigned int  num_thermalization_sweeps,
     const unsigned int  num_markov_chains,
-    const quantum_expression::PauliExpression update_expr,
     const bool          gpu
 ) {
     return MonteCarloPaulis(
-        num_samples,
-        num_sweeps,
-        num_thermalization_sweeps,
-        num_markov_chains,
-        Update_Policy<PauliString>(Operator(update_expr, gpu)),
-        gpu
+        num_samples, num_sweeps, num_thermalization_sweeps, num_markov_chains, Update_Policy<PauliString>(), gpu
     );
 }
 #endif // __CUDACC__
