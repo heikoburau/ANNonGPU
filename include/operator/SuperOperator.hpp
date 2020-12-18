@@ -70,7 +70,9 @@ struct SuperOperator {
 
             for(auto m = 0u; m < this->string_lengths[n]; m++) {
                 matrix = this->matrices[n * max_string_length + m];
-                matrix.site = (matrix.site + shift) % psi.num_sites;
+                if(shift) {
+                    matrix.site = psi.num_sites - 1 - matrix.site;
+                }
 
                 matrix.apply(matrix_element);
             }
