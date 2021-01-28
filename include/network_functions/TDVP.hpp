@@ -4,8 +4,13 @@
 #include "Array.hpp"
 #include "types.h"
 
+#include <memory>
+
 
 namespace ann_on_gpu {
+
+
+using namespace std;
 
 
 struct TDVP {
@@ -18,6 +23,9 @@ struct TDVP {
     Array<complex_t> F_vector;
 
     Array<double>    prob_ratio;
+
+    unique_ptr<Array<complex_t>> O_k_samples;
+    unique_ptr<Array<double>>    weight_samples;
 
     inline TDVP(unsigned int num_params, bool gpu)
     :
