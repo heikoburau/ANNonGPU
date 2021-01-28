@@ -184,11 +184,110 @@ pair<double, complex<double>> ExpectationValue::fluctuation(
     };
 }
 
+
+template<typename Psi_t, typename Ensemble>
+Array<complex_t> ExpectationValue::gradient(
+    const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble
+) {
+    Array<complex_t> result(psi.num_params, psi.gpu);
+    result.clear();
+
+    auto result_ptr = result.data();
+    auto psi_kernel = psi.kernel();
+    auto op_kernel = operator_.kernel();
+
+    ensemble.foreach(
+        psi,
+        [=] __device__ __host__ (
+            const unsigned int spin_index,
+            const typename Ensemble::Basis_t& configuration,
+            const typename Psi_t::dtype log_psi,
+            typename Psi_t::Payload& payload,
+            const typename Psi_t::real_dtype weight
+        ) {
+            #include "cuda_kernel_defines.h"
+
+            SHARED typename Psi_t::dtype local_energy;
+            op_kernel.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
+
+            psi_kernel.init_payload(payload, configuration);
+            psi_kernel.foreach_O_k(
+                configuration,
+                payload,
+                [&](const unsigned int k, const complex_t& O_k) {
+                    generic_atomicAdd(&result_ptr[k], weight * 2.0 * conj(O_k) * local_energy);
+                }
+            );
+        }
+    );
+
+    result.update_host();
+
+    return result;
+}
+
+
+template<typename Psi_t, typename Ensemble>
+pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(
+    const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble
+) {
+    Array<complex_t> result(psi.num_params, psi.gpu);
+    Array<double> result2(psi.num_params, psi.gpu);
+
+    result.clear();
+    result2.clear();
+
+    auto result_ptr = result.data();
+    auto result2_ptr = result2.data();
+    auto psi_kernel = psi.kernel();
+    auto op_kernel = operator_.kernel();
+
+    ensemble.foreach(
+        psi,
+        [=] __device__ __host__ (
+            const unsigned int spin_index,
+            const typename Ensemble::Basis_t& configuration,
+            const typename Psi_t::dtype log_psi,
+            typename Psi_t::Payload& payload,
+            const typename Psi_t::real_dtype weight
+        ) {
+            #include "cuda_kernel_defines.h"
+
+            SHARED typename Psi_t::dtype local_energy;
+            op_kernel.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
+
+            psi_kernel.init_payload(payload, configuration);
+            psi_kernel.foreach_O_k(
+                configuration,
+                payload,
+                [&](const unsigned int k, const complex_t& O_k) {
+                    const auto val = 2.0 * conj(O_k) * local_energy;
+                    generic_atomicAdd(&result_ptr[k], weight * val);
+                    generic_atomicAdd(&result2_ptr[k], weight * abs2(val));
+                }
+            );
+        }
+    );
+
+    result.update_host();
+    result2.update_host();
+
+    for(auto k = 0u; k < psi.num_params; k++) {
+        result2[k] -= abs2(result[k]);
+        result2[k] /= ensemble.get_num_steps();
+        result2[k] = sqrt(result2[k]);
+    }
+
+    return make_pair(result, result2);
+}
+
 //! begin template
 template complex<double> ExpectationValue::operator()(const Operator_t&, AllPsi& psi, Ensemble<Basis>&);
 template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, AllPsi& psi, Ensemble<Basis>&);
 template complex<double> ExpectationValue::operator()(const Operator_t&, AllPsi& psi, PsiDeep&, Ensemble<Basis>&);
 template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, AllPsi&, Ensemble<Basis>&);
+template Array<complex_t> ExpectationValue::gradient(const Operator_t&, AllPsi& psi, Ensemble<Basis>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, AllPsi& psi, Ensemble<Basis>&);
 //! end template
 
 } // namespace ann_on_gpu

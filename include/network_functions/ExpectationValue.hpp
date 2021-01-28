@@ -32,6 +32,12 @@ public:
     template<typename Psi_t, typename Ensemble>
     pair<double, complex<double>> fluctuation(const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble);
 
+    template<typename Psi_t, typename Ensemble>
+    Array<complex_t> gradient(const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble);
+
+    template<typename Psi_t, typename Ensemble>
+    pair<Array<complex_t>, Array<double>> gradient_with_noise(const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble);
+
 #ifdef __PYTHONCC__
 
     template<typename Psi_t, typename Ensemble>
