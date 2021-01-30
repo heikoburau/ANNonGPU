@@ -186,12 +186,14 @@ pair<double, complex<double>> ExpectationValue::fluctuation(
 
 
 template<typename Psi_t, typename Ensemble>
-Array<complex_t> ExpectationValue::gradient(
+pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(
     const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble
 ) {
     Array<complex_t> result(psi.num_params, psi.gpu);
     result.clear();
+    this->A_local.clear();
 
+    auto A_local_ptr = this->A_local.data();
     auto result_ptr = result.data();
     auto psi_kernel = psi.kernel();
     auto op_kernel = operator_.kernel();
@@ -210,6 +212,10 @@ Array<complex_t> ExpectationValue::gradient(
             SHARED typename Psi_t::dtype local_energy;
             op_kernel.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
 
+            SINGLE {
+                generic_atomicAdd(A_local_ptr, weight * local_energy);
+            }
+
             psi_kernel.init_payload(payload, configuration);
             psi_kernel.foreach_O_k(
                 configuration,
@@ -221,9 +227,10 @@ Array<complex_t> ExpectationValue::gradient(
         }
     );
 
+    this->A_local.update_host();
     result.update_host();
 
-    return result;
+    return {result, this->A_local.front().to_std()};
 }
 
 
@@ -236,7 +243,9 @@ pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(
 
     result.clear();
     result2.clear();
+    this->A_local.clear();
 
+    auto A_local_ptr = this->A_local.data();
     auto result_ptr = result.data();
     auto result2_ptr = result2.data();
     auto psi_kernel = psi.kernel();
@@ -256,6 +265,10 @@ pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(
             SHARED typename Psi_t::dtype local_energy;
             op_kernel.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
 
+            SINGLE {
+                generic_atomicAdd(A_local_ptr, weight * local_energy);
+            }
+
             psi_kernel.init_payload(payload, configuration);
             psi_kernel.foreach_O_k(
                 configuration,
@@ -269,6 +282,7 @@ pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(
         }
     );
 
+    this->A_local.update_host();
     result.update_host();
     result2.update_host();
 
@@ -286,7 +300,7 @@ template complex<double> ExpectationValue::operator()(const Operator_t&, AllPsi&
 template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, AllPsi& psi, Ensemble<Basis>&);
 template complex<double> ExpectationValue::operator()(const Operator_t&, AllPsi& psi, PsiDeep&, Ensemble<Basis>&);
 template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, AllPsi&, Ensemble<Basis>&);
-template Array<complex_t> ExpectationValue::gradient(const Operator_t&, AllPsi& psi, Ensemble<Basis>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, AllPsi& psi, Ensemble<Basis>&);
 template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, AllPsi& psi, Ensemble<Basis>&);
 //! end template
 

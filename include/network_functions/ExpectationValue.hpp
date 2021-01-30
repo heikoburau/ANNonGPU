@@ -33,7 +33,7 @@ public:
     pair<double, complex<double>> fluctuation(const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble);
 
     template<typename Psi_t, typename Ensemble>
-    Array<complex_t> gradient(const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble);
+    pair<Array<complex_t>, complex<double>> gradient(const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble);
 
     template<typename Psi_t, typename Ensemble>
     pair<Array<complex_t>, Array<double>> gradient_with_noise(const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble);
@@ -53,6 +53,13 @@ public:
     template<typename Psi_t, typename PsiSampling_t, typename Ensemble>
     inline complex<double> __call__(const Operator_t& operator_, Psi_t& psi, PsiSampling_t& psi_sampling, Ensemble& ensemble) {
         return (*this)(operator_, psi, psi_sampling, ensemble);
+    }
+
+    template<typename Psi_t, typename Ensemble>
+    pair<xt::pytensor<complex<double>, 1u>, complex<double>> gradient_py(const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble) {
+        auto gradient_and_value = this->gradient(operator_, psi, ensemble);
+
+        return make_pair(gradient_and_value.first.to_pytensor_1d(), gradient_and_value.second);
     }
 
 #endif  // __PYTHONCC__
