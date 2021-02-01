@@ -23,7 +23,7 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
     }
     if(!this->weight_samples || this->weight_samples->size() != ensemble.get_num_steps()) {
         this->weight_samples = unique_ptr<Array<double>>(
-            new Array<double>(ensemble.get_num_steps())
+            new Array<double>(ensemble.get_num_steps(), psi.gpu)
         );
     }
 
@@ -31,7 +31,7 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
     this->O_k_ar.clear();
     this->S_matrix.clear();
     this->F_vector.clear();
-    this->prob_ratio.clear();
+    // this->prob_ratio.clear();
 
     auto num_params = this->F_vector.size();
     auto op_kernel = op.kernel();
@@ -40,7 +40,7 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
     auto O_k_ptr = this->O_k_ar.data();
     auto S_ptr = this->S_matrix.data();
     auto F_ptr = this->F_vector.data();
-    auto prob_ratio_ptr = this->prob_ratio.data();
+    // auto prob_ratio_ptr = this->prob_ratio.data();
     auto O_k_samples_ptr = this->O_k_samples->data();
     auto weight_samples_ptr = this->weight_samples->data();
 
@@ -136,17 +136,17 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
     this->O_k_ar.update_host();
     this->S_matrix.update_host();
     this->F_vector.update_host();
-    this->prob_ratio.update_host();
+    // this->prob_ratio.update_host();
 
-    this->E_local.front() /= this->prob_ratio.front();
-    for(auto k = 0u; k < num_params; k++) {
-        this->O_k_ar[k] /= this->prob_ratio.front();
-        this->F_vector[k] /= this->prob_ratio.front();
+    // this->E_local.front() /= this->prob_ratio.front();
+    // for(auto k = 0u; k < num_params; k++) {
+        // this->O_k_ar[k] /= this->prob_ratio.front();
+        // this->F_vector[k] /= this->prob_ratio.front();
 
-        for(auto k_prime = 0u; k_prime < num_params; k_prime++) {
-            this->S_matrix[k * num_params + k_prime] /= this->prob_ratio.front();
-        }
-    }
+        // for(auto k_prime = 0u; k_prime < num_params; k_prime++) {
+        //     this->S_matrix[k * num_params + k_prime] /= this->prob_ratio.front();
+        // }
+    // }
 
     for(auto k = 0u; k < num_params; k++) {
         for(auto k_prime = 0u; k_prime < num_params; k_prime++) {

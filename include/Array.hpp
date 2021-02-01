@@ -36,7 +36,7 @@ template<typename T>
 struct Array : public vector<T>, public kernel::Array<T> {
     bool gpu;
 
-    Array(const bool gpu);
+    explicit Array(const bool gpu);
     Array(const size_t& size, const bool gpu);
     Array(const vector<T>& std_vec, const bool gpu);
     Array(const Array<T>& other);
