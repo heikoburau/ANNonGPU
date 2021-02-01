@@ -35,9 +35,9 @@ struct ExactSummation_t {
     void kernel_foreach(Psi_t psi, Function function) const {
         #include "cuda_kernel_defines.h"
 
-        SHARED Basis_t      configuration;
-        SHARED complex_t    log_psi;
-        SHARED double       weight;
+        SHARED Basis_t                  configuration;
+        SHARED typename Psi_t::dtype    log_psi;
+        SHARED double                   weight;
 
         SHARED typename Psi_t::Payload payload;
 
@@ -62,7 +62,7 @@ struct ExactSummation_t {
             SYNC;
 
             SINGLE {
-                weight = psi.probability_s(log_psi.real());
+                weight = psi.probability_s(get_real<typename Psi_t::dtype>(log_psi));
             }
 
             SYNC;

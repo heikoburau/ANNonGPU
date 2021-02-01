@@ -146,8 +146,7 @@ struct PsiDeepT {
 
             for(auto i = 0u; i < layer.lhs_connectivity; i++) {
                 angles[j] += layer.lhs_weight(i, j) * dtype(
-                    (double)configuration.network_unit_at(layer.lhs_connection(i, j)),
-                    0.0
+                    (double)configuration.network_unit_at(layer.lhs_connection(i, j))
                 );
             }
             angles[j] += layer.biases[j];
@@ -701,9 +700,9 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
 
 
 #ifdef PSI_DEEP_SYMMETRIC
-using PsiDeep = PsiDeepT<complex_t, true>;
+using PsiDeep = PsiDeepT<double, true>;
 #else
-using PsiDeep = PsiDeepT<complex_t, false>;
+using PsiDeep = PsiDeepT<double, false>;
 #endif // PSI_DEEP_SYMMETRIC
 
 // using PsiDeep = PsiDeepT<cuda_complex::complex<double>>;

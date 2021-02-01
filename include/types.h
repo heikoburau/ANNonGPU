@@ -69,6 +69,16 @@ void generic_atomicAdd(T1* const address, const T2& value) {
     #endif
 }
 
+template<>
+HDINLINE
+void generic_atomicAdd(complex_t* const address, const double& value) {
+    #ifdef __CUDA_ARCH__
+    atomicAdd(address, complex_t(value));
+    #else
+    *address += value;
+    #endif
+}
+
 // template<>
 // HDINLINE
 // void generic_atomicAdd(double* const address, const float& value) {

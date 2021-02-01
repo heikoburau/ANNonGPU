@@ -42,7 +42,7 @@ complex<double> ExpectationValue::operator()(
         ) {
             #include "cuda_kernel_defines.h"
 
-            SHARED typename Psi_t::dtype local_energy;
+            SHARED complex_t local_energy;
             op_kernel.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
 
             SINGLE {
@@ -85,7 +85,7 @@ Array<complex_t> ExpectationValue::operator()(
         ) {
             #include "cuda_kernel_defines.h"
 
-            SHARED typename Psi_t::dtype local_energy;
+            SHARED complex_t local_energy;
             SHARED_MEM_LOOP_BEGIN(n, num_operators) {
                 operator_kernel_ptr[n].local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
 
@@ -124,7 +124,7 @@ complex<double> ExpectationValue::operator()(
         ) {
             #include "cuda_kernel_defines.h"
 
-            SHARED typename Psi_t::dtype    local_energy;
+            SHARED complex_t    local_energy;
             SHARED typename Psi_t::dtype    log_psi;
             SHARED typename Psi_t::Payload  payload;
             SHARED double                   prob_ratio;
@@ -134,7 +134,7 @@ complex<double> ExpectationValue::operator()(
             op_kernel.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
 
             SINGLE {
-                prob_ratio = exp(2.0 * (log_psi.real() - log_psi_sampling.real()));
+                prob_ratio = exp(2.0 * (get_real<double>(log_psi) - get_real<double>(log_psi_sampling)));
                 generic_atomicAdd(A_local_ptr, weight * prob_ratio * local_energy);
             }
         }
@@ -171,7 +171,7 @@ pair<double, complex<double>> ExpectationValue::fluctuation(
         ) {
             #include "cuda_kernel_defines.h"
 
-            SHARED typename Psi_t::dtype local_energy;
+            SHARED complex_t local_energy;
             op_kernel.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
 
             SINGLE {
@@ -215,7 +215,7 @@ pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(
         ) {
             #include "cuda_kernel_defines.h"
 
-            SHARED typename Psi_t::dtype local_energy;
+            SHARED complex_t local_energy;
             op_kernel.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
 
             SINGLE {
@@ -268,7 +268,7 @@ pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(
         ) {
             #include "cuda_kernel_defines.h"
 
-            SHARED typename Psi_t::dtype local_energy;
+            SHARED complex_t local_energy;
             op_kernel.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
 
             SINGLE {

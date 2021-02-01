@@ -43,7 +43,7 @@ void kernel::HilbertSpaceDistance::compute_averages(
             using dtype = typename Psi_t::dtype;
             using real_dtype = typename Psi_t::real_dtype;
 
-            SHARED dtype local_energy;
+            SHARED complex_t local_energy;
             op.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
 
             SHARED dtype                            log_psi_prime;
@@ -52,7 +52,7 @@ void kernel::HilbertSpaceDistance::compute_averages(
             psi_prime_kernel.init_payload(payload_prime, configuration);
             psi_prime_kernel.log_psi_s(log_psi_prime, configuration, payload_prime);
 
-            SHARED dtype       omega;
+            SHARED complex_t       omega;
             SHARED real_dtype  probability_ratio;
 
             SINGLE {
@@ -70,7 +70,7 @@ void kernel::HilbertSpaceDistance::compute_averages(
                         weight * exp(real_dtype(2.0) * local_energy.real())
                     );
                 }
-                probability_ratio = exp(real_dtype(2.0) * (log_psi_prime.real() - log_psi.real()));
+                probability_ratio = exp(real_dtype(2.0) * (get_real<double>(log_psi_prime) - get_real<double>(log_psi)));
 
                 generic_atomicAdd(this_.omega_avg, weight * omega);
                 generic_atomicAdd(this_.probability_ratio_avg, weight * probability_ratio);

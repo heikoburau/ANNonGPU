@@ -43,6 +43,24 @@ using complex_tensor = xt::pytensor<std::complex<real_dtype>, dim>;
 template<unsigned int dim, typename dtype = double>
 using real_tensor = xt::pytensor<dtype, dim>;
 
+
+template<typename dtype, unsigned int dim>
+struct std_tensor_t;
+
+template<unsigned int dim>
+struct std_tensor_t<double, dim> {
+    using type = xt::pytensor<double, dim>;
+};
+
+template<unsigned int dim>
+struct std_tensor_t<complex_t, dim> {
+    using type = xt::pytensor<std::complex<double>, dim>;
+};
+
+template<typename dtype, unsigned int dim>
+using std_tensor = typename std_tensor_t<dtype, dim>::type;
+
+
 // Python Module and Docstrings
 
 PYBIND11_MODULE(_pyANNonGPU, m)
@@ -52,11 +70,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<PsiDeep>(m, "PsiDeep")
         .def(py::init<
             const unsigned int,
-            const complex_tensor<1u, PsiDeep::real_dtype>&,
-            const vector<complex_tensor<1u, PsiDeep::real_dtype>>&,
+            const std_tensor<PsiDeep::dtype, 1u>&,
+            const vector<std_tensor<PsiDeep::dtype, 1u>>&,
             const vector<xt::pytensor<unsigned int, 2u>>&,
-            const vector<complex_tensor<2u, PsiDeep::real_dtype>>&,
-            const complex_tensor<1u, PsiDeep::real_dtype>&,
+            const vector<std_tensor<PsiDeep::dtype, 2u>>&,
+            const std_tensor<PsiDeep::dtype, 1u>&,
             const double,
             const bool
         >())
@@ -65,8 +83,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_readwrite("prefactor", &PsiDeep::prefactor)
         .def_property(
             "log_prefactor",
-            [](const PsiDeep& psi) {return psi.log_prefactor.to_std();},
-            [](PsiDeep& psi, complex<double> value) {psi.log_prefactor = complex_t(value);}
+            [](const PsiDeep& psi) {return cuda_complex::to_std(psi.log_prefactor);},
+            [](PsiDeep& psi, typename std_dtype<PsiDeep::dtype>::type value) {psi.log_prefactor = PsiDeep::dtype(value);}
         )
         .def_readwrite("N_i", &PsiDeep::N_i)
         .def_readwrite("N_j", &PsiDeep::N_j)
@@ -76,8 +94,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property(
             "params",
             [](const PsiDeep& psi) {return psi.get_params().to_pytensor_1d();},
-            [](PsiDeep& psi, const complex_tensor<1u, PsiDeep::real_dtype>& new_params) {
-                psi.set_params(Array<typename PsiDeep::dtype>(new_params, false));
+            [](PsiDeep& psi, const std_tensor<PsiDeep::dtype, 1u>& new_params) {
+                psi.set_params(Array<PsiDeep::dtype>(new_params, false));
             }
         )
         .def_property_readonly("symmetric", [](const PsiDeep& psi){return psi.is_symmetric();})

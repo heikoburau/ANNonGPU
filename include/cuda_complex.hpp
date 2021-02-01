@@ -944,6 +944,13 @@ conj(const complex<_Tp>& __c)
     return complex<_Tp>(__c.real(), -__c.imag());
 }
 
+CUDA_CALLABLE_MEMBER
+double
+conj(const double& __c)
+{
+    return __c;
+}
+
 // proj
 
 template<class _Tp>
@@ -1428,6 +1435,15 @@ template<>
 struct get_real_type<float> {
     typedef float type;
 };
+
+
+inline std::complex<double> to_std(const complex<double>& c) {
+    return std::complex<double>(c.real(), c.imag());
+}
+
+inline double to_std(const double& c) {
+    return c;
+}
 
 
 } // close namespace cuda_complex

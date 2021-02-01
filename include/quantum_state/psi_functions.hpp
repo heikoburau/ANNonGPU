@@ -24,10 +24,27 @@ T deep_activation_diff(const T z) {
     return complex_t(1.0) / (co * co);
 }
 
+template<>
+HDINLINE
+double deep_activation(const double z) {
+    // return complex_t(1.0, 0.0) * z * log(cosh(z));
+    return tanh(z);
+}
+
+template<>
+HDINLINE
+double deep_activation_diff(const double z) {
+    // return complex_t(1.0, 0.0) * (
+    //     log(cosh(z)) + z * tanh(z)
+    // );
+    const auto co = cosh(z);
+    return 1.0 / (co * co);
+}
+
 template<typename T>
 HDINLINE
 T my_logcosh(const T z) {
-    using scalar = typename T::value_type;
+    // using scalar = typename T::value_type;
 
     // const auto r = abs(z);
     // if(r < b) {
@@ -79,7 +96,7 @@ T my_logcosh(const T z) {
 template<typename T>
 HDINLINE
 T my_tanh(const T z) {
-    using scalar = typename T::value_type;
+    // using scalar = typename T::value_type;
     // const auto r = abs(z);
     // if(r < b) {
     //     return complex_t(0.0, 0.0);
@@ -137,17 +154,18 @@ T my_tanh(const T z) {
 
 
 HDINLINE double my_logcosh(const double& x) {
-    if (x > 0.0) {
-        return x;
-    }
-    return 0.0;
+    // if (x > 0.0) {
+    //     return x;
+    // }
+    // return 0.0;
+    return log(cosh(x));
     // return tanh(x);
     // return x;
 }
 
 HDINLINE double my_tanh(const double& x) {
-    return 1.0;
-    // return tanh(x);
+    // return 1.0;
+    return tanh(x);
     // const auto y = cosh(x);
     // return 1.0 / (y * y);
     // if (x > 0.0) {

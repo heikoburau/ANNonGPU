@@ -25,7 +25,7 @@ Array<complex_t> apply_operator(Psi_t& psi, const Operator_t& op, Ensemble& ense
         ) {
             #include "cuda_kernel_defines.h"
 
-            SHARED typename Psi_t::dtype local_energy;
+            SHARED complex_t local_energy;
             op_kernel.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
 
             SINGLE {

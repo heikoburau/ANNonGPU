@@ -35,7 +35,7 @@
 //             SHARED complex_t log_psi_prime;
 //             psi_prime_kernel.log_psi_s(log_psi_prime, spins, payload);
 
-//             SHARED typename Psi_t::dtype local_energy;
+//             SHARED complex_t local_energy;
 //             op.local_energy(local_energy, psi_kernel, spins, log_psi, angles, payload);
 
 //             SHARED complex_t diff;

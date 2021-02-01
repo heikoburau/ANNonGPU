@@ -32,7 +32,7 @@ struct Operator {
     template<typename Psi_t, typename Basis_t>
     HDINLINE
     void nth_local_energy(
-        typename Psi_t::dtype& result,
+        complex_t& result,
         unsigned int n,
         const Psi_t& psi,
         const Basis_t& configuration,
@@ -78,7 +78,7 @@ struct Operator {
     template<typename Psi_t, typename Basis_t>
     HDINLINE
     void local_energy(
-        typename Psi_t::dtype& result,
+        complex_t& result,
         const Psi_t& psi,
         const Basis_t& configuration,
         const typename Psi_t::dtype& log_psi,
