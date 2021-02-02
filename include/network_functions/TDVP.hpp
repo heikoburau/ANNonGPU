@@ -22,7 +22,7 @@ struct TDVP {
     Array<complex_t> S_matrix;
     Array<complex_t> F_vector;
 
-    // Array<double>    prob_ratio;
+    Array<double>    prob_ratio;
 
     unique_ptr<Array<complex_t>> O_k_samples;
     unique_ptr<Array<double>>    weight_samples;
@@ -33,8 +33,8 @@ struct TDVP {
     E_local(1, gpu),
     O_k_ar(num_params, gpu),
     S_matrix(num_params * num_params, gpu),
-    F_vector(num_params, gpu)
-    // prob_ratio(1, gpu)
+    F_vector(num_params, gpu),
+    prob_ratio(1, gpu)
     {}
 
     template<typename Psi_t, typename Ensemble>

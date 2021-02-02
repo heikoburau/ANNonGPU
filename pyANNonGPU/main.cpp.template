@@ -338,7 +338,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("S_matrix", [](const TDVP& tdvp){return tdvp.S_matrix.to_pytensor_2d({tdvp.num_params, tdvp.num_params});})
         .def_property_readonly("F_vector", [](const TDVP& tdvp){return tdvp.F_vector.to_pytensor_1d();})
         //! begin template
-        .def("eval", &TDVP::eval<AllPsi, Ensemble<Basis>>)
+        .def("eval", &TDVP::eval<ClPsi, Ensemble<Basis>>)
         //! end template
         ;
 

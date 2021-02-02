@@ -17,16 +17,19 @@ def new_classical_network(
 ):
     assert order in (1, 2)
 
-    H_local = list(H_local)
-    for h in H_local:
-        h.assign(1)
+    # H_local = list(H_local)
+    # for h in H_local:
+    #     h.assign(1)
 
     prefactor = 1 / 4**(num_sites / 2) if use_super_operator else 1 / 2**(num_sites / 2)
 
     if order == 1:
-        num_params = len(H_local)
+        num_params = len(H_local) if symmetric else len(H_local) * num_sites
         if params == 0:
             params = np.zeros(num_params, dtype=complex)
+
+        if not symmetric:
+            H_local = [h.roll(i, num_sites) for i in range(num_sites) for h in H_local]
 
         if use_super_operator:
             H_local = [pyANNonGPU.SuperOperator.from_expr(h, U_matrix, gpu) for h in H_local]

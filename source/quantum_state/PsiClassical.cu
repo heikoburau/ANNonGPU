@@ -50,10 +50,13 @@ void PsiClassical_t<dtype, Operator_t, order, symmetric, PsiRef>::init_kernel() 
 
         this->m_1_squared.begin_params = this->m_2.end_params;
 
-        if(symmetric) {
-            this->m_1_squared.num_ll_pairs = this->H_local.size() * (this->H_local.size() + 1u) / 2u;
 
-            for(auto l = 0u; l < this->H_local.size(); l++) {
+
+        if(symmetric) {
+            const auto num_pairs = this->num_params - this->m_1_squared.begin_params;
+            const auto distance = num_pairs / (this->H_local.size() * (this->H_local.size() + 1u) / 2u);
+
+            for(auto l = 0u; l < distance * this->H_local.size(); l++) {
                 for(auto l_prime = 0u; l_prime <= l; l_prime++) {
                     this->ids_l.push_back(l);
                     this->ids_l_prime.push_back(l_prime);

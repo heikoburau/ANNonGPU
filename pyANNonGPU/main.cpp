@@ -909,15 +909,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def(py::init<unsigned int, bool>())
         .def_property_readonly("S_matrix", [](const TDVP& tdvp){return tdvp.S_matrix.to_pytensor_2d({tdvp.num_params, tdvp.num_params});})
         .def_property_readonly("F_vector", [](const TDVP& tdvp){return tdvp.F_vector.to_pytensor_1d();})
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
-        .def("eval", &TDVP::eval<PsiDeep, MonteCarlo_tt<Spins>>)
-#endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
-        .def("eval", &TDVP::eval<PsiDeepSigned, MonteCarlo_tt<Spins>>)
-#endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval", &TDVP::eval<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
-#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
 #endif
@@ -929,15 +920,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval", &TDVP::eval<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
-#endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
-        .def("eval", &TDVP::eval<PsiDeep, MonteCarlo_tt<PauliString>>)
-#endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
-        .def("eval", &TDVP::eval<PsiDeepSigned, MonteCarlo_tt<PauliString>>)
-#endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval", &TDVP::eval<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
@@ -951,15 +933,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval", &TDVP::eval<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
-        .def("eval", &TDVP::eval<PsiDeep, ExactSummation_t<Spins>>)
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
-        .def("eval", &TDVP::eval<PsiDeepSigned, ExactSummation_t<Spins>>)
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval", &TDVP::eval<PsiFullyPolarized, ExactSummation_t<Spins>>)
-#endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
 #endif
@@ -971,15 +944,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval", &TDVP::eval<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
-        .def("eval", &TDVP::eval<PsiDeep, ExactSummation_t<PauliString>>)
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
-        .def("eval", &TDVP::eval<PsiDeepSigned, ExactSummation_t<PauliString>>)
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval", &TDVP::eval<PsiFullyPolarized, ExactSummation_t<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
