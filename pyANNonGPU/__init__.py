@@ -1,6 +1,6 @@
 from ._pyANNonGPU import *
 
-from .PsiDeep import PsiDeep
+from .PsiDeep import PsiDeep, PsiDeepSigned
 
 from .new_neural_network import (
     new_deep_neural_network

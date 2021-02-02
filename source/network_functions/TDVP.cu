@@ -162,6 +162,9 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
 template void TDVP::eval(const Operator_t&, PsiDeep&, MonteCarlo_tt<Spins>&);
 #endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
+template void TDVP::eval(const Operator_t&, PsiDeepSigned&, MonteCarlo_tt<Spins>&);
+#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template void TDVP::eval(const Operator_t&, PsiFullyPolarized&, MonteCarlo_tt<Spins>&);
 #endif
@@ -179,6 +182,9 @@ template void TDVP::eval(const Operator_t&, PsiClassicalANN<2u>&, MonteCarlo_tt<
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
 template void TDVP::eval(const Operator_t&, PsiDeep&, MonteCarlo_tt<PauliString>&);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
+template void TDVP::eval(const Operator_t&, PsiDeepSigned&, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template void TDVP::eval(const Operator_t&, PsiFullyPolarized&, MonteCarlo_tt<PauliString>&);
@@ -198,6 +204,9 @@ template void TDVP::eval(const Operator_t&, PsiClassicalANN<2u>&, MonteCarlo_tt<
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
 template void TDVP::eval(const Operator_t&, PsiDeep&, ExactSummation_t<Spins>&);
 #endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
+template void TDVP::eval(const Operator_t&, PsiDeepSigned&, ExactSummation_t<Spins>&);
+#endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template void TDVP::eval(const Operator_t&, PsiFullyPolarized&, ExactSummation_t<Spins>&);
 #endif
@@ -215,6 +224,9 @@ template void TDVP::eval(const Operator_t&, PsiClassicalANN<2u>&, ExactSummation
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
 template void TDVP::eval(const Operator_t&, PsiDeep&, ExactSummation_t<PauliString>&);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
+template void TDVP::eval(const Operator_t&, PsiDeepSigned&, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template void TDVP::eval(const Operator_t&, PsiFullyPolarized&, ExactSummation_t<PauliString>&);

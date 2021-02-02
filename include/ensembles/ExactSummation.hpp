@@ -62,7 +62,7 @@ struct ExactSummation_t {
             SYNC;
 
             SINGLE {
-                weight = psi.probability_s(get_real<typename Psi_t::dtype>(log_psi));
+                weight = psi.probability_s(get_real<double>(log_psi));
             }
 
             SYNC;

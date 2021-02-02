@@ -1,5 +1,6 @@
 from pyANNonGPU import apply_operator, Operator
 import numpy as np
+# from pathlib import Path
 
 
 def test_operator(psi_all, all_operators, ensemble, gpu):
@@ -15,6 +16,11 @@ def test_operator(psi_all, all_operators, ensemble, gpu):
     op = Operator(expr, psi.gpu)
 
     vector = psi.vector(ensemble)
-    vector_prime = apply_operator(psi, op, ensemble)
+    test_vector = apply_operator(psi, op, ensemble)
 
-    assert np.allclose(expr @ vector, vector_prime)
+    ref_vector = expr @ vector
+
+    # np.save(Path.home() / "ref_vector.npy", ref_vector)
+    # np.save(Path.home() / "test_vector.npy", test_vector)
+
+    assert np.allclose(ref_vector, test_vector)

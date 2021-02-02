@@ -1,4 +1,4 @@
-from pyANNonGPU import PsiDeep
+from pyANNonGPU import PsiDeep, PsiDeepSigned
 
 
 import numpy as np
@@ -14,6 +14,13 @@ def complex_noise(shape):
     return real_noise(shape) + 1j * real_noise(shape)
 
 
+def noise_vector(shape, real=True):
+    if real:
+        return real_noise(shape)
+    else:
+        return complex_noise(shape)
+
+
 def new_deep_neural_network(
     num_sites,
     N,
@@ -24,8 +31,15 @@ def new_deep_neural_network(
     noise=1e-4,
     gpu=False,
     noise_modulation="auto",
-    final_weights=10
+    final_weights=10,
+    signed=False
 ):
+    if signed:
+        return PsiDeepSigned(
+            new_deep_neural_network(num_sites, N, M, C, initial_value.real, a, noise, gpu, noise_modulation, final_weights, False),
+            new_deep_neural_network(num_sites, N, M, C, initial_value.real, a, noise, gpu, noise_modulation, final_weights, False)
+        )
+
     dim = len(N) if isinstance(N, (list, tuple)) else 1
 
     N_linear = N if dim == 1 else N[0] * N[1]
@@ -47,8 +61,10 @@ def new_deep_neural_network(
     else:
         a = np.array(a)
 
-    b = [noise * complex_noise(m) for m in M_linear]
-    w = noise * complex_noise((C_linear[0], M_linear[0]))
+    is_real = (initial_value.imag == 0)
+
+    b = [noise * noise_vector(m, is_real) for m in M_linear]
+    w = noise * noise_vector((C_linear[0], M_linear[0]), is_real)
     w[C_linear[0] // 2, :] += initial_value
     W = [w]
 
@@ -63,7 +79,7 @@ def new_deep_neural_network(
             # Wenn hier complex noise verwendet wird, wirds unbrauchbar. Es scheint die Lokalitaet zu zerstoeren.
             math.sqrt(6 / (c + next_c)) * real_noise((c, m)) +
             # 1j * math.sqrt(6 / (c + next_c)) / 1e2 * real_noise((c, m)) +
-            noise * complex_noise((c, m))
+            noise * noise_vector((c, m), is_real)
         )
         W.append(w)
 

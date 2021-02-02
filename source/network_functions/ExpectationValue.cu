@@ -196,11 +196,15 @@ pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(
     const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble
 ) {
     Array<complex_t> result(psi.num_params, psi.gpu);
+    Array<complex_t> O_k_list(psi.num_params, psi.gpu);
+
     result.clear();
+    O_k_list.clear();
     this->A_local.clear();
 
-    auto A_local_ptr = this->A_local.data();
     auto result_ptr = result.data();
+    auto O_k_ptr = O_k_list.data();
+    auto A_local_ptr = this->A_local.data();
     auto psi_kernel = psi.kernel();
     auto op_kernel = operator_.kernel();
 
@@ -227,14 +231,20 @@ pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(
                 configuration,
                 payload,
                 [&](const unsigned int k, const complex_t& O_k) {
-                    generic_atomicAdd(&result_ptr[k], weight * 2.0 * conj(O_k) * local_energy);
+                    generic_atomicAdd(&O_k_ptr[k], weight * conj(O_k));
+                    generic_atomicAdd(&result_ptr[k], weight * conj(O_k) * local_energy);
                 }
             );
         }
     );
 
-    this->A_local.update_host();
     result.update_host();
+    O_k_list.update_host();
+    this->A_local.update_host();
+
+    for(auto k = 0u; k < psi.num_params; k++) {
+        result[k] -= this->A_local.front() * O_k_list[k];
+    }
 
     return {result, this->A_local.front().to_std()};
 }
@@ -247,56 +257,56 @@ pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(
     Array<complex_t> result(psi.num_params, psi.gpu);
     Array<double> result2(psi.num_params, psi.gpu);
 
-    result.clear();
-    result2.clear();
-    this->A_local.clear();
+    // result.clear();
+    // result2.clear();
+    // this->A_local.clear();
 
-    auto A_local_ptr = this->A_local.data();
-    auto result_ptr = result.data();
-    auto result2_ptr = result2.data();
-    auto psi_kernel = psi.kernel();
-    auto op_kernel = operator_.kernel();
+    // auto A_local_ptr = this->A_local.data();
+    // auto result_ptr = result.data();
+    // auto result2_ptr = result2.data();
+    // auto psi_kernel = psi.kernel();
+    // auto op_kernel = operator_.kernel();
 
-    ensemble.foreach(
-        psi,
-        [=] __device__ __host__ (
-            const unsigned int spin_index,
-            const typename Ensemble::Basis_t& configuration,
-            const typename Psi_t::dtype log_psi,
-            typename Psi_t::Payload& payload,
-            const typename Psi_t::real_dtype weight
-        ) {
-            #include "cuda_kernel_defines.h"
+    // ensemble.foreach(
+    //     psi,
+    //     [=] __device__ __host__ (
+    //         const unsigned int spin_index,
+    //         const typename Ensemble::Basis_t& configuration,
+    //         const typename Psi_t::dtype log_psi,
+    //         typename Psi_t::Payload& payload,
+    //         const typename Psi_t::real_dtype weight
+    //     ) {
+    //         #include "cuda_kernel_defines.h"
 
-            SHARED complex_t local_energy;
-            op_kernel.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
+    //         SHARED complex_t local_energy;
+    //         op_kernel.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
 
-            SINGLE {
-                generic_atomicAdd(A_local_ptr, weight * local_energy);
-            }
+    //         SINGLE {
+    //             generic_atomicAdd(A_local_ptr, weight * local_energy);
+    //         }
 
-            psi_kernel.init_payload(payload, configuration);
-            psi_kernel.foreach_O_k(
-                configuration,
-                payload,
-                [&](const unsigned int k, const complex_t& O_k) {
-                    const auto val = 2.0 * conj(O_k) * local_energy;
-                    generic_atomicAdd(&result_ptr[k], weight * val);
-                    generic_atomicAdd(&result2_ptr[k], weight * abs2(val));
-                }
-            );
-        }
-    );
+    //         psi_kernel.init_payload(payload, configuration);
+    //         psi_kernel.foreach_O_k(
+    //             configuration,
+    //             payload,
+    //             [&](const unsigned int k, const complex_t& O_k) {
+    //                 const auto val = 2.0 * conj(O_k) * local_energy;
+    //                 generic_atomicAdd(&result_ptr[k], weight * val);
+    //                 generic_atomicAdd(&result2_ptr[k], weight * abs2(val));
+    //             }
+    //         );
+    //     }
+    // );
 
-    this->A_local.update_host();
-    result.update_host();
-    result2.update_host();
+    // this->A_local.update_host();
+    // result.update_host();
+    // result2.update_host();
 
-    for(auto k = 0u; k < psi.num_params; k++) {
-        result2[k] -= abs2(result[k]);
-        result2[k] /= ensemble.get_num_steps();
-        result2[k] = sqrt(result2[k]);
-    }
+    // for(auto k = 0u; k < psi.num_params; k++) {
+    //     result2[k] -= abs2(result[k]);
+    //     result2[k] /= ensemble.get_num_steps();
+    //     result2[k] = sqrt(result2[k]);
+    // }
 
     return make_pair(result, result2);
 }
@@ -308,6 +318,14 @@ template complex<double> ExpectationValue::operator()(const Operator_t&, PsiDeep
 template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiDeep&, MonteCarlo_tt<Spins>&);
 template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiDeep& psi, MonteCarlo_tt<Spins>&);
 template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiDeep& psi, MonteCarlo_tt<Spins>&);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
+template complex<double> ExpectationValue::operator()(const Operator_t&, PsiDeepSigned& psi, MonteCarlo_tt<Spins>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiDeepSigned& psi, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator_t&, PsiDeepSigned& psi, PsiDeep&, MonteCarlo_tt<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiDeepSigned&, MonteCarlo_tt<Spins>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiDeepSigned& psi, MonteCarlo_tt<Spins>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiDeepSigned& psi, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template complex<double> ExpectationValue::operator()(const Operator_t&, PsiFullyPolarized& psi, MonteCarlo_tt<Spins>&);
@@ -357,6 +375,14 @@ template pair<double, complex<double>> ExpectationValue::fluctuation(const Opera
 template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiDeep& psi, MonteCarlo_tt<PauliString>&);
 template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiDeep& psi, MonteCarlo_tt<PauliString>&);
 #endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
+template complex<double> ExpectationValue::operator()(const Operator_t&, PsiDeepSigned& psi, MonteCarlo_tt<PauliString>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiDeepSigned& psi, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator_t&, PsiDeepSigned& psi, PsiDeep&, MonteCarlo_tt<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiDeepSigned&, MonteCarlo_tt<PauliString>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiDeepSigned& psi, MonteCarlo_tt<PauliString>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiDeepSigned& psi, MonteCarlo_tt<PauliString>&);
+#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template complex<double> ExpectationValue::operator()(const Operator_t&, PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>&);
 template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>&);
@@ -405,6 +431,14 @@ template pair<double, complex<double>> ExpectationValue::fluctuation(const Opera
 template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiDeep& psi, ExactSummation_t<Spins>&);
 template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiDeep& psi, ExactSummation_t<Spins>&);
 #endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
+template complex<double> ExpectationValue::operator()(const Operator_t&, PsiDeepSigned& psi, ExactSummation_t<Spins>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiDeepSigned& psi, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator_t&, PsiDeepSigned& psi, PsiDeep&, ExactSummation_t<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiDeepSigned&, ExactSummation_t<Spins>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiDeepSigned& psi, ExactSummation_t<Spins>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiDeepSigned& psi, ExactSummation_t<Spins>&);
+#endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template complex<double> ExpectationValue::operator()(const Operator_t&, PsiFullyPolarized& psi, ExactSummation_t<Spins>&);
 template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiFullyPolarized& psi, ExactSummation_t<Spins>&);
@@ -452,6 +486,14 @@ template complex<double> ExpectationValue::operator()(const Operator_t&, PsiDeep
 template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiDeep&, ExactSummation_t<PauliString>&);
 template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiDeep& psi, ExactSummation_t<PauliString>&);
 template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiDeep& psi, ExactSummation_t<PauliString>&);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
+template complex<double> ExpectationValue::operator()(const Operator_t&, PsiDeepSigned& psi, ExactSummation_t<PauliString>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiDeepSigned& psi, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator_t&, PsiDeepSigned& psi, PsiDeep&, ExactSummation_t<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiDeepSigned&, ExactSummation_t<PauliString>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiDeepSigned& psi, ExactSummation_t<PauliString>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiDeepSigned& psi, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template complex<double> ExpectationValue::operator()(const Operator_t&, PsiFullyPolarized& psi, ExactSummation_t<PauliString>&);

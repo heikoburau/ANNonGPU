@@ -113,6 +113,41 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         #endif // ENABLE_EXACT_SUMMATION
         ;
 
+    py::class_<PsiDeepSigned>(m, "PsiDeepSigned")
+        .def(py::init<
+            const PsiDeepT<double, PsiDeepSigned::symmetric>&,
+            const PsiDeepT<double, PsiDeepSigned::symmetric>&
+        >())
+        .def("copy", &PsiDeepSigned::copy)
+        .def("__pos__", &PsiDeepSigned::copy)
+        .def_readwrite("num_sites", &PsiDeepSigned::num_sites)
+        .def_readwrite("prefactor", &PsiDeepSigned::prefactor)
+        .def_property(
+            "log_prefactor",
+            [](const PsiDeepSigned& psi) {return cuda_complex::to_std(psi.log_prefactor);},
+            [](PsiDeepSigned& psi, typename std_dtype<PsiDeepSigned::dtype>::type value) {psi.log_prefactor = PsiDeepSigned::dtype(value);}
+        )
+        .def_readonly("plus", &PsiDeepSigned::psi_plus)
+        .def_readonly("minus", &PsiDeepSigned::psi_minus)
+        .def_readonly("gpu", &PsiDeepSigned::gpu)
+        .def_readonly("N", &PsiDeepSigned::N)
+        .def_readonly("num_params", &PsiDeepSigned::num_params)
+        .def_property(
+            "params",
+            [](const PsiDeepSigned& psi) {return psi.get_params().to_pytensor_1d();},
+            [](PsiDeepSigned& psi, const real_tensor<1u>& new_params) {
+                psi.set_params(Array<double>(new_params, false));
+            }
+        )
+        .def_property_readonly("symmetric", [](const PsiDeepSigned& psi){return psi.is_symmetric();})
+        #ifdef ENABLE_EXACT_SUMMATION
+        //! begin template
+        .def("vector", [](PsiDeepSigned& psi, ExactSummation_t<Basis>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
+        .def("norm", [](PsiDeepSigned& psi, ExactSummation_t<Basis>& exact_summation) {return psi_norm(psi, exact_summation);})
+        //! end template
+        #endif // ENABLE_EXACT_SUMMATION
+        ;
+
     //! begin template
     py::class_<ClPsi>(m, "ClPsi{name}")
         .def(py::init<

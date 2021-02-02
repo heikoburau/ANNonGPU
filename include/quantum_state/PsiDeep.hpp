@@ -149,7 +149,7 @@ struct PsiDeepT {
                     (double)configuration.network_unit_at(layer.lhs_connection(i, j))
                 );
             }
-            angles[j] += layer.biases[j];
+            // angles[j] += layer.biases[j];
         }
         SYNC;
     }
@@ -192,7 +192,7 @@ struct PsiDeepT {
                         activations[layer.lhs_connection(i, j)]
                     );
                 }
-                REGISTER(activation, j) += layer.biases[j];
+                // REGISTER(activation, j) += layer.biases[j];
 
                 if(deep_angles != nullptr) {
                     deep_angles[layer.begin_deep_angles + j] = REGISTER(activation, j);
@@ -231,9 +231,9 @@ struct PsiDeepT {
         if(symmetric) {
             SHARED_MEM_LOOP_BEGIN(n, this->num_sites) {
 
-                MULTI(i, this->N) {
-                    generic_atomicAdd(&result, result_dtype(shifted_configuration.network_unit_at(i)) * this->input_weights[i]);
-                }
+                // MULTI(i, this->N) {
+                //     generic_atomicAdd(&result, result_dtype(shifted_configuration.network_unit_at(i)) * this->input_weights[i]);
+                // }
 
                 this->compute_angles(payload.activations, shifted_configuration);
                 this->forward_pass(result, payload.activations, payload.activations, nullptr);
@@ -253,9 +253,9 @@ struct PsiDeepT {
             SYNC; // might be not neccessary
         }
         else {
-            MULTI(i, this->N) {
-                generic_atomicAdd(&result, result_dtype(configuration.network_unit_at(i)) * this->input_weights[i]);
-            }
+            // MULTI(i, this->N) {
+            //     generic_atomicAdd(&result, result_dtype(configuration.network_unit_at(i)) * this->input_weights[i]);
+            // }
 
             this->forward_pass(result, payload.angles, payload.activations, nullptr);
         }

@@ -1,4 +1,4 @@
-from ._pyANNonGPU import PsiDeep, log_psi
+from ._pyANNonGPU import PsiDeep, PsiDeepSigned, log_psi
 from .json_numpy import NumpyEncoder, NumpyDecoder
 import json
 
@@ -80,3 +80,6 @@ setattr(PsiDeep, "calibrate", calibrate)
 setattr(PsiDeep, "__pos__", __pos__)
 setattr(PsiDeep, "vector", vector)
 setattr(PsiDeep, "first_layer_params_slice", first_layer_params_slice)
+
+
+setattr(PsiDeepSigned, "normalize", normalize)

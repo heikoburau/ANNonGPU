@@ -123,6 +123,45 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         #endif // ENABLE_EXACT_SUMMATION
         ;
 
+    py::class_<PsiDeepSigned>(m, "PsiDeepSigned")
+        .def(py::init<
+            const PsiDeepT<double, PsiDeepSigned::symmetric>&,
+            const PsiDeepT<double, PsiDeepSigned::symmetric>&
+        >())
+        .def("copy", &PsiDeepSigned::copy)
+        .def("__pos__", &PsiDeepSigned::copy)
+        .def_readwrite("num_sites", &PsiDeepSigned::num_sites)
+        .def_readwrite("prefactor", &PsiDeepSigned::prefactor)
+        .def_property(
+            "log_prefactor",
+            [](const PsiDeepSigned& psi) {return cuda_complex::to_std(psi.log_prefactor);},
+            [](PsiDeepSigned& psi, typename std_dtype<PsiDeepSigned::dtype>::type value) {psi.log_prefactor = PsiDeepSigned::dtype(value);}
+        )
+        .def_readonly("plus", &PsiDeepSigned::psi_plus)
+        .def_readonly("minus", &PsiDeepSigned::psi_minus)
+        .def_readonly("gpu", &PsiDeepSigned::gpu)
+        .def_readonly("N", &PsiDeepSigned::N)
+        .def_readonly("num_params", &PsiDeepSigned::num_params)
+        .def_property(
+            "params",
+            [](const PsiDeepSigned& psi) {return psi.get_params().to_pytensor_1d();},
+            [](PsiDeepSigned& psi, const real_tensor<1u>& new_params) {
+                psi.set_params(Array<double>(new_params, false));
+            }
+        )
+        .def_property_readonly("symmetric", [](const PsiDeepSigned& psi){return psi.is_symmetric();})
+        #ifdef ENABLE_EXACT_SUMMATION
+#if defined(ENABLE_SPINS)
+        .def("vector", [](PsiDeepSigned& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
+        .def("norm", [](PsiDeepSigned& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
+#endif
+#if defined(ENABLE_PAULIS)
+        .def("vector", [](PsiDeepSigned& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
+        .def("norm", [](PsiDeepSigned& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
+#endif
+        #endif // ENABLE_EXACT_SUMMATION
+        ;
+
 #if defined(ENABLE_PSI_CLASSICAL)
     py::class_<PsiClassicalFP<1u>>(m, "PsiClassicalFP_1")
         .def(py::init<
@@ -428,6 +467,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &ExpectationValue::gradient_py<PsiDeep, MonteCarlo_tt<Spins>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<Spins>>)
 #endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
+        .def("__call__", &ExpectationValue::__call__<PsiDeepSigned, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeepSigned, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiDeepSigned, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeepSigned, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeepSigned, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeepSigned, MonteCarlo_tt<Spins>>)
+#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
         .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
@@ -475,6 +522,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("gradient", &ExpectationValue::gradient_py<PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
+        .def("__call__", &ExpectationValue::__call__<PsiDeepSigned, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeepSigned, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiDeepSigned, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeepSigned, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeepSigned, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeepSigned, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
@@ -524,6 +579,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &ExpectationValue::gradient_py<PsiDeep, ExactSummation_t<Spins>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<Spins>>)
 #endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
+        .def("__call__", &ExpectationValue::__call__<PsiDeepSigned, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeepSigned, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiDeepSigned, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeepSigned, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeepSigned, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeepSigned, ExactSummation_t<Spins>>)
+#endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Spins>>)
         .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Spins>>)
@@ -571,6 +634,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<PauliString>>)
         .def("gradient", &ExpectationValue::gradient_py<PsiDeep, ExactSummation_t<PauliString>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
+        .def("__call__", &ExpectationValue::__call__<PsiDeepSigned, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeepSigned, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiDeepSigned, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeepSigned, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeepSigned, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeepSigned, ExactSummation_t<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<PauliString>>)
@@ -841,6 +912,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
         .def("eval", &TDVP::eval<PsiDeep, MonteCarlo_tt<Spins>>)
 #endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
+        .def("eval", &TDVP::eval<PsiDeepSigned, MonteCarlo_tt<Spins>>)
+#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
 #endif
@@ -858,6 +932,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
         .def("eval", &TDVP::eval<PsiDeep, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
+        .def("eval", &TDVP::eval<PsiDeepSigned, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
@@ -877,6 +954,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
         .def("eval", &TDVP::eval<PsiDeep, ExactSummation_t<Spins>>)
 #endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
+        .def("eval", &TDVP::eval<PsiDeepSigned, ExactSummation_t<Spins>>)
+#endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval<PsiFullyPolarized, ExactSummation_t<Spins>>)
 #endif
@@ -894,6 +974,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
         .def("eval", &TDVP::eval<PsiDeep, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
+        .def("eval", &TDVP::eval<PsiDeepSigned, ExactSummation_t<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval<PsiFullyPolarized, ExactSummation_t<PauliString>>)
@@ -920,6 +1003,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return log_psi_s(psi, basis);
     });
     m.def("psi_O_k", [](PsiDeep& psi, const Spins& basis) {
+        return psi_O_k(psi, basis).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_SPINS)
+    m.def("log_psi_s", [](PsiDeepSigned& psi, const Spins& basis) {
+        return log_psi_s(psi, basis);
+    });
+    m.def("psi_O_k", [](PsiDeepSigned& psi, const Spins& basis) {
         return psi_O_k(psi, basis).to_pytensor_1d();
     });
 #endif
@@ -971,6 +1062,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_O_k(psi, basis).to_pytensor_1d();
     });
 #endif
+#if defined(ENABLE_PAULIS)
+    m.def("log_psi_s", [](PsiDeepSigned& psi, const PauliString& basis) {
+        return log_psi_s(psi, basis);
+    });
+    m.def("psi_O_k", [](PsiDeepSigned& psi, const PauliString& basis) {
+        return psi_O_k(psi, basis).to_pytensor_1d();
+    });
+#endif
 #if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
     m.def("log_psi_s", [](PsiFullyPolarized& psi, const PauliString& basis) {
         return log_psi_s(psi, basis);
@@ -1018,6 +1117,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
+#if defined(ENABLE_SPINS)
+    m.def("psi_O_k_vector", [](PsiDeepSigned& psi, ExactSummation_t<Spins>& ensemble) {
+        return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
 #if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
     m.def("psi_O_k_vector", [](PsiFullyPolarized& psi, ExactSummation_t<Spins>& ensemble) {
         return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
@@ -1045,6 +1149,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 #if defined(ENABLE_PAULIS)
     m.def("psi_O_k_vector", [](PsiDeep& psi, ExactSummation_t<PauliString>& ensemble) {
+        return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_PAULIS)
+    m.def("psi_O_k_vector", [](PsiDeepSigned& psi, ExactSummation_t<PauliString>& ensemble) {
         return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
@@ -1083,6 +1192,17 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
     m.def("log_psi_vector", [](PsiDeep& psi, MonteCarlo_tt<Spins>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
+    m.def("log_psi", [](PsiDeepSigned& psi, MonteCarlo_tt<Spins>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiDeepSigned& psi, MonteCarlo_tt<Spins>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiDeepSigned& psi, MonteCarlo_tt<Spins>& ensemble) {
         return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
@@ -1152,6 +1272,17 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
+    m.def("log_psi", [](PsiDeepSigned& psi, MonteCarlo_tt<PauliString>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiDeepSigned& psi, MonteCarlo_tt<PauliString>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiDeepSigned& psi, MonteCarlo_tt<PauliString>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
     m.def("log_psi", [](PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>& ensemble) {
         return log_psi(psi, ensemble);
@@ -1215,6 +1346,17 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
     m.def("log_psi_vector", [](PsiDeep& psi, ExactSummation_t<Spins>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
+    m.def("log_psi", [](PsiDeepSigned& psi, ExactSummation_t<Spins>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiDeepSigned& psi, ExactSummation_t<Spins>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiDeepSigned& psi, ExactSummation_t<Spins>& ensemble) {
         return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
@@ -1284,6 +1426,17 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
+    m.def("log_psi", [](PsiDeepSigned& psi, ExactSummation_t<PauliString>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiDeepSigned& psi, ExactSummation_t<PauliString>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiDeepSigned& psi, ExactSummation_t<PauliString>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
     m.def("log_psi", [](PsiFullyPolarized& psi, ExactSummation_t<PauliString>& ensemble) {
         return log_psi(psi, ensemble);
@@ -1345,6 +1498,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
+    m.def("apply_operator", [](PsiDeepSigned& psi, const Operator_t& op, MonteCarlo_tt<Spins>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
     m.def("apply_operator", [](PsiFullyPolarized& psi, const Operator_t& op, MonteCarlo_tt<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
@@ -1372,6 +1530,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
     m.def("apply_operator", [](PsiDeep& psi, const Operator_t& op, MonteCarlo_tt<PauliString>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
+    m.def("apply_operator", [](PsiDeepSigned& psi, const Operator_t& op, MonteCarlo_tt<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
@@ -1405,6 +1568,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
+    m.def("apply_operator", [](PsiDeepSigned& psi, const Operator_t& op, ExactSummation_t<Spins>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
     m.def("apply_operator", [](PsiFullyPolarized& psi, const Operator_t& op, ExactSummation_t<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
@@ -1432,6 +1600,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
     m.def("apply_operator", [](PsiDeep& psi, const Operator_t& op, ExactSummation_t<PauliString>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
+    m.def("apply_operator", [](PsiDeepSigned& psi, const Operator_t& op, ExactSummation_t<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
