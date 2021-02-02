@@ -140,89 +140,41 @@ struct PsiClassical_t {
         }
     }
 
+    template<typename Basis_t>
     HDINLINE
-    void compute_1st_order_local_energies(const PauliString& configuration, Payload& payload) const {
-        {
-            SHARED_MEM_LOOP_BEGIN(n, this->num_ops_H) {
+    void compute_1st_order_local_energies(const Basis_t& configuration, Payload& payload) const {
+        SHARED_MEM_LOOP_BEGIN(n, this->num_ops_H) {
 
-                this->H_local[n].local_energy(
-                    payload.local_energies[n],
-                    this->psi_ref,
-                    configuration,
-                    payload.log_psi_ref,
-                    payload.ref_payload,
-                    0,
-                    true
-                );
+            this->H_local[n].local_energy(
+                payload.local_energies[n],
+                this->psi_ref,
+                configuration,
+                payload.log_psi_ref,
+                payload.ref_payload,
+                0,
+                true
+            );
 
-                SHARED_MEM_LOOP_END(n);
-            }
-        }
-        // SHARED PauliString conf_mirrored;
-        // SINGLE {
-        //     conf_mirrored = PauliString(0, 0);
-        //     for(auto i = 0u; i < this->num_sites; i++) {
-        //         conf_mirrored.set_at(this->num_sites - i, configuration[i]);
-        //     }
-        // }
-        {
-            SHARED_MEM_LOOP_BEGIN(n, this->num_ops_H) {
-
-                this->H_local[n].local_energy(
-                    payload.local_energies[n],
-                    this->psi_ref,
-                    configuration,
-                    payload.log_psi_ref,
-                    payload.ref_payload,
-                    1,
-                    false
-                );
-
-                SHARED_MEM_LOOP_END(n);
-            }
+            SHARED_MEM_LOOP_END(n);
         }
     }
 
+    template<typename Basis_t>
     HDINLINE
-    void compute_2nd_order_local_energies(const PauliString& configuration, Payload& payload) const {
-        {
-            SHARED_MEM_LOOP_BEGIN(n, this->num_ops_H_2) {
+    void compute_2nd_order_local_energies(const Basis_t& configuration, Payload& payload) const {
+        SHARED_MEM_LOOP_BEGIN(n, this->num_ops_H_2) {
 
-                this->H_2_local[n].local_energy(
-                    payload.local_energies[this->m_2.begin_local_energies + n],
-                    this->psi_ref,
-                    configuration,
-                    payload.log_psi_ref,
-                    payload.ref_payload,
-                    0,
-                    true
-                );
+            this->H_2_local[n].local_energy(
+                payload.local_energies[this->m_2.begin_local_energies + n],
+                this->psi_ref,
+                configuration,
+                payload.log_psi_ref,
+                payload.ref_payload,
+                0,
+                true
+            );
 
-                SHARED_MEM_LOOP_END(n);
-            }
-        }
-        SHARED PauliString conf_mirrored;
-        SINGLE {
-            conf_mirrored = PauliString(0, 0);
-            for(auto i = 0u; i < this->num_sites; i++) {
-                conf_mirrored.set_at(this->num_sites - i, configuration[i]);
-            }
-        }
-        {
-            SHARED_MEM_LOOP_BEGIN(n, this->num_ops_H_2) {
-
-                this->H_2_local[n].local_energy(
-                    payload.local_energies[this->m_2.begin_local_energies + n],
-                    this->psi_ref,
-                    conf_mirrored,
-                    payload.log_psi_ref,
-                    payload.ref_payload,
-                    0,
-                    false
-                );
-
-                SHARED_MEM_LOOP_END(n);
-            }
+            SHARED_MEM_LOOP_END(n);
         }
     }
 
@@ -240,7 +192,6 @@ struct PsiClassical_t {
 
         LOOP(k, this->num_params) {
             generic_atomicAdd(&result, this->params[k] * this->get_O_k(k, payload));
-            // printf("params %d, %f, %f\n", k, this->params[k].real(), this->params[k].imag());
         }
 
         SYNC;
