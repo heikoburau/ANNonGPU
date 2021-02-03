@@ -12,29 +12,23 @@ def new_classical_network(
     params=0,
     psi_ref="fully polarized",
     use_super_operator=False,
-    U_matrix=None,
     gpu=False
 ):
     assert order in (1, 2)
 
-    # H_local = list(H_local)
-    # for h in H_local:
-    #     h.assign(1)
+    H_local = +H_local
+    H_local.assign(1)
 
     prefactor = 1 / 4**(num_sites / 2) if use_super_operator else 1 / 2**(num_sites / 2)
 
     if order == 1:
-        num_params = len(H_local) if symmetric else len(H_local) * num_sites
+        num_params = len(H_local)
         if params == 0:
             params = np.zeros(num_params, dtype=complex)
 
-        if not symmetric:
-            H_local = [h.roll(i, num_sites) for i in range(num_sites) for h in H_local]
-
         if use_super_operator:
-            H_local = [pyANNonGPU.SuperOperator.from_expr(h, U_matrix, gpu) for h in H_local]
-            # H_2_local = [pyANNonGPU.SuperOperator.from_expr(PauliExpression(1), U_matrix, gpu)]
-            H_2_local = []
+            H_local = [pyANNonGPU.SuperOperator.from_expr(h, gpu) for h in H_local]
+            H_2_local = [pyANNonGPU.SuperOperator.from_expr(PauliExpression(1), gpu)]
         else:
             H_local = [pyANNonGPU.Operator(h, gpu) for h in H_local]
             H_2_local = [pyANNonGPU.Operator(PauliExpression(1), gpu)]
@@ -58,46 +52,32 @@ def new_classical_network(
             H_2_local = (H**2).translationally_invariant(distance)
             H_2_local.assign(1)
             H_2_local -= H_2_local[PauliExpression(1).pauli_string]
+        else:
+            H_2_local = H_local**2
+            H_2_local.assign(1)
+            H_2_local -= H_2_local[PauliExpression(1).pauli_string]
 
+        H_local.assign(1)
+
+        if symmetric:
             num_params = (
                 len(H_local) +
                 len(H_2_local) +
                 distance * len(H_local) * (len(H_local) + 1) // 2
             )
         else:
-            cell_size = len(H_local) // num_sites
-
-            H_2_local = []
-            for i in range(len(H_local)):
-                cell_i = i // cell_size
-
-                for cell_j in range(cell_i, cell_i + distance):
-                    cell_j_offset = (cell_j % num_sites) * cell_size
-                    for j in range(cell_j_offset, cell_j_offset + cell_size):
-                        H_ij = H_local[i] * H_local[j]
-                        H_ij.assign(1)
-                        H_ij -= H_ij[PauliExpression(1).pauli_string]
-                        H_ij = H_ij.crop(1e-2)
-
-                        if not H_ij.is_numeric:
-                            H_2_local.append(H_ij)
-
-                        # print(H_ij)
-
-            num_pairs = len(H_local) * distance * cell_size
-
             num_params = (
                 len(H_local) +
                 len(H_2_local) +
-                num_pairs
+                len(H_local) * (len(H_local) + 1) // 2
             )
 
         if params == 0:
             params = np.zeros(num_params, dtype=complex)
 
         if use_super_operator:
-            H_local = [pyANNonGPU.SuperOperator.from_expr(h, U_matrix, gpu) for h in H_local]
-            H_2_local = [pyANNonGPU.SuperOperator.from_expr(h, U_matrix, gpu) for h in H_2_local]
+            H_local = [pyANNonGPU.SuperOperator.from_expr(h, gpu) for h in H_local]
+            H_2_local = [pyANNonGPU.SuperOperator.from_expr(h, gpu) for h in H_2_local]
         else:
             H_local = [pyANNonGPU.Operator(h, gpu) for h in H_local]
             H_2_local = [pyANNonGPU.Operator(h, gpu) for h in H_2_local]

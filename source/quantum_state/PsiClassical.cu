@@ -50,37 +50,12 @@ void PsiClassical_t<dtype, Operator_t, order, symmetric, PsiRef>::init_kernel() 
 
         this->m_1_squared.begin_params = this->m_2.end_params;
 
+        this->m_1_squared.num_ll_pairs = this->H_local.size() * (this->H_local.size() + 1u) / 2u;
 
-
-        if(symmetric) {
-            const auto num_pairs = this->num_params - this->m_1_squared.begin_params;
-            const auto distance = num_pairs / (this->H_local.size() * (this->H_local.size() + 1u) / 2u);
-
-            for(auto l = 0u; l < distance * this->H_local.size(); l++) {
-                for(auto l_prime = 0u; l_prime <= l; l_prime++) {
-                    this->ids_l.push_back(l);
-                    this->ids_l_prime.push_back(l_prime);
-                }
-            }
-        }
-        else {
-            const auto cell_size = this->H_local.size() / this->num_sites;
-            const auto num_pairs = this->num_params - this->m_1_squared.begin_params;
-            const auto distance = num_pairs / (this->H_local.size() * cell_size);
-
-            this->m_1_squared.num_ll_pairs = num_pairs;
-
-            for(auto i = 0u; i < this->H_local.size(); i++) {
-                const auto cell_i = i / cell_size;
-
-                for(auto cell_j = cell_i; cell_j < cell_i + distance; cell_j++) {
-                    const auto cell_j_offset = (cell_j % distance) * cell_size;
-
-                    for(auto j = cell_j_offset; j < cell_j_offset + cell_size; j++) {
-                        this->ids_l.push_back(i);
-                        this->ids_l_prime.push_back(j);
-                    }
-                }
+        for(auto l = 0u; l < this->H_local.size(); l++) {
+            for(auto l_prime = 0u; l_prime <= l; l_prime++) {
+                this->ids_l.push_back(l);
+                this->ids_l_prime.push_back(l_prime);
             }
         }
 

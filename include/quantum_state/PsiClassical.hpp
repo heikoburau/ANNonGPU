@@ -145,15 +145,44 @@ struct PsiClassical_t {
     void compute_1st_order_local_energies(const Basis_t& configuration, Payload& payload) const {
         SHARED_MEM_LOOP_BEGIN(n, this->num_ops_H) {
 
-            this->H_local[n].local_energy(
-                payload.local_energies[n],
-                this->psi_ref,
-                configuration,
-                payload.log_psi_ref,
-                payload.ref_payload,
-                0,
-                true
-            );
+            if(symmetric) {
+
+                SINGLE {
+                    payload.local_energy_H_full[n] = complex_t(0.0);
+                }
+
+                SHARED_MEM_LOOP_BEGIN(m, this->num_sites) {
+                    this->H_local[n].local_energy(
+                        payload.local_energies[m * this->num_ops_H + n],
+                        this->psi_ref,
+                        configuration,
+                        payload.log_psi_ref,
+                        payload.ref_payload,
+                        m,
+                        true
+                    );
+
+                    SHARED_MEM_LOOP_END(m);
+                }
+                MULTI(i, this->num_sites) {
+                    generic_atomicAdd(
+                        &payload.local_energy_H_full[n],
+                        payload.local_energies[i * this->num_ops_H + n]
+                    );
+                }
+
+            }
+            else {
+                this->H_local[n].local_energy(
+                    payload.local_energies[n],
+                    this->psi_ref,
+                    configuration,
+                    payload.log_psi_ref,
+                    payload.ref_payload,
+                    0,
+                    true
+                );
+            }
 
             SHARED_MEM_LOOP_END(n);
         }
@@ -164,15 +193,36 @@ struct PsiClassical_t {
     void compute_2nd_order_local_energies(const Basis_t& configuration, Payload& payload) const {
         SHARED_MEM_LOOP_BEGIN(n, this->num_ops_H_2) {
 
-            this->H_2_local[n].local_energy(
-                payload.local_energies[this->m_2.begin_local_energies + n],
-                this->psi_ref,
-                configuration,
-                payload.log_psi_ref,
-                payload.ref_payload,
-                0,
-                true
-            );
+            if(symmetric) {
+                SINGLE {
+                    payload.local_energies[this->m_2.begin_local_energies + n] = complex_t(0.0);
+                }
+
+                SHARED_MEM_LOOP_BEGIN(m, this->num_sites) {
+                    this->H_2_local[n].local_energy(
+                        payload.local_energies[this->m_2.begin_local_energies + n],
+                        this->psi_ref,
+                        configuration,
+                        payload.log_psi_ref,
+                        payload.ref_payload,
+                        m,
+                        false
+                    );
+
+                    SHARED_MEM_LOOP_END(m);
+                }
+            }
+            else {
+                this->H_2_local[n].local_energy(
+                    payload.local_energies[this->m_2.begin_local_energies + n],
+                    this->psi_ref,
+                    configuration,
+                    payload.log_psi_ref,
+                    payload.ref_payload,
+                    0,
+                    true
+                );
+            }
 
             SHARED_MEM_LOOP_END(n);
         }
@@ -192,6 +242,7 @@ struct PsiClassical_t {
 
         LOOP(k, this->num_params) {
             generic_atomicAdd(&result, this->params[k] * this->get_O_k(k, payload));
+            // printf("params %d, %f, %f\n", k, this->params[k].real(), this->params[k].imag());
         }
 
         SYNC;
