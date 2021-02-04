@@ -149,7 +149,10 @@ struct PsiDeepT {
                     (double)configuration.network_unit_at(layer.lhs_connection(i, j))
                 );
             }
-            // angles[j] += layer.biases[j];
+
+            #ifdef ENABLE_NETWORK_BASES
+            angles[j] += layer.biases[j];
+            #endif // ENABLE_NETWORK_BASES
         }
         SYNC;
     }
@@ -192,7 +195,9 @@ struct PsiDeepT {
                         activations[layer.lhs_connection(i, j)]
                     );
                 }
-                // REGISTER(activation, j) += layer.biases[j];
+                #ifdef ENABLE_NETWORK_BASES
+                REGISTER(activation, j) += layer.biases[j];
+                #endif // ENABLE_NETWORK_BASES
 
                 if(deep_angles != nullptr) {
                     deep_angles[layer.begin_deep_angles + j] = REGISTER(activation, j);
@@ -358,6 +363,7 @@ struct PsiDeepT {
         SHARED dtype deep_angles[max_deep_angles];
         SHARED dtype log_psi;
 
+        #ifdef ENABLE_NETWORK_BASES
         MULTI(i, this->N) {
             function(
                 i,
@@ -366,6 +372,7 @@ struct PsiDeepT {
                 ))
             );
         }
+        #endif // ENABLE_NETWORK_BASES
 
         this->compute_angles(payload.angles, configuration);
         // note: since log_psi isn't needed here, it doesn't need to be initialized too
@@ -413,7 +420,9 @@ struct PsiDeepT {
                 }
             }
             MULTI(j, layer.size) {
+                #ifdef ENABLE_NETWORK_BASES
                 function(layer.begin_params + j, payload.activations[j]);
+                #endif // ENABLE_NETWORK_BASES
 
                 for(auto i = 0u; i < layer.lhs_connectivity; i++) {
                     const auto lhs_unit_idx = layer.lhs_connection(i, j);

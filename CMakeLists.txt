@@ -141,6 +141,11 @@ if (USE_SUPER_OPERATOR)
   target_compile_definitions(ANNonGPU PUBLIC USE_SUPER_OPERATOR)
 endif()
 
+option(ENABLE_NETWORK_BASES "enable bases within networks" ON)
+if (ENABLE_NETWORK_BASES)
+  target_compile_definitions(ANNonGPU PUBLIC ENABLE_NETWORK_BASES)
+endif()
+
 
 # Compile and link ANNonGPU
 # =========================

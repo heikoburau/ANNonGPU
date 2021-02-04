@@ -142,7 +142,12 @@ PsiDeepT<dtype, symmetric>& PsiDeepT<dtype, symmetric>::operator=(const PsiDeepT
 
 template<typename dtype, bool symmetric>
 void PsiDeepT<dtype, symmetric>::init_kernel() {
+    #ifdef ENABLE_NETWORK_BASES
     this->num_params = this->N; // initial biases
+    #else
+    this->num_params = 0u;
+    #endif //ENABLE_NETWORK_BASES
+
     auto angle_idx = 0u;
     for(auto layer_idx = 0u; layer_idx < this->num_layers; layer_idx++) {
         const auto& layer = *next(this->layers.begin(), layer_idx);
@@ -152,7 +157,10 @@ void PsiDeepT<dtype, symmetric>::init_kernel() {
 
         if(layer_idx > 0u) { // input layer has no parameters (weight matrix)
             kernel_layer.begin_params = this->num_params;
-            this->num_params += layer.size + layer.lhs_weights.size();
+            #ifdef ENABLE_NETWORK_BASES
+            this->num_params += layer.size;
+            #endif //ENABLE_NETWORK_BASES
+            this->num_params += layer.lhs_weights.size();
 
             if(layer_idx > 1u) {
                 kernel_layer.begin_deep_angles = angle_idx;
@@ -239,17 +247,23 @@ pair<Array<unsigned int>, Array<dtype>> PsiDeepT<dtype, symmetric>::compile_rhs_
 template<typename dtype, bool symmetric>
 Array<dtype> PsiDeepT<dtype, symmetric>::get_params() const {
     Array<dtype> result(this->num_params, false);
+    auto it = result.begin();
 
+    #ifdef ENABLE_NETWORK_BASES
     for(auto i = 0u; i < this->N; i++) {
         result[i] = this->input_weights[i];
     }
-    auto it = result.begin() + this->N;
+    it += this->N;
+    #endif // ENABLE_NETWORK_BASES
 
     for(auto layer_it = next(this->layers.begin()); layer_it != this->layers.end(); layer_it++) {
         auto& layer = *layer_it;
 
+        #ifdef ENABLE_NETWORK_BASES
         copy(layer.biases.begin(), layer.biases.end(), it);
         it += layer.biases.size();
+        #endif // ENABLE_NETWORK_BASES
+
         copy(layer.lhs_weights.begin(), layer.lhs_weights.end(), it);
         it += layer.lhs_weights.size();
     }
@@ -262,16 +276,22 @@ Array<dtype> PsiDeepT<dtype, symmetric>::get_params() const {
 
 template<typename dtype, bool symmetric>
 void PsiDeepT<dtype, symmetric>::set_params(const Array<dtype>& new_params) {
+    auto it = new_params.begin();
+
+    #ifdef ENABLE_NETWORK_BASES
     for(auto i = 0u; i < this->N; i++) {
         this->input_weights[i] = new_params[i];
     }
-    auto it = new_params.begin() + this->N;
+    it += this->N;
+    #endif // ENABLE_NETWORK_BASES
 
     for(auto layer_it = next(this->layers.begin()); layer_it != this->layers.end(); layer_it++) {
         auto& layer = *layer_it;
 
+        #ifdef ENABLE_NETWORK_BASES
         copy(it, it + layer.biases.size(), layer.biases.begin());
         it += layer.size;
+        #endif // ENABLE_NETWORK_BASES
 
         copy(it, it + layer.lhs_weights.size(), layer.lhs_weights.begin());
         it += layer.lhs_weights.size();
