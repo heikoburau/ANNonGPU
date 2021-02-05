@@ -35,8 +35,7 @@ struct KullbackLeibler {
     complex_t*  mean_deviation;
     complex_t*  last_mean_deviation;
 
-
-    complex_t*  deviations;
+    double*     prob_ratio;
 
 
     template<bool compute_gradient, bool noise, typename Psi_t, typename Psi_t_prime, typename Ensemble>
@@ -69,7 +68,7 @@ struct KullbackLeibler : public kernel::KullbackLeibler {
     Array<complex_t>  mean_deviation;
     Array<complex_t>  last_mean_deviation;
 
-    Array<complex_t>  deviations;
+    Array<double>     prob_ratio;
 
     void clear();
 

@@ -901,7 +901,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             );
         })
 #endif
-        .def_property_readonly("deviations", [](const KullbackLeibler& kl){return kl.deviations.to_pytensor_1d();})
+        .def_property_readonly("prob_ratio", [](const KullbackLeibler& kl){return kl.prob_ratio.front();})
+        .def_property_readonly("mean_deviation", [](const KullbackLeibler& kl){return kl.mean_deviation.front().to_std();})
     ;
 
 
