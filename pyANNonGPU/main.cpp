@@ -184,7 +184,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             [](const PsiClassicalFP<1u>& psi) {return psi.log_prefactor.to_std();},
             [](PsiClassicalFP<1u>& psi, complex<double> value) {psi.log_prefactor = complex_t(value);}
         )
-        // return just a copy obviously, so writing has no effect..
+        // return just a copy, so writing has no effect..
         .def_property_readonly(
             "psi_ref",
             [](const PsiClassicalFP<1u>& psi) {return psi.psi_ref;}
@@ -196,6 +196,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             "params",
             [](const PsiClassicalFP<1u>& psi) {return psi.params.to_pytensor_1d();},
             [](PsiClassicalFP<1u>& psi, const complex_tensor<1u>& new_params) {psi.params = new_params;}
+        )
+        .def_property(
+            "ref_params",
+            [](const PsiClassicalFP<1u>& psi) {return psi.psi_ref.get_params().to_pytensor_1d();},
+            [](PsiClassicalFP<1u>& psi, const complex_tensor<1u>& new_params) {
+                psi.psi_ref.set_params(Array<complex_t>(new_params, false));
+            }
         )
         .def("update_psi_ref_kernel", &PsiClassicalFP<1u>::update_psi_ref_kernel)
         #ifdef ENABLE_EXACT_SUMMATION
@@ -234,7 +241,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             [](const PsiClassicalFP<2u>& psi) {return psi.log_prefactor.to_std();},
             [](PsiClassicalFP<2u>& psi, complex<double> value) {psi.log_prefactor = complex_t(value);}
         )
-        // return just a copy obviously, so writing has no effect..
+        // return just a copy, so writing has no effect..
         .def_property_readonly(
             "psi_ref",
             [](const PsiClassicalFP<2u>& psi) {return psi.psi_ref;}
@@ -246,6 +253,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             "params",
             [](const PsiClassicalFP<2u>& psi) {return psi.params.to_pytensor_1d();},
             [](PsiClassicalFP<2u>& psi, const complex_tensor<1u>& new_params) {psi.params = new_params;}
+        )
+        .def_property(
+            "ref_params",
+            [](const PsiClassicalFP<2u>& psi) {return psi.psi_ref.get_params().to_pytensor_1d();},
+            [](PsiClassicalFP<2u>& psi, const complex_tensor<1u>& new_params) {
+                psi.psi_ref.set_params(Array<complex_t>(new_params, false));
+            }
         )
         .def("update_psi_ref_kernel", &PsiClassicalFP<2u>::update_psi_ref_kernel)
         #ifdef ENABLE_EXACT_SUMMATION
@@ -284,7 +298,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             [](const PsiClassicalANN<1u>& psi) {return psi.log_prefactor.to_std();},
             [](PsiClassicalANN<1u>& psi, complex<double> value) {psi.log_prefactor = complex_t(value);}
         )
-        // return just a copy obviously, so writing has no effect..
+        // return just a copy, so writing has no effect..
         .def_property_readonly(
             "psi_ref",
             [](const PsiClassicalANN<1u>& psi) {return psi.psi_ref;}
@@ -296,6 +310,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             "params",
             [](const PsiClassicalANN<1u>& psi) {return psi.params.to_pytensor_1d();},
             [](PsiClassicalANN<1u>& psi, const complex_tensor<1u>& new_params) {psi.params = new_params;}
+        )
+        .def_property(
+            "ref_params",
+            [](const PsiClassicalANN<1u>& psi) {return psi.psi_ref.get_params().to_pytensor_1d();},
+            [](PsiClassicalANN<1u>& psi, const complex_tensor<1u>& new_params) {
+                psi.psi_ref.set_params(Array<complex_t>(new_params, false));
+            }
         )
         .def("update_psi_ref_kernel", &PsiClassicalANN<1u>::update_psi_ref_kernel)
         #ifdef ENABLE_EXACT_SUMMATION
@@ -334,7 +355,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             [](const PsiClassicalANN<2u>& psi) {return psi.log_prefactor.to_std();},
             [](PsiClassicalANN<2u>& psi, complex<double> value) {psi.log_prefactor = complex_t(value);}
         )
-        // return just a copy obviously, so writing has no effect..
+        // return just a copy, so writing has no effect..
         .def_property_readonly(
             "psi_ref",
             [](const PsiClassicalANN<2u>& psi) {return psi.psi_ref;}
@@ -346,6 +367,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             "params",
             [](const PsiClassicalANN<2u>& psi) {return psi.params.to_pytensor_1d();},
             [](PsiClassicalANN<2u>& psi, const complex_tensor<1u>& new_params) {psi.params = new_params;}
+        )
+        .def_property(
+            "ref_params",
+            [](const PsiClassicalANN<2u>& psi) {return psi.psi_ref.get_params().to_pytensor_1d();},
+            [](PsiClassicalANN<2u>& psi, const complex_tensor<1u>& new_params) {
+                psi.psi_ref.set_params(Array<complex_t>(new_params, false));
+            }
         )
         .def("update_psi_ref_kernel", &PsiClassicalANN<2u>::update_psi_ref_kernel)
         #ifdef ENABLE_EXACT_SUMMATION

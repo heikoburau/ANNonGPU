@@ -170,7 +170,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             [](const ClPsi& psi) {return psi.log_prefactor.to_std();},
             [](ClPsi& psi, complex<double> value) {psi.log_prefactor = complex_t(value);}
         )
-        // return just a copy obviously, so writing has no effect..
+        // return just a copy, so writing has no effect..
         .def_property_readonly(
             "psi_ref",
             [](const ClPsi& psi) {return psi.psi_ref;}
@@ -182,6 +182,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             "params",
             [](const ClPsi& psi) {return psi.params.to_pytensor_1d();},
             [](ClPsi& psi, const complex_tensor<1u>& new_params) {psi.params = new_params;}
+        )
+        .def_property(
+            "ref_params",
+            [](const ClPsi& psi) {return psi.psi_ref.get_params().to_pytensor_1d();},
+            [](ClPsi& psi, const complex_tensor<1u>& new_params) {
+                psi.psi_ref.set_params(Array<complex_t>(new_params, false));
+            }
         )
         .def("update_psi_ref_kernel", &ClPsi::update_psi_ref_kernel)
         #ifdef ENABLE_EXACT_SUMMATION

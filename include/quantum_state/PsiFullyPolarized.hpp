@@ -139,6 +139,11 @@ struct PsiFullyPolarized_t : public kernel::PsiFullyPolarized_t<dtype> {
         return *this;
     }
 
+    inline Array<dtype> get_params() const {
+        return Array<dtype>(false);
+    }
+    inline void set_params(const Array<dtype>& new_params) {}
+
 #endif // __PYTHONCC__
 
 };
