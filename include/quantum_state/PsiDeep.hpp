@@ -429,7 +429,11 @@ struct PsiDeepT {
                     // TODO: check if shared memory solution is faster
 
                     function(
+                        #ifdef ENABLE_NETWORK_BASES
                         layer.begin_params + layer.size + i * layer.size + j,
+                        #else
+                        layer.begin_params + i * layer.size + j,
+                        #endif // ENABLE_NETWORK_BASES
                         payload.activations[j] * (
                             layer_idx == 1 ?
                             get_real<dtype>(static_cast<real_dtype>(
