@@ -1,6 +1,6 @@
 #pragma once
 
-#include "operator/Matrix4x4.hpp"
+#include "operator/SparseMatrix.hpp"
 #include "bases.hpp"
 #include "Array.hpp"
 #include "types.h"
@@ -17,12 +17,9 @@ namespace kernel {
 
 struct SuperOperator {
 
-    static constexpr auto max_string_length = 8u;
-
-    complex_t*      coefficients;
-    Matrix4x4*      matrices;
-    unsigned int*   string_lengths;
-    unsigned int    num_strings;
+    double*             coefficients;
+    SparseMatrix*       matrices;
+    unsigned int        num_matrices;
 
 #ifdef __CUDACC__
 
@@ -48,7 +45,7 @@ struct SuperOperator {
     template<typename Psi_t>
     HDINLINE
     void nth_local_energy(
-        typename Psi_t::dtype& result,
+        complex_t& result,
         unsigned int n,
         const Psi_t& psi,
         const PauliString& configuration,
@@ -61,25 +58,23 @@ struct SuperOperator {
         // CAUTION: 'result' is not initialized.
         // CAUTION: 'result' is only updated by the first thread.
 
-        SHARED Matrix4x4                   matrix;
+        SHARED SparseMatrix                matrix;
         SHARED MatrixElement<PauliString>  matrix_element;
 
         SINGLE {
-            matrix_element.coefficient = this->coefficients[n];
+            matrix_element.coefficient = complex_t(this->coefficients[n]);
             matrix_element.vector = configuration;
 
-            for(auto m = 0u; m < this->string_lengths[n]; m++) {
-                matrix = this->matrices[n * max_string_length + m];
-                if(shift) {
-                    matrix.site = psi.num_sites - 1 - matrix.site;
-                }
-
-                matrix.apply(matrix_element);
+            matrix = this->matrices[n];
+            if(shift) {
+                matrix.site_i = (matrix.site_i + shift) % psi.num_sites;
+                matrix.site_j = (matrix.site_j + shift) % psi.num_sites;
             }
+            this->matrices[n].apply(matrix_element);
         }
         SYNC;
 
-        if(configuration != matrix_element.vector) {
+        if(matrix_element.coefficient != complex_t(0.0) && configuration != matrix_element.vector) {
             // off-diagonal string
             psi.update_input_units(configuration, matrix_element.vector, payload);
 
@@ -106,7 +101,7 @@ struct SuperOperator {
     template<typename Psi_t, typename Basis_t>
     HDINLINE
     void local_energy(
-        typename Psi_t::dtype& result,
+        complex_t& result,
         const Psi_t& psi,
         const Basis_t& configuration,
         const typename Psi_t::dtype& log_psi,
@@ -120,11 +115,11 @@ struct SuperOperator {
 
         SINGLE {
             if(init) {
-                result = typename Psi_t::dtype(0.0);
+                result = complex_t(0.0);
             }
         }
 
-        SHARED_MEM_LOOP_BEGIN(n, this->num_strings) {
+        SHARED_MEM_LOOP_BEGIN(n, this->num_matrices) {
 
             this->nth_local_energy(
                 result,
@@ -162,76 +157,41 @@ struct SuperOperator : public kernel::SuperOperator {
 
     bool                    gpu;
 
-    Array<complex_t>        coefficients;
-    Array<Matrix4x4>        matrices;
-    Array<unsigned int>     string_lengths;
+    Array<double>           coefficients;
+    Array<SparseMatrix>     matrices;
 
     SuperOperator() = delete;
     inline SuperOperator(const SuperOperator& other)
     :
     gpu(other.gpu),
     coefficients(other.coefficients),
-    matrices(other.matrices),
-    string_lengths(other.string_lengths)
+    matrices(other.matrices)
     {
         this->kernel().coefficients = this->coefficients.data();
         this->kernel().matrices = this->matrices.data();
-        this->kernel().string_lengths = this->string_lengths.data();
-        this->kernel().num_strings = this->coefficients.size();
+        this->kernel().num_matrices = this->coefficients.size();
     }
 
 #ifdef __PYTHONCC__
 
     inline SuperOperator(
-        const vector<complex<double>>& coefficients_arg,
-        const vector<vector<unsigned int>> site_indices,
-        const vector<vector<xt::pytensor<complex<double>, 2u>>>& raw_matrices,
+        const vector<double>& coefficients_arg,
+        const vector<SparseMatrix>& matrices,
         const bool gpu
-    ) : gpu(gpu), coefficients(gpu), matrices(gpu), string_lengths(gpu) {
+    ) : gpu(gpu), coefficients(gpu), matrices(gpu) {
 
-        this->kernel().num_strings = coefficients_arg.size();
+        this->kernel().num_matrices = coefficients_arg.size();
 
-        this->coefficients.resize(this->num_strings);
-        this->string_lengths.resize(this->num_strings);
-        this->matrices.resize(this->num_strings * max_string_length);
-        this->matrices.clear();
+        this->coefficients.resize(this->num_matrices);
+        this->matrices.resize(this->num_matrices);
 
-        for(auto n = 0u; n < this->num_strings; n++) {
-            this->coefficients[n] = coefficients_arg[n];
-
-            const auto site_indices_row = site_indices[n];
-            const auto raw_matrices_row = raw_matrices[n];
-
-            this->string_lengths[n] = site_indices_row.size();
-
-            for(auto m = 0u; m < this->string_lengths[n]; m++) {
-                auto& matrix = this->matrices[n * max_string_length + m];
-                const auto raw_matrix = raw_matrices_row[m];
-
-                matrix.site = site_indices_row[m];
-
-                auto is_diagonal = true;
-                for(auto i = 0u; i < 4u; i++) {
-                    for(auto j = 0u; j < 4u; j++) {
-                        if(abs(raw_matrix(i, j)) > 1e-4) {
-                            matrix.values[i] = raw_matrix(i, j);
-                            matrix.pauli_types[i] = j;
-                            if(i != j) {
-                                is_diagonal = false;
-                            }
-                            break;
-                        }
-                    }
-                }
-                matrix.is_diagonal = is_diagonal;
-            }
-        }
+        copy(coefficients_arg.begin(), coefficients_arg.end(), this->coefficients.begin());
+        copy(matrices.begin(), matrices.end(), this->matrices.begin());
 
         this->coefficients.update_device();
-        this->string_lengths.update_device();
         this->matrices.update_device();
+
         this->kernel().coefficients = this->coefficients.data();
-        this->kernel().string_lengths = this->string_lengths.data();
         this->kernel().matrices = this->matrices.data();
     }
 

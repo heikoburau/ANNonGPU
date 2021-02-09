@@ -1,7 +1,7 @@
 #include "operators.hpp"
 #include "basis/Spins.h"
 #include "basis/PauliString.hpp"
-#include "operator/Matrix4x4.hpp"
+#include "operator/SparseMatrix.hpp"
 #include "Array.hpp"
 #include <algorithm>
 
@@ -129,7 +129,7 @@ template class Array<complex_t>;
 template class Array<cuda_complex::complex<float>>;
 template class Array<Spins>;
 template class Array<PauliString>;
-template class Array<Matrix4x4>;
+template class Array<SparseMatrix>;
 template class Array<typename Operator_t::Kernel>;
 
 } // namespace ann_on_gpu

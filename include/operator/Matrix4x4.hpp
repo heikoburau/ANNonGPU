@@ -11,7 +11,7 @@ namespace ann_on_gpu {
 
 struct Matrix4x4 {
     unsigned int   site;
-    complex_t      values[4];
+    double         values[4];
     char           pauli_types[4];
     bool           is_diagonal;
 
