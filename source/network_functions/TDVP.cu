@@ -28,6 +28,7 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
     }
 
     this->E_local.clear();
+    this->E2_local.clear();
     this->O_k_ar.clear();
     this->S_matrix.clear();
     this->F_vector.clear();
@@ -37,6 +38,7 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
     auto op_kernel = op.kernel();
     auto psi_kernel = psi.kernel();
     auto E_local_ptr = this->E_local.data();
+    auto E2_local_ptr = this->E2_local.data();
     auto O_k_ptr = this->O_k_ar.data();
     auto S_ptr = this->S_matrix.data();
     auto F_ptr = this->F_vector.data();
@@ -74,6 +76,7 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
                 prob_ratio = exp(2.0 * (log_psi.real() - log_psi_ref.real()));
                 generic_atomicAdd(prob_ratio_ptr, prob_ratio * weight);
                 generic_atomicAdd(E_local_ptr, prob_ratio * weight * local_energy);
+                generic_atomicAdd(E2_local_ptr, prob_ratio * weight * abs2(local_energy));
 
                 weight_samples_ptr[index] = prob_ratio * weight;
             }
@@ -137,12 +140,14 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
     }
 
     this->E_local.update_host();
+    this->E2_local.update_host();
     this->O_k_ar.update_host();
     this->S_matrix.update_host();
     this->F_vector.update_host();
     this->prob_ratio.update_host();
 
     this->E_local.front() /= this->prob_ratio.front();
+    this->E2_local.front() /= this->prob_ratio.front();
     for(auto k = 0u; k < num_params; k++) {
         this->O_k_ar[k] /= this->prob_ratio.front();
         this->F_vector[k] /= this->prob_ratio.front();
