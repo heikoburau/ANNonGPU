@@ -29,7 +29,7 @@ void kernel::KullbackLeibler::compute_averages(
             const typename Ensemble::Basis_t& configuration,
             const complex_t& log_psi_prime,
             typename PsiPrime_t::Payload& payload_prime,
-            const double& weight
+            const double& weight_prime
         ) {
             #include "cuda_kernel_defines.h"
 
@@ -38,20 +38,22 @@ void kernel::KullbackLeibler::compute_averages(
             SHARED complex_t                deviation;
             SHARED double                   deviation2;
             SHARED double                   prob_ratio;
+            SHARED double                   weight;
 
             psi_kernel.init_payload(payload, configuration);
             psi_kernel.log_psi_s(log_psi, configuration, payload);
 
             SINGLE {
                 prob_ratio = exp(2.0 * (log_psi.real() - log_psi_prime.real()));
-                generic_atomicAdd(this_.prob_ratio, prob_ratio * weight);
-                generic_atomicAdd(this_.mean_deviation, prob_ratio * weight * (log_psi_prime - log_psi));
+                weight = prob_ratio * weight_prime;
+                generic_atomicAdd(this_.prob_ratio, weight);
+                generic_atomicAdd(this_.mean_deviation, weight * (log_psi_prime - log_psi));
                 deviation = log_psi_prime - log_psi - *this_.last_mean_deviation;
 
                 deviation2 = abs2(deviation);
                 if(deviation2 > threshold2) {
-                    generic_atomicAdd(this_.deviation, prob_ratio * weight * deviation);
-                    generic_atomicAdd(this_.deviation2, prob_ratio * weight * deviation2);
+                    generic_atomicAdd(this_.deviation, weight * deviation);
+                    generic_atomicAdd(this_.deviation2, weight * deviation2);
                 }
             }
             SYNC;
@@ -63,12 +65,12 @@ void kernel::KullbackLeibler::compute_averages(
                     [&](const unsigned int k, const complex_t& O_k) {
                         generic_atomicAdd(
                             &this_.O_k[k],
-                            prob_ratio * weight * O_k
+                            weight * O_k
                         );
                         if(deviation2 > threshold2) {
                             generic_atomicAdd(
                                 &this_.deviation_O_k_conj[k],
-                                prob_ratio * weight * deviation * conj(O_k)
+                                weight * deviation * conj(O_k)
                             );
                         }
 
@@ -78,25 +80,25 @@ void kernel::KullbackLeibler::compute_averages(
                             if(deviation2 > threshold2) {
                                 generic_atomicAdd(
                                     &this_.deviation2_O_k2[k],
-                                    prob_ratio * weight * deviation2 * O_k2
+                                    weight * deviation2 * O_k2
                                 );
                                 generic_atomicAdd(
                                     &this_.deviation_O_k[k],
-                                    prob_ratio * weight * deviation * O_k
+                                    weight * deviation * O_k
                                 );
                                 generic_atomicAdd(
                                     &this_.deviation_O_k2[k],
-                                    prob_ratio * weight * deviation * O_k2
+                                    weight * deviation * O_k2
                                 );
                                 generic_atomicAdd(
                                     &this_.deviation2_O_k[k],
-                                    prob_ratio * weight * deviation2 * O_k
+                                    weight * deviation2 * O_k
                                 );
 
                             }
                             generic_atomicAdd(
                                 &this_.O_k2[k],
-                                prob_ratio * weight * O_k2
+                                weight * O_k2
                             );
                         }
                     }
