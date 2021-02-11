@@ -144,9 +144,6 @@ typename std_dtype<typename Psi_t::dtype>::type log_psi_s(Psi_t& psi, const Basi
 #if defined(ENABLE_SPINS)
 template typename std_dtype<typename PsiDeep::dtype>::type log_psi_s(PsiDeep&, const Spins&);
 #endif
-#if defined(ENABLE_SPINS)
-template typename std_dtype<typename PsiDeepSigned::dtype>::type log_psi_s(PsiDeepSigned&, const Spins&);
-#endif
 #if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template typename std_dtype<typename PsiFullyPolarized::dtype>::type log_psi_s(PsiFullyPolarized&, const Spins&);
 #endif
@@ -164,9 +161,6 @@ template typename std_dtype<typename PsiClassicalANN<2u>::dtype>::type log_psi_s
 #endif
 #if defined(ENABLE_PAULIS)
 template typename std_dtype<typename PsiDeep::dtype>::type log_psi_s(PsiDeep&, const PauliString&);
-#endif
-#if defined(ENABLE_PAULIS)
-template typename std_dtype<typename PsiDeepSigned::dtype>::type log_psi_s(PsiDeepSigned&, const PauliString&);
 #endif
 #if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template typename std_dtype<typename PsiFullyPolarized::dtype>::type log_psi_s(PsiFullyPolarized&, const PauliString&);
@@ -188,11 +182,6 @@ template typename std_dtype<typename PsiClassicalANN<2u>::dtype>::type log_psi_s
 template typename std_dtype<typename PsiDeep::dtype>::type log_psi(PsiDeep& psi, MonteCarlo_tt<Spins>& ensemble);
 template Array<complex_t> log_psi_vector(PsiDeep& psi, MonteCarlo_tt<Spins>& ensemble);
 template Array<complex_t> psi_vector(PsiDeep& psi, MonteCarlo_tt<Spins>& ensemble);
-#endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
-template typename std_dtype<typename PsiDeepSigned::dtype>::type log_psi(PsiDeepSigned& psi, MonteCarlo_tt<Spins>& ensemble);
-template Array<complex_t> log_psi_vector(PsiDeepSigned& psi, MonteCarlo_tt<Spins>& ensemble);
-template Array<complex_t> psi_vector(PsiDeepSigned& psi, MonteCarlo_tt<Spins>& ensemble);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template typename std_dtype<typename PsiFullyPolarized::dtype>::type log_psi(PsiFullyPolarized& psi, MonteCarlo_tt<Spins>& ensemble);
@@ -224,11 +213,6 @@ template typename std_dtype<typename PsiDeep::dtype>::type log_psi(PsiDeep& psi,
 template Array<complex_t> log_psi_vector(PsiDeep& psi, MonteCarlo_tt<PauliString>& ensemble);
 template Array<complex_t> psi_vector(PsiDeep& psi, MonteCarlo_tt<PauliString>& ensemble);
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
-template typename std_dtype<typename PsiDeepSigned::dtype>::type log_psi(PsiDeepSigned& psi, MonteCarlo_tt<PauliString>& ensemble);
-template Array<complex_t> log_psi_vector(PsiDeepSigned& psi, MonteCarlo_tt<PauliString>& ensemble);
-template Array<complex_t> psi_vector(PsiDeepSigned& psi, MonteCarlo_tt<PauliString>& ensemble);
-#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template typename std_dtype<typename PsiFullyPolarized::dtype>::type log_psi(PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>& ensemble);
 template Array<complex_t> log_psi_vector(PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>& ensemble);
@@ -259,11 +243,6 @@ template typename std_dtype<typename PsiDeep::dtype>::type log_psi(PsiDeep& psi,
 template Array<complex_t> log_psi_vector(PsiDeep& psi, ExactSummation_t<Spins>& ensemble);
 template Array<complex_t> psi_vector(PsiDeep& psi, ExactSummation_t<Spins>& ensemble);
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
-template typename std_dtype<typename PsiDeepSigned::dtype>::type log_psi(PsiDeepSigned& psi, ExactSummation_t<Spins>& ensemble);
-template Array<complex_t> log_psi_vector(PsiDeepSigned& psi, ExactSummation_t<Spins>& ensemble);
-template Array<complex_t> psi_vector(PsiDeepSigned& psi, ExactSummation_t<Spins>& ensemble);
-#endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 template typename std_dtype<typename PsiFullyPolarized::dtype>::type log_psi(PsiFullyPolarized& psi, ExactSummation_t<Spins>& ensemble);
 template Array<complex_t> log_psi_vector(PsiFullyPolarized& psi, ExactSummation_t<Spins>& ensemble);
@@ -293,11 +272,6 @@ template Array<complex_t> psi_vector(PsiClassicalANN<2u>& psi, ExactSummation_t<
 template typename std_dtype<typename PsiDeep::dtype>::type log_psi(PsiDeep& psi, ExactSummation_t<PauliString>& ensemble);
 template Array<complex_t> log_psi_vector(PsiDeep& psi, ExactSummation_t<PauliString>& ensemble);
 template Array<complex_t> psi_vector(PsiDeep& psi, ExactSummation_t<PauliString>& ensemble);
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
-template typename std_dtype<typename PsiDeepSigned::dtype>::type log_psi(PsiDeepSigned& psi, ExactSummation_t<PauliString>& ensemble);
-template Array<complex_t> log_psi_vector(PsiDeepSigned& psi, ExactSummation_t<PauliString>& ensemble);
-template Array<complex_t> psi_vector(PsiDeepSigned& psi, ExactSummation_t<PauliString>& ensemble);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template typename std_dtype<typename PsiFullyPolarized::dtype>::type log_psi(PsiFullyPolarized& psi, ExactSummation_t<PauliString>& ensemble);

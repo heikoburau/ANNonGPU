@@ -31,10 +31,6 @@
                 "code": "PsiDeep"
             },
             {
-                "flag": null,
-                "code": "PsiDeepSigned"
-            },
-            {
                 "flag": "ENABLE_PSI_CLASSICAL",
                 "code": "PsiFullyPolarized"
             },

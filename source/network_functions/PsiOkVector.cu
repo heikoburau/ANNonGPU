@@ -83,11 +83,6 @@ Array<complex_t> psi_O_k(Psi_t& psi, const Basis_t& configuration) {
 template Array<complex_t> psi_O_k_vector(PsiDeep&, ExactSummation_t<Spins>&);
 template Array<complex_t> psi_O_k(PsiDeep&, const Spins&);
 #endif
-#if defined(ENABLE_SPINS)
-
-template Array<complex_t> psi_O_k_vector(PsiDeepSigned&, ExactSummation_t<Spins>&);
-template Array<complex_t> psi_O_k(PsiDeepSigned&, const Spins&);
-#endif
 #if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 
 template Array<complex_t> psi_O_k_vector(PsiFullyPolarized&, ExactSummation_t<Spins>&);
@@ -117,11 +112,6 @@ template Array<complex_t> psi_O_k(PsiClassicalANN<2u>&, const Spins&);
 
 template Array<complex_t> psi_O_k_vector(PsiDeep&, ExactSummation_t<PauliString>&);
 template Array<complex_t> psi_O_k(PsiDeep&, const PauliString&);
-#endif
-#if defined(ENABLE_PAULIS)
-
-template Array<complex_t> psi_O_k_vector(PsiDeepSigned&, ExactSummation_t<PauliString>&);
-template Array<complex_t> psi_O_k(PsiDeepSigned&, const PauliString&);
 #endif
 #if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 

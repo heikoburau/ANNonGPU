@@ -27,6 +27,7 @@ struct PsiFullyPolarized_t {
     unsigned int   num_sites;
     unsigned int   num_params;
     double         prefactor;
+    dtype          log_prefactor;
     bool           gpu;
 
 #ifdef __CUDACC__
@@ -123,6 +124,7 @@ struct PsiFullyPolarized_t : public kernel::PsiFullyPolarized_t<dtype> {
         this->num_sites = other.num_sites;
         this->prefactor = other.prefactor;
         this->num_params = 0u;
+        this->log_prefactor = dtype(0.0);
         this->gpu = false;
     }
 
@@ -132,6 +134,7 @@ struct PsiFullyPolarized_t : public kernel::PsiFullyPolarized_t<dtype> {
         this->num_sites = num_sites;
         this->prefactor = prefactor;
         this->num_params = 0u;
+        this->log_prefactor = dtype(0.0);
         this->gpu = false;
     }
 

@@ -170,6 +170,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             [](const ClPsi& psi) {return psi.log_prefactor.to_std();},
             [](ClPsi& psi, complex<double> value) {psi.log_prefactor = complex_t(value);}
         )
+        .def_property(
+            "ref_log_prefactor",
+            [](const ClPsi& psi) {return psi.kernel().psi_ref.log_prefactor.to_std();},
+            [](ClPsi& psi, complex<double> value) {
+                psi.psi_ref.log_prefactor = complex_t(value);
+                psi.update_psi_ref_kernel();
+            }
+        )
         // return just a copy, so writing has no effect..
         .def_property_readonly(
             "psi_ref",
@@ -203,6 +211,18 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("normalize", [](ClPsi& psi, ExactSummation_t<PauliString>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
         #endif // ENABLE_PAULIS
         #endif // ENABLE_EXACT_SUMMATION
+
+        #ifdef ENABLE_MONTE_CARLO
+        #ifdef ENABLE_SPINS
+        .def("calibrate", [](ClPsi& psi, MonteCarloSpins& ensemble) {
+            psi.psi_ref.log_prefactor -= complex_t(log_psi(psi.psi_ref, ensemble));
+            psi.update_psi_ref_kernel();
+
+            psi.log_prefactor -= complex_t(log_psi(psi, ensemble));
+        })
+        #endif // ENABLE_SPINS
+        #endif // ENABLE_MONTE_CARLO
+
         ;
     //! end template
 
