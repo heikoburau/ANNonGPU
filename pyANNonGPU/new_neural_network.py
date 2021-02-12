@@ -1,4 +1,4 @@
-from pyANNonGPU import PsiDeep, PsiDeepSigned
+from pyANNonGPU import PsiDeep
 
 
 import numpy as np
@@ -31,15 +31,8 @@ def new_deep_neural_network(
     noise=1e-4,
     gpu=False,
     noise_modulation="auto",
-    final_weights=10,
-    signed=False
+    final_weights=10
 ):
-    if signed:
-        return PsiDeepSigned(
-            new_deep_neural_network(num_sites, N, M, C, initial_value.real, a, noise, gpu, noise_modulation, final_weights, False),
-            new_deep_neural_network(num_sites, N, M, C, initial_value.real, a, noise, gpu, noise_modulation, final_weights, False)
-        )
-
     dim = len(N) if isinstance(N, (list, tuple)) else 1
 
     N_linear = N if dim == 1 else N[0] * N[1]
