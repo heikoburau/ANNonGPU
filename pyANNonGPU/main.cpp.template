@@ -367,7 +367,10 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("F_vector", [](const TDVP& tdvp){return tdvp.F_vector.to_pytensor_1d();})
         .def_property_readonly("var_H", &TDVP::var_H)
         //! begin template
-        .def("eval", &TDVP::eval<ClPsi, Ensemble<Basis>>)
+        .def("eval_with_psi_ref", &TDVP::eval<ClPsi, Ensemble<Basis>>)
+        //! end template
+        //! begin template
+        .def("eval", &TDVP::eval<PsiDeep, Ensemble<Basis>>)
         //! end template
         ;
 

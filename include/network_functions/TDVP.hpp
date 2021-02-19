@@ -42,6 +42,9 @@ struct TDVP {
     template<typename Psi_t, typename Ensemble>
     void eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble);
 
+    template<typename Psi_t, typename Ensemble>
+    void eval_with_psi_ref(const Operator_t& op, Psi_t& psi, Ensemble& ensemble);
+
     inline double var_H() const {
         return this->E2_local.front() - abs2(E_local.front());
     }
