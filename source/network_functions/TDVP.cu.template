@@ -45,7 +45,6 @@ void TDVP::eval_with_psi_ref(const Operator_t& op, Psi_t& psi, Ensemble& ensembl
 
     ensemble.foreach(
         psi.psi_ref,
-        // psi,
         [=] __device__ __host__ (
             const unsigned int index,
             const typename Ensemble::Basis_t& configuration,
@@ -84,14 +83,6 @@ void TDVP::eval_with_psi_ref(const Operator_t& op, Psi_t& psi, Ensemble& ensembl
                     generic_atomicAdd(&O_k_ptr[k], prob_ratio * weight * O_k);
                     generic_atomicAdd(&F_ptr[k], prob_ratio * weight * local_energy * conj(O_k));
                     O_k_samples_ptr[index * num_params + k] = O_k;
-
-
-                    // for(auto k_prime = 0u; k_prime < psi_kernel.num_params; k_prime++) {
-                    //     generic_atomicAdd(
-                    //         &S_ptr[k * num_params + k_prime],
-                    //         weight * prob_ratio * conj(O_k) * psi_kernel.get_O_k(k_prime, payload)
-                    //     );
-                    // }
                 }
             );
         }
