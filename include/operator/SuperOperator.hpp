@@ -17,7 +17,6 @@ namespace kernel {
 
 struct SuperOperator {
 
-    double*             coefficients;
     SparseMatrix*       matrices;
     unsigned int        num_matrices;
 
@@ -62,7 +61,6 @@ struct SuperOperator {
         SHARED MatrixElement<PauliString>  matrix_element;
 
         SINGLE {
-            matrix_element.coefficient = complex_t(this->coefficients[n]);
             matrix_element.vector = configuration;
 
             matrix = this->matrices[n];
@@ -157,42 +155,31 @@ struct SuperOperator : public kernel::SuperOperator {
 
     bool                    gpu;
 
-    Array<double>           coefficients;
     Array<SparseMatrix>     matrices;
 
     SuperOperator() = delete;
     inline SuperOperator(const SuperOperator& other)
     :
     gpu(other.gpu),
-    coefficients(other.coefficients),
     matrices(other.matrices)
     {
-        this->kernel().coefficients = this->coefficients.data();
         this->kernel().matrices = this->matrices.data();
-        this->kernel().num_matrices = this->coefficients.size();
+        this->kernel().num_matrices = this->matrices.size();
     }
 
 #ifdef __PYTHONCC__
 
     inline SuperOperator(
-        const vector<double>& coefficients_arg,
         const vector<SparseMatrix>& matrices,
         const bool gpu
-    ) : gpu(gpu), coefficients(gpu), matrices(gpu) {
+    ) : gpu(gpu), matrices(matrices.size(), gpu) {
 
-        this->kernel().num_matrices = coefficients_arg.size();
-
-        this->coefficients.resize(this->num_matrices);
-        this->matrices.resize(this->num_matrices);
-
-        copy(coefficients_arg.begin(), coefficients_arg.end(), this->coefficients.begin());
         copy(matrices.begin(), matrices.end(), this->matrices.begin());
 
-        this->coefficients.update_device();
         this->matrices.update_device();
 
-        this->kernel().coefficients = this->coefficients.data();
         this->kernel().matrices = this->matrices.data();
+        this->kernel().num_matrices = matrices.size();
     }
 
 #endif // __PYTHONCC__

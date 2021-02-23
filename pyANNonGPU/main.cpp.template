@@ -236,9 +236,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 
     py::class_<SuperOperator>(m, "SuperOperator")
         .def(py::init<
-            const vector<complex<double>>&,
-            const vector<vector<unsigned int>>,
-            const vector<vector<xt::pytensor<complex<double>, 2u>>>&,
+            const vector<SparseMatrix>&,
             const bool
         >());
 

@@ -31,7 +31,7 @@ struct SparseMatrix {
             x.vector.set_at(this->site_j, col / 4u);
         }
 
-        x.coefficient *= this->values[pauli_type];
+        x.coefficient = this->values[pauli_type];
     }
 
 #ifdef __PYTHONCC__
