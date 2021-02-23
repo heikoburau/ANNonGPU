@@ -57,18 +57,11 @@ struct SuperOperator {
         // CAUTION: 'result' is not initialized.
         // CAUTION: 'result' is only updated by the first thread.
 
-        SHARED SparseMatrix                matrix;
         SHARED MatrixElement<PauliString>  matrix_element;
 
         SINGLE {
             matrix_element.vector = configuration;
-
-            matrix = this->matrices[n];
-            if(shift) {
-                matrix.site_i = (matrix.site_i + shift) % psi.num_sites;
-                matrix.site_j = (matrix.site_j + shift) % psi.num_sites;
-            }
-            this->matrices[n].apply(matrix_element);
+            this->matrices[n].apply(matrix_element, shift, psi.num_sites);
         }
         SYNC;
 
