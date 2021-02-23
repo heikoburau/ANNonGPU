@@ -72,7 +72,7 @@ struct SuperOperator {
         }
         SYNC;
 
-        if(matrix_element.coefficient != complex_t(0.0) && configuration != matrix_element.vector) {
+        if(matrix_element.coefficient != complex_t(0.0)) {
             // off-diagonal string
             psi.update_input_units(configuration, matrix_element.vector, payload);
 
@@ -83,15 +83,9 @@ struct SuperOperator {
             }
 
             psi.update_input_units(matrix_element.vector, configuration, payload);
-        }
-        else {
-            // diagonal string
-            SINGLE {
-                result += matrix_element.coefficient;
-            }
-        }
 
-        SYNC;
+            SYNC;
+        }
     }
 
 #endif // ENABLE_PAULIS
