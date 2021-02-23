@@ -19,19 +19,19 @@ struct SparseMatrix {
 
 
     HDINLINE void apply(MatrixElement<PauliString>& x) {
-        auto pauli_type = x.vector[this->site_i];
+        auto col = x.vector[this->site_i];
 
         if(this->two_sites) {
-            pauli_type += 4u * x.vector[this->site_j];
+            col += 4u * x.vector[this->site_j];
         }
-        const auto col = this->col_to_row[pauli_type];
+        const auto row = this->col_to_row[col];
 
-        x.vector.set_at(this->site_i, col % 4u);
+        x.vector.set_at(this->site_i, row % 4u);
         if(this->two_sites) {
-            x.vector.set_at(this->site_j, col / 4u);
+            x.vector.set_at(this->site_j, row / 4u);
         }
 
-        x.coefficient = this->values[pauli_type];
+        x.coefficient = this->values[col];
     }
 
 #ifdef __PYTHONCC__
