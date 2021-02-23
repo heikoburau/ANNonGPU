@@ -32,6 +32,11 @@ struct SparseMatrix {
         if(this->two_sites) {
             col += 4u * x.vector[site_j];
         }
+        x.coefficient = this->values[col];
+        if(x.coefficient == complex_t(0.0)) {
+            return;
+        }
+
         const auto row = this->col_to_row[col];
 
         x.vector.set_at(site_i, row % 4u);
@@ -39,7 +44,6 @@ struct SparseMatrix {
             x.vector.set_at(site_j, row / 4u);
         }
 
-        x.coefficient = this->values[col];
     }
 
 #ifdef __PYTHONCC__
