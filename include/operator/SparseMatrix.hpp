@@ -15,7 +15,7 @@ struct SparseMatrix {
     bool           two_sites;
     unsigned int   site_i, site_j;
     double         values[16];
-    unsigned int   row_to_col[16];
+    unsigned int   col_to_row[16];
 
 
     HDINLINE void apply(MatrixElement<PauliString>& x) {
@@ -24,7 +24,7 @@ struct SparseMatrix {
         if(this->two_sites) {
             pauli_type += 4u * x.vector[this->site_j];
         }
-        const auto col = this->row_to_col[pauli_type];
+        const auto col = this->col_to_row[pauli_type];
 
         x.vector.set_at(this->site_i, col % 4u);
         if(this->two_sites) {
@@ -41,13 +41,13 @@ struct SparseMatrix {
         unsigned site_i,
         unsigned site_j,
         const vector<double>& values,
-        const vector<unsigned int>& row_to_col
+        const vector<unsigned int>& col_to_row
     ) :
     two_sites(two_sites),
     site_i(site_i),
     site_j(site_j) {
         copy(values.begin(), values.end(), this->values);
-        copy(row_to_col.begin(), row_to_col.end(), this->row_to_col);
+        copy(col_to_row.begin(), col_to_row.end(), this->col_to_row);
     }
 
 #endif // __PYTHONCC__
