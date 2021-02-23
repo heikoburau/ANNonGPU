@@ -479,6 +479,15 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 
 #ifdef USE_SUPER_OPERATOR
 
+    py::class_<SparseMatrix>(m, "SparseMatrix")
+        .def(py::init<
+            bool,
+            unsigned,
+            unsigned,
+            const vector<double>&,
+            const vector<unsigned int>&
+        >());
+
     py::class_<SuperOperator>(m, "SuperOperator")
         .def(py::init<
             const vector<SparseMatrix>&,
