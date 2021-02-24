@@ -94,7 +94,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property(
             "params",
             [](const PsiDeep& psi) {return psi.get_params().to_pytensor_1d();},
-            [](PsiDeep& psi, const std_tensor<PsiDeep::dtype, 1u>& new_params) {
+            [](PsiDeep& psi, const std_tensor<PsiDeep::dtype, 1u> new_params) { // reference is to pytensor leads to undefined behavior
                 psi.set_params(Array<PsiDeep::dtype>(new_params, false));
             }
         )

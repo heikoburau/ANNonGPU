@@ -14,6 +14,8 @@
 namespace ann_on_gpu {
 
 
+#define MAX_PARAMS 2048
+
 
 template<typename Psi_t, typename Ensemble>
 void TDVP::eval_with_psi_ref(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
@@ -100,7 +102,7 @@ void TDVP::eval_with_psi_ref(const Operator_t& op, Psi_t& psi, Ensemble& ensembl
         #include "cuda_kernel_defines.h"
 
         SHARED double    weight;
-        SHARED complex_t O_k_list[1024];
+        SHARED complex_t O_k_list[MAX_PARAMS];
 
         SINGLE {
             weight = weight_samples_ptr[index];
@@ -230,7 +232,7 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
         #include "cuda_kernel_defines.h"
 
         SHARED double    weight;
-        SHARED complex_t O_k_list[1024];
+        SHARED complex_t O_k_list[MAX_PARAMS];
 
         SINGLE {
             weight = weight_samples_ptr[index];
