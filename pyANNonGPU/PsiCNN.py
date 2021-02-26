@@ -59,6 +59,24 @@ def calibrate(self, ensemble):
         self.log_prefactor -= log_psi(self, ensemble)
 
 
+def channel_link(self, layer, i, j):
+    num_channels_list = self.num_channels_list
+    connectivity_list = self.connectivity_list
+
+    offset = 0
+    for l in range(layer):
+        num_channel_links = num_channels_list[l] * (num_channels_list[l - 1] if l > 0 else 1)
+
+        offset += num_channel_links * connectivity_list[l]
+
+    num_channels = num_channels_list[layer]
+    connectivity = connectivity_list[layer]
+
+    offset += (i * num_channels + j) * connectivity
+
+    return self.params[offset:offset + connectivity]
+
+
 def __pos__(self):
     return self.copy()
 
@@ -72,5 +90,6 @@ setattr(PsiCNN, "to_json", to_json)
 setattr(PsiCNN, "from_json", from_json)
 setattr(PsiCNN, "normalize", normalize)
 setattr(PsiCNN, "calibrate", calibrate)
+setattr(PsiCNN, "channel_link", channel_link)
 setattr(PsiCNN, "__pos__", __pos__)
 setattr(PsiCNN, "vector", vector)
