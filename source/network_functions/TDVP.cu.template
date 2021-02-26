@@ -282,7 +282,7 @@ template void TDVP::eval_with_psi_ref(const Operator_t&, ClPsi&, Ensemble<Basis>
 //! end template
 
 //! begin template
-template void TDVP::eval(const Operator_t&, FFPsi&, Ensemble<Basis>&);
+template void TDVP::eval(const Operator_t&, AllPsi&, Ensemble<Basis>&);
 //! end template
 
 } // namespace ann_on_gpu

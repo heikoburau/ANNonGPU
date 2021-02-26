@@ -314,9 +314,9 @@ tuple<
 
 
 //! begin template
-template double KullbackLeibler::value(ClPsi&, PsiDeep&, Ensemble<Basis>&, double);
-template double KullbackLeibler::gradient(complex<double>*, ClPsi&, PsiDeep&, Ensemble<Basis>&, const double, double);
-template tuple<Array<complex_t>, Array<double>, double> KullbackLeibler::gradient_with_noise(ClPsi&, PsiDeep&, Ensemble<Basis>&, const double, double);
+template double KullbackLeibler::value(ClPsi&, FFPsi&, Ensemble<Basis>&, double);
+template double KullbackLeibler::gradient(complex<double>*, ClPsi&, FFPsi&, Ensemble<Basis>&, const double, double);
+template tuple<Array<complex_t>, Array<double>, double> KullbackLeibler::gradient_with_noise(ClPsi&, FFPsi&, Ensemble<Basis>&, const double, double);
 //! end template
 
 

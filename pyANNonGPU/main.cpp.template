@@ -428,7 +428,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<ClPsi, Ensemble<Basis>>)
         //! end template
         //! begin template
-        .def("eval", &TDVP::eval<FFPsi, Ensemble<Basis>>)
+        .def("eval", &TDVP::eval<AllPsi, Ensemble<Basis>>)
         //! end template
         ;
 

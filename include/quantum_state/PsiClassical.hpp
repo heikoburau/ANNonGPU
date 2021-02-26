@@ -234,7 +234,7 @@ struct PsiClassical_t {
         #include "cuda_kernel_defines.h"
         // CAUTION: 'result' has to be a shared variable.
 
-        this->init_payload(payload, configuration);
+        this->init_payload(payload, configuration, 0u);
 
         SINGLE {
             result = this->log_prefactor + payload.log_psi_ref;
