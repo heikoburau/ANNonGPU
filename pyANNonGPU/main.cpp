@@ -127,6 +127,54 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 
     #endif // ENABLE_PSI_DEEP
 
+    #ifdef ENABLE_PSI_CNN
+
+    py::class_<PsiCNN>(m, "PsiCNN")
+        .def(py::init<
+            const unsigned int,
+            const unsigned int,
+            const xt::pytensor<unsigned int, 1u>&,
+            const xt::pytensor<unsigned int, 1u>&,
+            const std_tensor<PsiCNN::dtype, 1u>&,
+            const PsiCNN::std_dtype&,
+            const double,
+            const bool
+        >())
+        .def("copy", &PsiCNN::copy)
+        .def_readonly("N", &PsiCNN::N)
+        .def_readonly("num_sites", &PsiCNN::num_sites)
+        .def_property_readonly("num_channels_list", [](const PsiCNN& psi) {return psi.num_channels_list.to_pytensor_1d();})
+        .def_property_readonly("connectivity_list", [](const PsiCNN& psi) {return psi.connectivity_list.to_pytensor_1d();})
+        .def_readwrite("final_factor", &PsiCNN::final_factor)
+        .def_readwrite("prefactor", &PsiCNN::prefactor)
+        .def_property(
+            "log_prefactor",
+            [](const PsiCNN& psi) {return cuda_complex::to_std(psi.log_prefactor);},
+            [](PsiCNN& psi, PsiCNN::std_dtype value) {psi.log_prefactor = PsiCNN::dtype(value);}
+        )
+        .def_readonly("gpu", &PsiCNN::gpu)
+        .def_readonly("num_params", &PsiCNN::num_params)
+        .def_property(
+            "params",
+            [](const PsiCNN& psi) {return psi.params.to_pytensor_1d();},
+            [](PsiCNN& psi, const std_tensor<PsiCNN::dtype, 1u>& new_params) {
+                psi.params = new_params;
+            }
+        )
+        #ifdef ENABLE_EXACT_SUMMATION
+#if defined(ENABLE_SPINS)
+        .def("_vector", [](PsiCNN& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
+        .def("norm", [](PsiCNN& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
+#endif
+#if defined(ENABLE_PAULIS)
+        .def("_vector", [](PsiCNN& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
+        .def("norm", [](PsiCNN& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
+#endif
+        #endif // ENABLE_EXACT_SUMMATION
+        ;
+
+    #endif // ENABLE_PSI_CNN
+
     // py::class_<PsiDeepSigned>(m, "PsiDeepSigned")
     //     .def(py::init<
     //         const PsiDeepT<double, PsiDeepSigned::symmetric>&,

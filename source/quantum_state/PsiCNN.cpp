@@ -28,19 +28,22 @@ void PsiCNN_t<dtype>::init_kernel() {
             channel_link.begin_params = params_offset;
             channel_link.weights = this->params.data() + params_offset;
 
-            params_offset += layer.connectivity * this->N;
+            params_offset += layer.connectivity;
         }
 
         this->num_angles += layer.num_channels * this->N;
     }
+
+    if(this->angles.empty()) {
+        this->angles.resize(this->num_angles);
+    }
+
+    this->init_kernel_angles();
 }
 
 
 template<typename dtype>
-template<typename Ensemble>
-void PsiCNN_t<dtype>::init(const Ensemble& ensemble) {
-    this->angles.resize(ensemble.get_num_steps() * this->num_angles);
-
+void PsiCNN_t<dtype>::init_kernel_angles() {
     auto angles_offset = 0u;
     for(auto l = 0u; l < this->num_layers; l++) {
         auto& layer = this->layers[l];
@@ -53,6 +56,13 @@ void PsiCNN_t<dtype>::init(const Ensemble& ensemble) {
             angles_offset += this->N;
         }
     }
+}
+
+template<typename dtype>
+template<typename Ensemble>
+void PsiCNN_t<dtype>::init_gradient(const Ensemble& ensemble) {
+    this->angles.resize(ensemble.get_num_steps() * this->num_angles);
+    this->init_kernel_angles();
 }
 
 

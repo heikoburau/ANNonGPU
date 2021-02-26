@@ -1,4 +1,4 @@
-from pyANNonGPU import PsiDeep, Spins, activation_function, deep_activation, psi_O_k, log_psi_s, ExactSummationSpins #, PauliString
+from pyANNonGPU import PsiDeep, PsiCNN, Spins, activation_function, deep_activation, psi_O_k, log_psi_s, ExactSummationSpins #, PauliString
 
 from pytest import approx
 import numpy as np
@@ -87,7 +87,7 @@ def _test_psi_deep_s(psi_deep, ensemble, gpu):
         assert psi_vector[conf_idx] == approx(psi_s_ref)
 
 
-def test_psi_classical_s(psi_classical, gpu):
+def _test_psi_classical_s(psi_classical, gpu):
     psi = psi_classical(gpu)
     num_sites = psi.num_sites
 
@@ -196,7 +196,7 @@ def test_psi_classical_s(psi_classical, gpu):
         assert log_psi_s(psi, conf) == approx(log_psi_s_ref)
 
 
-def _test_O_k(psi_all, gpu):
+def test_O_k(psi_all, gpu):
     psi = psi_all(gpu)
 
     # use_spins = ensemble.__name__.endswith("Spins")
@@ -234,7 +234,10 @@ def _test_O_k(psi_all, gpu):
             for k in range(psi.num_params)
         ])
 
-        if hasattr(psi, "symmetric") and psi.symmetric:
+        if (
+            (hasattr(psi, "symmetric") and psi.symmetric) or
+            type(psi) is PsiCNN
+        ):
             O_k_vector_test = sum(
                 psi_O_k(psi, conf.roll(i, psi.num_sites))
                 for i in range(psi.num_sites)

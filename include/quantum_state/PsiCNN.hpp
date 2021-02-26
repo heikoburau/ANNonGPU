@@ -324,7 +324,7 @@ struct PsiCNN_t {
 
 template<typename dtype>
 struct PsiCNN_t : public kernel::PsiCNN_t<dtype> {
-
+    using std_dtype = typename std_dtype<dtype>::type;
     using real_dtype = typename cuda_complex::get_real_type<dtype>::type;
     using Kernel = kernel::PsiCNN_t<dtype>;
 
@@ -341,8 +341,8 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dtype> {
         const unsigned int N,
         const xt::pytensor<unsigned int, 1u>& num_channels_list,
         const xt::pytensor<unsigned int, 1u>& connectivity_list,
-        const xt::pytensor<dtype, 1u>& params,
-        const dtype& final_factor,
+        const xt::pytensor<std_dtype, 1u>& params,
+        const std_dtype& final_factor,
         const double prefactor,
         const bool gpu
     )
@@ -351,11 +351,11 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dtype> {
     num_channels_list(num_channels_list, false),
     connectivity_list(connectivity_list, false),
     params(params, gpu),
-    angles(1, gpu)
+    angles(gpu)
     {
         this->num_sites = num_sites;
         this->N = N;
-        this->final_factor = final_factor;
+        this->final_factor = dtype(final_factor);
         this->prefactor = prefactor;
         this->log_prefactor = dtype(0.0);
 
@@ -386,7 +386,8 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dtype> {
     }
 
     template<typename Ensemble>
-    void init(const Ensemble& ensemble);
+    void init_gradient(const Ensemble& ensemble);
+    void init_kernel_angles();
 
     void init_kernel();
 };

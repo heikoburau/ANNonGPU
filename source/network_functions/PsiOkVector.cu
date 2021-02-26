@@ -14,6 +14,7 @@ namespace ann_on_gpu {
 template<typename Psi_t, typename Ensemble>
 Array<complex_t> psi_O_k_vector(Psi_t& psi, Ensemble& ensemble) {
     Array<complex_t> result(psi.num_params, psi.gpu);
+    result.clear();
 
     auto result_ptr = result.data();
     auto psi_kernel = psi.kernel();
@@ -31,7 +32,7 @@ Array<complex_t> psi_O_k_vector(Psi_t& psi, Ensemble& ensemble) {
                 configuration,
                 payload,
                 [&](const unsigned int k, const complex_t& O_k_element) {
-                    result_ptr[k] = O_k_element;
+                    generic_atomicAdd(&result_ptr[k], O_k_element);
                 }
             );
         }
@@ -45,6 +46,7 @@ Array<complex_t> psi_O_k_vector(Psi_t& psi, Ensemble& ensemble) {
 template<typename Psi_t, typename Basis_t>
 Array<complex_t> psi_O_k(Psi_t& psi, const Basis_t& configuration) {
     Array<complex_t> result(psi.num_params, psi.gpu);
+    result.clear();
 
     auto result_ptr = result.data();
     auto psi_kernel = psi.kernel();
@@ -60,7 +62,7 @@ Array<complex_t> psi_O_k(Psi_t& psi, const Basis_t& configuration) {
             conf,
             payload,
             [&](const unsigned int k, const typename Psi_t::dtype& O_k_element) {
-                result_ptr[k] = O_k_element;
+                generic_atomicAdd(&result_ptr[k], O_k_element);
             }
         );
     };

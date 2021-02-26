@@ -9,6 +9,15 @@ try:
 except ImportError:
     pass
 
+try:
+    from .PsiCNN import PsiCNN
+
+    from .new_convolutional_network import (
+        new_convolutional_network
+    )
+except ImportError:
+    pass
+
 from .new_classical_network import *
 
 from .LearningByGradientDescent import LearningByGradientDescent, DidNotConverge
