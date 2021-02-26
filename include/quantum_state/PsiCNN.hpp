@@ -33,9 +33,9 @@ struct PsiCNN_t {
     using real_dtype = typename cuda_complex::get_real_type<dtype>::type;
 
     static constexpr unsigned int max_N = MAX_SPINS;
-    static constexpr unsigned int max_layers = 3u;
+    static constexpr unsigned int max_layers = 2u;
     static constexpr unsigned int max_channels_per_layer = 6u;
-    static constexpr unsigned int max_channel_links_per_layer = 16u;
+    static constexpr unsigned int max_channel_links_per_layer = 18u;
 
     struct Payload {
         unsigned int conf_idx;

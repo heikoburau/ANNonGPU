@@ -47,13 +47,23 @@ def new_convolutional_network(
     for layer, (num_channels, connectivity) in enumerate(layers):
         assert connectivity <= N
 
-        num_channel_links = num_channels * (layers[layer - 1][0] if layer > 0 else 1)
+        num_prev_channels = layers[layer - 1][0] if layer > 0 else 1
+        num_next_channels = layers[layer + 1][0] if layer < len(layers) - 1 else 1
+        next_connectivity = layers[layer + 1][1] if layer < len(layers) - 1 else 1
 
-        channel_link = noise * noise_vector(connectivity, real)
-        if layer == 0:
-            channel_link[connectivity // 2] = initial_value.real if real else initial_value
+        num_channel_links = num_channels * num_prev_channels
 
-        params += num_channel_links * list(channel_link)
+        for cl in range(num_channel_links):
+            channel_link = noise * noise_vector(connectivity, real)
+            if layer == 0:
+                channel_link[connectivity // 2] = initial_value.real if real else initial_value
+            else:
+                channel_link += math.sqrt(
+                    6 / (connectivity * num_prev_channels + next_connectivity * num_next_channels)
+                ) * real_noise(connectivity)
+
+            params += list(channel_link)
+
     params = np.array(params)
 
     return PsiCNN(num_sites, N, num_channels_list, connectivity_list, params, final_factor, 1, gpu)
