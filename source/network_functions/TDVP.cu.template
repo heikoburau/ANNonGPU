@@ -29,6 +29,7 @@ void TDVP::eval_with_psi_ref(const Operator_t& op, Psi_t& psi, Ensemble& ensembl
     this->O_k_ar.clear();
     this->S_matrix.clear();
     this->F_vector.clear();
+    this->O_k_samples->clear();
     this->prob_ratio.clear();
 
     auto num_params = this->F_vector.size();
@@ -84,7 +85,7 @@ void TDVP::eval_with_psi_ref(const Operator_t& op, Psi_t& psi, Ensemble& ensembl
                 [&](const unsigned int k, const complex_t& O_k) {
                     generic_atomicAdd(&O_k_ptr[k], prob_ratio * weight * O_k);
                     generic_atomicAdd(&F_ptr[k], prob_ratio * weight * local_energy * conj(O_k));
-                    O_k_samples_ptr[index * num_params + k] = O_k;
+                    generic_atomicAdd(&O_k_samples_ptr[index * num_params + k], O_k);
                 }
             );
         }
@@ -174,6 +175,7 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
     this->O_k_ar.clear();
     this->S_matrix.clear();
     this->F_vector.clear();
+    this->O_k_samples->clear();
 
     auto num_params = this->F_vector.size();
     auto op_kernel = op.kernel();
@@ -214,7 +216,7 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
                 [&](const unsigned int k, const complex_t& O_k) {
                     generic_atomicAdd(&O_k_ptr[k], weight * O_k);
                     generic_atomicAdd(&F_ptr[k], weight * local_energy * conj(O_k));
-                    O_k_samples_ptr[index * num_params + k] = O_k;
+                    generic_atomicAdd(&O_k_samples_ptr[index * num_params + k], O_k);
                 }
             );
         }
