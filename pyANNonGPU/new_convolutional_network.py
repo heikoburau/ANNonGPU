@@ -30,6 +30,10 @@ def new_convolutional_network(
     real=False,
     gpu=False
 ):
+    """
+    A proper choice of 'final_factor' seems to be very important. For instance, for tdvp with 12 spins a value of 20 works well, but anything below fails.
+    """
+
     assert num_sites == N or 3 * num_sites == N
 
     num_channels_list = np.array(
