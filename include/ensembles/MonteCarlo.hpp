@@ -82,7 +82,7 @@ struct MonteCarlo_t {
         SHARED typename Psi_t::Payload      payload;
         SHARED typename Psi_t::dtype        log_psi;
 
-        psi.init_payload(payload, configuration);
+        psi.init_payload(payload, configuration, markov_index);
         psi.log_psi_s(log_psi, configuration, payload);
 
         // thermalization

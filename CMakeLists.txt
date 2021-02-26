@@ -121,6 +121,16 @@ if (ENABLE_EXACT_SUMMATION)
   target_compile_definitions(ANNonGPU PUBLIC ENABLE_EXACT_SUMMATION)
 endif()
 
+option(ENABLE_PSI_DEEP "enable PsiDeep" ON)
+if (ENABLE_PSI_DEEP)
+  target_compile_definitions(ANNonGPU PUBLIC ENABLE_PSI_DEEP)
+endif()
+
+option(ENABLE_PSI_CNN "enable PsiCNN" OFF)
+if (ENABLE_PSI_CNN)
+  target_compile_definitions(ANNonGPU PUBLIC ENABLE_PSI_CNN)
+endif()
+
 option(ENABLE_PSI_CLASSICAL "enable PsiClassical" ON)
 if (ENABLE_PSI_CLASSICAL)
   target_compile_definitions(ANNonGPU PUBLIC ENABLE_PSI_CLASSICAL)

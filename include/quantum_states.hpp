@@ -1,6 +1,12 @@
 #pragma once
 
+#ifdef ENABLE_PSI_DEEP
 #include "quantum_state/PsiDeep.hpp"
+#endif // ENABLE_PSI_DEEP
+
+#ifdef ENABLE_PSI_CNN
+#include "quantum_state/PsiCNN.hpp"
+#endif // ENABLE_PSI_CNN
 
 #ifdef ENABLE_PSI_CLASSICAL
 #include "quantum_state/PsiFullyPolarized.hpp"

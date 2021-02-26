@@ -7,13 +7,13 @@
 #include "network_functions/TDVP.hpp"
 #endif // LEAN_AND_MEAN
 
-#include "network_functions/CalibratePsi.hpp"
 #include "network_functions/PsiVector.hpp"
 #include "network_functions/PsiNorm.hpp"
 #include "network_functions/PsiOkVector.hpp"
 #include "network_functions/PsiAngles.hpp"
 #include "network_functions/ApplyOperator.hpp"
 #include "quantum_states.hpp"
+#include "quantum_state/psi_functions.hpp"
 #include "ensembles.hpp"
 #include "operators.hpp"
 #include "bases.hpp"
@@ -67,6 +67,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 {
     xt::import_numpy();
 
+    #ifdef ENABLE_PSI_DEEP
+
     py::class_<PsiDeep>(m, "PsiDeep")
         .def(py::init<
             const unsigned int,
@@ -112,6 +114,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         //! end template
         #endif // ENABLE_EXACT_SUMMATION
         ;
+
+    #endif // ENABLE_PSI_DEEP
 
     // py::class_<PsiDeepSigned>(m, "PsiDeepSigned")
     //     .def(py::init<
@@ -332,7 +336,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         //! begin template
         .def("__call__", &ExpectationValue::__call__<AllPsi, Ensemble<Basis>>)
         .def("__call__array", &ExpectationValue::__call__<AllPsi, Ensemble<Basis>>)
-        .def("__call__", &ExpectationValue::__call__<AllPsi, PsiDeep, Ensemble<Basis>>)
+        .def("__call__", &ExpectationValue::__call__<ClPsi, FFPsi, Ensemble<Basis>>)
         .def("fluctuation", &ExpectationValue::fluctuation<AllPsi, Ensemble<Basis>>)
         .def("gradient", &ExpectationValue::gradient_py<AllPsi, Ensemble<Basis>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<AllPsi, Ensemble<Basis>>)
@@ -343,8 +347,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<HilbertSpaceDistance>(m, "HilbertSpaceDistance")
         .def(py::init<unsigned int, bool>())
         //! begin template
-        .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, Ensemble<Basis>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
-        .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, Ensemble<Basis>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
+        .def("__call__", &HilbertSpaceDistance::distance<FFPsi, FFPsi, Ensemble<Basis>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
+        .def("gradient", &HilbertSpaceDistance::gradient_py<FFPsi, FFPsi, Ensemble<Basis>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
         //! end template
     ;
 
@@ -352,9 +356,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<KullbackLeibler>(m, "KullbackLeibler")
         .def(py::init<unsigned int, bool>())
         //! begin template
-        .def("__call__", &KullbackLeibler::value<ClPsi, PsiDeep, Ensemble<Basis>>)
-        .def("gradient", &KullbackLeibler::gradient_py<ClPsi, PsiDeep, Ensemble<Basis>>)
-        .def("gradient_with_noise", [](KullbackLeibler& kl, ClPsi& psi, PsiDeep& psi_prime, Ensemble<Basis>& ensemble, const double nu, double threshold){
+        .def("__call__", &KullbackLeibler::value<ClPsi, FFPsi, Ensemble<Basis>>)
+        .def("gradient", &KullbackLeibler::gradient_py<ClPsi, FFPsi, Ensemble<Basis>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, ClPsi& psi, FFPsi& psi_prime, Ensemble<Basis>& ensemble, const double nu, double threshold){
             const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
             return make_tuple(
                 get<0>(result).to_pytensor_1d(),
@@ -377,7 +381,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<ClPsi, Ensemble<Basis>>)
         //! end template
         //! begin template
-        .def("eval", &TDVP::eval<PsiDeep, Ensemble<Basis>>)
+        .def("eval", &TDVP::eval<FFPsi, Ensemble<Basis>>)
         //! end template
         ;
 

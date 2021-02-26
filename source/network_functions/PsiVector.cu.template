@@ -114,7 +114,7 @@ typename std_dtype<typename Psi_t::dtype>::type log_psi_s(Psi_t& psi, const Basi
         SHARED typename Psi_t::Payload payload;
         SHARED typename Psi_t::dtype   log_psi;
 
-        psi_kernel.init_payload(payload, conf);
+        psi_kernel.init_payload(payload, conf, 0u);
         psi_kernel.log_psi_s(log_psi, conf, payload);
 
         SINGLE {

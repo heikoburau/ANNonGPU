@@ -123,7 +123,7 @@ complex<double> ExpectationValue::operator()(
             SHARED typename Psi_t::Payload  payload;
             SHARED double                   prob_ratio;
 
-            psi_kernel.init_payload(payload, configuration);
+            psi_kernel.init_payload(payload, configuration, index);
             psi_kernel.log_psi_s(log_psi, configuration, payload);
             op_kernel.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
 
@@ -220,7 +220,7 @@ pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(
                 generic_atomicAdd(A_local_ptr, weight * local_energy);
             }
 
-            psi_kernel.init_payload(payload, configuration);
+            psi_kernel.init_payload(payload, configuration, spin_index);
             psi_kernel.foreach_O_k(
                 configuration,
                 payload,
@@ -308,7 +308,7 @@ pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(
 //! begin template
 template complex<double> ExpectationValue::operator()(const Operator_t&, AllPsi& psi, Ensemble<Basis>&);
 template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, AllPsi& psi, Ensemble<Basis>&);
-template complex<double> ExpectationValue::operator()(const Operator_t&, AllPsi& psi, PsiDeep&, Ensemble<Basis>&);
+template complex<double> ExpectationValue::operator()(const Operator_t&, ClPsi& psi, FFPsi&, Ensemble<Basis>&);
 template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, AllPsi&, Ensemble<Basis>&);
 template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, AllPsi& psi, Ensemble<Basis>&);
 template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, AllPsi& psi, Ensemble<Basis>&);

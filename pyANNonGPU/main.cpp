@@ -13,13 +13,13 @@
 #include "network_functions/TDVP.hpp"
 #endif // LEAN_AND_MEAN
 
-#include "network_functions/CalibratePsi.hpp"
 #include "network_functions/PsiVector.hpp"
 #include "network_functions/PsiNorm.hpp"
 #include "network_functions/PsiOkVector.hpp"
 #include "network_functions/PsiAngles.hpp"
 #include "network_functions/ApplyOperator.hpp"
 #include "quantum_states.hpp"
+#include "quantum_state/psi_functions.hpp"
 #include "ensembles.hpp"
 #include "operators.hpp"
 #include "bases.hpp"
@@ -73,6 +73,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 {
     xt::import_numpy();
 
+    #ifdef ENABLE_PSI_DEEP
+
     py::class_<PsiDeep>(m, "PsiDeep")
         .def(py::init<
             const unsigned int,
@@ -122,6 +124,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
         #endif // ENABLE_EXACT_SUMMATION
         ;
+
+    #endif // ENABLE_PSI_DEEP
 
     // py::class_<PsiDeepSigned>(m, "PsiDeepSigned")
     //     .def(py::init<
@@ -574,23 +578,199 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 
     py::class_<ExpectationValue>(m, "ExpectationValue")
         .def(py::init<bool>())
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Spins>>)
         .def("__call__array", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Spins>>)
-        .def("__call__", &ExpectationValue::__call__<PsiDeep, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
         .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<Spins>>)
         .def("gradient", &ExpectationValue::gradient_py<PsiDeep, MonteCarlo_tt<Spins>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<Spins>>)
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
         .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
-        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
         .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
         .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
         .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
@@ -598,7 +778,71 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
         .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
@@ -606,7 +850,71 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
         .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
@@ -614,7 +922,71 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
         .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
@@ -622,23 +994,231 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("__call__array", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
-        .def("__call__", &ExpectationValue::__call__<PsiDeep, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("gradient", &ExpectationValue::gradient_py<PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<PauliString>>)
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
         .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
-        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
         .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
         .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
@@ -646,7 +1226,71 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
         .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
@@ -654,7 +1298,71 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
         .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
@@ -662,7 +1370,71 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
         .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
@@ -670,23 +1442,231 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Spins>>)
         .def("__call__array", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Spins>>)
-        .def("__call__", &ExpectationValue::__call__<PsiDeep, PsiDeep, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<Spins>>)
         .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<Spins>>)
         .def("gradient", &ExpectationValue::gradient_py<PsiDeep, ExactSummation_t<Spins>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<Spins>>)
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Spins>>)
         .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Spins>>)
-        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, PsiDeep, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<Spins>>)
         .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<Spins>>)
         .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, ExactSummation_t<Spins>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, ExactSummation_t<Spins>>)
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
         .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<Spins>>)
@@ -694,7 +1674,71 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
         .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<Spins>>)
@@ -702,7 +1746,71 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
         .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<Spins>>)
@@ -710,7 +1818,71 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
         .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<Spins>>)
@@ -718,23 +1890,231 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
         .def("__call__array", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
-        .def("__call__", &ExpectationValue::__call__<PsiDeep, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<PauliString>>)
         .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<PauliString>>)
         .def("gradient", &ExpectationValue::gradient_py<PsiDeep, ExactSummation_t<PauliString>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<PauliString>>)
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<PauliString>>)
         .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<PauliString>>)
-        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<PauliString>>)
         .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<PauliString>>)
         .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, ExactSummation_t<PauliString>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, ExactSummation_t<PauliString>>)
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
         .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<PauliString>>)
@@ -742,7 +2122,71 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
         .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<PauliString>>)
@@ -750,7 +2194,71 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
         .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<PauliString>>)
@@ -758,10 +2266,106 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
         .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<PauliString>>)
         .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
         .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
@@ -771,28 +2375,44 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 
     py::class_<HilbertSpaceDistance>(m, "HilbertSpaceDistance")
         .def(py::init<unsigned int, bool>())
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, MonteCarlo_tt<Spins>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
         .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, MonteCarlo_tt<Spins>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &HilbertSpaceDistance::distance<PsiCNN, PsiCNN, MonteCarlo_tt<Spins>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
+        .def("gradient", &HilbertSpaceDistance::gradient_py<PsiCNN, PsiCNN, MonteCarlo_tt<Spins>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, MonteCarlo_tt<PauliString>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
         .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, MonteCarlo_tt<PauliString>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &HilbertSpaceDistance::distance<PsiCNN, PsiCNN, MonteCarlo_tt<PauliString>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
+        .def("gradient", &HilbertSpaceDistance::gradient_py<PsiCNN, PsiCNN, MonteCarlo_tt<PauliString>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, ExactSummation_t<Spins>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
         .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, ExactSummation_t<Spins>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &HilbertSpaceDistance::distance<PsiCNN, PsiCNN, ExactSummation_t<Spins>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
+        .def("gradient", &HilbertSpaceDistance::gradient_py<PsiCNN, PsiCNN, ExactSummation_t<Spins>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, ExactSummation_t<PauliString>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
         .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, ExactSummation_t<PauliString>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &HilbertSpaceDistance::distance<PsiCNN, PsiCNN, ExactSummation_t<PauliString>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
+        .def("gradient", &HilbertSpaceDistance::gradient_py<PsiCNN, PsiCNN, ExactSummation_t<PauliString>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
 #endif
     ;
 
 
     py::class_<KullbackLeibler>(m, "KullbackLeibler")
         .def(py::init<unsigned int, bool>())
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
         .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<1u>& psi, PsiDeep& psi_prime, MonteCarlo_tt<Spins>& ensemble, const double nu, double threshold){
@@ -804,7 +2424,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             );
         })
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &KullbackLeibler::value<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
         .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<2u>& psi, PsiDeep& psi_prime, MonteCarlo_tt<Spins>& ensemble, const double nu, double threshold){
@@ -816,7 +2436,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             );
         })
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("__call__", &KullbackLeibler::value<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<Spins>>)
         .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<1u>& psi, PsiDeep& psi_prime, MonteCarlo_tt<Spins>& ensemble, const double nu, double threshold){
@@ -828,7 +2448,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             );
         })
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<Spins>>)
         .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<2u>& psi, PsiDeep& psi_prime, MonteCarlo_tt<Spins>& ensemble, const double nu, double threshold){
@@ -840,7 +2460,55 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             );
         })
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<1u>& psi, PsiCNN& psi_prime, MonteCarlo_tt<Spins>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<2u>& psi, PsiCNN& psi_prime, MonteCarlo_tt<Spins>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<1u>& psi, PsiCNN& psi_prime, MonteCarlo_tt<Spins>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<2u>& psi, PsiCNN& psi_prime, MonteCarlo_tt<Spins>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<1u>& psi, PsiDeep& psi_prime, MonteCarlo_tt<PauliString>& ensemble, const double nu, double threshold){
@@ -852,7 +2520,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             );
         })
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &KullbackLeibler::value<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<2u>& psi, PsiDeep& psi_prime, MonteCarlo_tt<PauliString>& ensemble, const double nu, double threshold){
@@ -864,7 +2532,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             );
         })
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("__call__", &KullbackLeibler::value<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<1u>& psi, PsiDeep& psi_prime, MonteCarlo_tt<PauliString>& ensemble, const double nu, double threshold){
@@ -876,7 +2544,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             );
         })
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<2u>& psi, PsiDeep& psi_prime, MonteCarlo_tt<PauliString>& ensemble, const double nu, double threshold){
@@ -888,7 +2556,55 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             );
         })
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<1u>& psi, PsiCNN& psi_prime, MonteCarlo_tt<PauliString>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<2u>& psi, PsiCNN& psi_prime, MonteCarlo_tt<PauliString>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<1u>& psi, PsiCNN& psi_prime, MonteCarlo_tt<PauliString>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<2u>& psi, PsiCNN& psi_prime, MonteCarlo_tt<PauliString>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<Spins>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<Spins>>)
         .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<1u>& psi, PsiDeep& psi_prime, ExactSummation_t<Spins>& ensemble, const double nu, double threshold){
@@ -900,7 +2616,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             );
         })
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &KullbackLeibler::value<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<Spins>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<Spins>>)
         .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<2u>& psi, PsiDeep& psi_prime, ExactSummation_t<Spins>& ensemble, const double nu, double threshold){
@@ -912,7 +2628,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             );
         })
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("__call__", &KullbackLeibler::value<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<Spins>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<Spins>>)
         .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<1u>& psi, PsiDeep& psi_prime, ExactSummation_t<Spins>& ensemble, const double nu, double threshold){
@@ -924,7 +2640,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             );
         })
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<Spins>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<Spins>>)
         .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<2u>& psi, PsiDeep& psi_prime, ExactSummation_t<Spins>& ensemble, const double nu, double threshold){
@@ -936,7 +2652,55 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             );
         })
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<1u>& psi, PsiCNN& psi_prime, ExactSummation_t<Spins>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<2u>& psi, PsiCNN& psi_prime, ExactSummation_t<Spins>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<1u>& psi, PsiCNN& psi_prime, ExactSummation_t<Spins>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<2u>& psi, PsiCNN& psi_prime, ExactSummation_t<Spins>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<PauliString>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<PauliString>>)
         .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<1u>& psi, PsiDeep& psi_prime, ExactSummation_t<PauliString>& ensemble, const double nu, double threshold){
@@ -948,7 +2712,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             );
         })
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &KullbackLeibler::value<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<PauliString>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<PauliString>>)
         .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<2u>& psi, PsiDeep& psi_prime, ExactSummation_t<PauliString>& ensemble, const double nu, double threshold){
@@ -960,7 +2724,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             );
         })
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("__call__", &KullbackLeibler::value<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<PauliString>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<PauliString>>)
         .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<1u>& psi, PsiDeep& psi_prime, ExactSummation_t<PauliString>& ensemble, const double nu, double threshold){
@@ -972,10 +2736,58 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             );
         })
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<PauliString>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<PauliString>>)
         .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<2u>& psi, PsiDeep& psi_prime, ExactSummation_t<PauliString>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<1u>& psi, PsiCNN& psi_prime, ExactSummation_t<PauliString>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<2u>& psi, PsiCNN& psi_prime, ExactSummation_t<PauliString>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<1u>& psi, PsiCNN& psi_prime, ExactSummation_t<PauliString>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<2u>& psi, PsiCNN& psi_prime, ExactSummation_t<PauliString>& ensemble, const double nu, double threshold){
             const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
             return make_tuple(
                 get<0>(result).to_pytensor_1d(),
@@ -1042,28 +2854,48 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
         .def("eval", &TDVP::eval<PsiDeep, MonteCarlo_tt<Spins>>)
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
+        .def("eval", &TDVP::eval<PsiCNN, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
         .def("eval", &TDVP::eval<PsiDeep, MonteCarlo_tt<PauliString>>)
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
+        .def("eval", &TDVP::eval<PsiCNN, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
         .def("eval", &TDVP::eval<PsiDeep, ExactSummation_t<Spins>>)
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
+        .def("eval", &TDVP::eval<PsiCNN, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
         .def("eval", &TDVP::eval<PsiDeep, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
+        .def("eval", &TDVP::eval<PsiCNN, ExactSummation_t<PauliString>>)
 #endif
         ;
 
 #endif // LEAN_AND_MEAN
 
 
-#if defined(ENABLE_SPINS)
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
     m.def("log_psi_s", [](PsiDeep& psi, const Spins& basis) {
         return log_psi_s(psi, basis);
     });
     m.def("psi_O_k", [](PsiDeep& psi, const Spins& basis) {
+        return psi_O_k(psi, basis).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
+    m.def("log_psi_s", [](PsiCNN& psi, const Spins& basis) {
+        return log_psi_s(psi, basis);
+    });
+    m.def("psi_O_k", [](PsiCNN& psi, const Spins& basis) {
         return psi_O_k(psi, basis).to_pytensor_1d();
     });
 #endif
@@ -1107,11 +2939,19 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_O_k(psi, basis).to_pytensor_1d();
     });
 #endif
-#if defined(ENABLE_PAULIS)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
     m.def("log_psi_s", [](PsiDeep& psi, const PauliString& basis) {
         return log_psi_s(psi, basis);
     });
     m.def("psi_O_k", [](PsiDeep& psi, const PauliString& basis) {
+        return psi_O_k(psi, basis).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
+    m.def("log_psi_s", [](PsiCNN& psi, const PauliString& basis) {
+        return log_psi_s(psi, basis);
+    });
+    m.def("psi_O_k", [](PsiCNN& psi, const PauliString& basis) {
         return psi_O_k(psi, basis).to_pytensor_1d();
     });
 #endif
@@ -1157,8 +2997,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 
     #ifdef ENABLE_EXACT_SUMMATION
-#if defined(ENABLE_SPINS)
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
     m.def("psi_O_k_vector", [](PsiDeep& psi, ExactSummation_t<Spins>& ensemble) {
+        return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
+    m.def("psi_O_k_vector", [](PsiCNN& psi, ExactSummation_t<Spins>& ensemble) {
         return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
@@ -1187,8 +3032,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
-#if defined(ENABLE_PAULIS)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
     m.def("psi_O_k_vector", [](PsiDeep& psi, ExactSummation_t<PauliString>& ensemble) {
+        return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
+    m.def("psi_O_k_vector", [](PsiCNN& psi, ExactSummation_t<PauliString>& ensemble) {
         return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
@@ -1219,7 +3069,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
     #endif // ENABLE_EXACT_SUMMATION
 
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
     m.def("log_psi", [](PsiDeep& psi, MonteCarlo_tt<Spins>& ensemble) {
         return log_psi(psi, ensemble);
     });
@@ -1227,6 +3077,17 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
     m.def("log_psi_vector", [](PsiDeep& psi, MonteCarlo_tt<Spins>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
+    m.def("log_psi", [](PsiCNN& psi, MonteCarlo_tt<Spins>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiCNN& psi, MonteCarlo_tt<Spins>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiCNN& psi, MonteCarlo_tt<Spins>& ensemble) {
         return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
@@ -1285,7 +3146,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
     m.def("log_psi", [](PsiDeep& psi, MonteCarlo_tt<PauliString>& ensemble) {
         return log_psi(psi, ensemble);
     });
@@ -1293,6 +3154,17 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
     m.def("log_psi_vector", [](PsiDeep& psi, MonteCarlo_tt<PauliString>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
+    m.def("log_psi", [](PsiCNN& psi, MonteCarlo_tt<PauliString>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiCNN& psi, MonteCarlo_tt<PauliString>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiCNN& psi, MonteCarlo_tt<PauliString>& ensemble) {
         return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
@@ -1351,7 +3223,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
     m.def("log_psi", [](PsiDeep& psi, ExactSummation_t<Spins>& ensemble) {
         return log_psi(psi, ensemble);
     });
@@ -1359,6 +3231,17 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
     m.def("log_psi_vector", [](PsiDeep& psi, ExactSummation_t<Spins>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
+    m.def("log_psi", [](PsiCNN& psi, ExactSummation_t<Spins>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiCNN& psi, ExactSummation_t<Spins>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiCNN& psi, ExactSummation_t<Spins>& ensemble) {
         return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
@@ -1417,7 +3300,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
     m.def("log_psi", [](PsiDeep& psi, ExactSummation_t<PauliString>& ensemble) {
         return log_psi(psi, ensemble);
     });
@@ -1425,6 +3308,17 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
     m.def("log_psi_vector", [](PsiDeep& psi, ExactSummation_t<PauliString>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
+    m.def("log_psi", [](PsiCNN& psi, ExactSummation_t<PauliString>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiCNN& psi, ExactSummation_t<PauliString>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiCNN& psi, ExactSummation_t<PauliString>& ensemble) {
         return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
@@ -1484,8 +3378,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     });
 #endif
 
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
     m.def("apply_operator", [](PsiDeep& psi, const Operator_t& op, MonteCarlo_tt<Spins>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
+    m.def("apply_operator", [](PsiCNN& psi, const Operator_t& op, MonteCarlo_tt<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
@@ -1514,8 +3413,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
     m.def("apply_operator", [](PsiDeep& psi, const Operator_t& op, MonteCarlo_tt<PauliString>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
+    m.def("apply_operator", [](PsiCNN& psi, const Operator_t& op, MonteCarlo_tt<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
@@ -1544,8 +3448,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
     m.def("apply_operator", [](PsiDeep& psi, const Operator_t& op, ExactSummation_t<Spins>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
+    m.def("apply_operator", [](PsiCNN& psi, const Operator_t& op, ExactSummation_t<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
@@ -1574,8 +3483,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
     m.def("apply_operator", [](PsiDeep& psi, const Operator_t& op, ExactSummation_t<PauliString>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
+    m.def("apply_operator", [](PsiCNN& psi, const Operator_t& op, ExactSummation_t<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif

@@ -1,10 +1,13 @@
 from ._pyANNonGPU import *
 
-from .PsiDeep import PsiDeep
+try:
+    from .PsiDeep import PsiDeep
 
-from .new_neural_network import (
-    new_deep_neural_network
-)
+    from .new_neural_network import (
+        new_deep_neural_network
+    )
+except ImportError:
+    pass
 
 from .new_classical_network import *
 

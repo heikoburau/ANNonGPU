@@ -43,6 +43,7 @@ Array<complex_t> psi_angles(Psi_t& psi, Ensemble& ensemble) {
 }
 
 
+#ifdef ENABLE_PSI_DEEP
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
 template Array<complex_t> psi_angles(PsiDeep& psi, MonteCarlo_tt<Spins>& ensemble);
 #endif
@@ -55,6 +56,7 @@ template Array<complex_t> psi_angles(PsiDeep& psi, ExactSummation_t<Spins>& ense
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
 template Array<complex_t> psi_angles(PsiDeep& psi, ExactSummation_t<PauliString>& ensemble);
 #endif
+#endif // ENABLE_PSI_DEEP
 
 
 } // namespace ann_on_gpu

@@ -54,7 +54,7 @@ Array<complex_t> psi_O_k(Psi_t& psi, const Basis_t& configuration) {
         #include "cuda_kernel_defines.h"
 
         SHARED typename Psi_t::Payload payload;
-        psi_kernel.init_payload(payload, conf);
+        psi_kernel.init_payload(payload, conf, 0u);
 
         psi_kernel.foreach_O_k(
             conf,
@@ -78,10 +78,15 @@ Array<complex_t> psi_O_k(Psi_t& psi, const Basis_t& configuration) {
 }
 
 
-#if defined(ENABLE_SPINS)
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
 
 template Array<complex_t> psi_O_k_vector(PsiDeep&, ExactSummation_t<Spins>&);
 template Array<complex_t> psi_O_k(PsiDeep&, const Spins&);
+#endif
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
+
+template Array<complex_t> psi_O_k_vector(PsiCNN&, ExactSummation_t<Spins>&);
+template Array<complex_t> psi_O_k(PsiCNN&, const Spins&);
 #endif
 #if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
 
@@ -108,10 +113,15 @@ template Array<complex_t> psi_O_k(PsiClassicalANN<1u>&, const Spins&);
 template Array<complex_t> psi_O_k_vector(PsiClassicalANN<2u>&, ExactSummation_t<Spins>&);
 template Array<complex_t> psi_O_k(PsiClassicalANN<2u>&, const Spins&);
 #endif
-#if defined(ENABLE_PAULIS)
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
 
 template Array<complex_t> psi_O_k_vector(PsiDeep&, ExactSummation_t<PauliString>&);
 template Array<complex_t> psi_O_k(PsiDeep&, const PauliString&);
+#endif
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
+
+template Array<complex_t> psi_O_k_vector(PsiCNN&, ExactSummation_t<PauliString>&);
+template Array<complex_t> psi_O_k(PsiCNN&, const PauliString&);
 #endif
 #if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 

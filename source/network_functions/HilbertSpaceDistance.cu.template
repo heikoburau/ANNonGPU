@@ -43,7 +43,7 @@ void kernel::HilbertSpaceDistance::compute_averages(
             SHARED dtype                            log_psi_prime;
             SHARED typename Psi_t_prime::Payload    payload_prime;
 
-            psi_prime_kernel.init_payload(payload_prime, configuration);
+            psi_prime_kernel.init_payload(payload_prime, configuration, spin_index);
             psi_prime_kernel.log_psi_s(log_psi_prime, configuration, payload_prime);
 
             SHARED complex_t       omega;
@@ -169,8 +169,8 @@ double HilbertSpaceDistance::gradient(
 
 
 //! begin template
-template double HilbertSpaceDistance::distance(PsiDeep& psi, PsiDeep& psi_prime, const Operator_t& operator_, const bool is_unitary, Ensemble<Basis>& ensemble);
-template double HilbertSpaceDistance::gradient(complex<double>* result, PsiDeep& psi, PsiDeep& psi_prime, const Operator_t& operator_, const bool is_unitary, Ensemble<Basis>& ensemble, const float nu);
+template double HilbertSpaceDistance::distance(FFPsi& psi, FFPsi& psi_prime, const Operator_t& operator_, const bool is_unitary, Ensemble<Basis>& ensemble);
+template double HilbertSpaceDistance::gradient(complex<double>* result, FFPsi& psi, FFPsi& psi_prime, const Operator_t& operator_, const bool is_unitary, Ensemble<Basis>& ensemble, const float nu);
 //! end template
 
 

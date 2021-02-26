@@ -27,8 +27,12 @@
         ],
         "AllPsi": [
             {
-                "flag": null,
+                "flag": "ENABLE_PSI_DEEP",
                 "code": "PsiDeep"
+            },
+            {
+                "flag": "ENABLE_PSI_CNN",
+                "code": "PsiCNN"
             },
             {
                 "flag": "ENABLE_PSI_CLASSICAL",
@@ -55,6 +59,16 @@
                     "ENABLE_PSI_CLASSICAL_ANN"
                 ],
                 "code": "PsiClassicalANN<2u>"
+            }
+        ],
+        "FFPsi": [
+            {
+                "flag": "ENABLE_PSI_DEEP",
+                "code": "PsiDeep"
+            },
+            {
+                "flag": "ENABLE_PSI_CNN",
+                "code": "PsiCNN"
             }
         ],
         "ClPsi": [

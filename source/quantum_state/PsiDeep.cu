@@ -1,3 +1,5 @@
+#ifdef ENABLE_PSI_DEEP
+
 #include "quantum_state/PsiDeep.hpp"
 #include "ensembles.hpp"
 
@@ -324,3 +326,4 @@ template struct PsiDeepT<complex_t, false>;
 
 } // namespace ann_on_gpu
 
+#endif // ENABLE_PSI_DEEP

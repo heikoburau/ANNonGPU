@@ -123,8 +123,8 @@ struct PsiClassical_t {
 
     template<typename Basis_t>
     HDINLINE
-    void init_payload(Payload& payload, const Basis_t& configuration) const {
-        this->psi_ref.init_payload(payload.ref_payload, configuration);
+    void init_payload(Payload& payload, const Basis_t& configuration, const unsigned int conf_idx) const {
+        this->psi_ref.init_payload(payload.ref_payload, configuration, conf_idx);
         this->psi_ref.log_psi_s(payload.log_psi_ref, configuration, payload.ref_payload);
 
         this->compute_local_energies(configuration, payload);

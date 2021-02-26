@@ -46,7 +46,7 @@ void kernel::KullbackLeibler::compute_averages(
             SHARED double                   prob_ratio;
             SHARED double                   weight;
 
-            psi_kernel.init_payload(payload, configuration);
+            psi_kernel.init_payload(payload, configuration, spin_index);
             psi_kernel.log_psi_s(log_psi, configuration, payload);
 
             SINGLE {

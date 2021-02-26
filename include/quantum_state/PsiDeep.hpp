@@ -159,7 +159,7 @@ struct PsiDeepT {
 
     template<typename Basis_t>
     HDINLINE
-    void init_payload(Payload& payload, const Basis_t& configuration) const {
+    void init_payload(Payload& payload, const Basis_t& configuration, const unsigned int conf_idx) const {
         if(!symmetric) {
             this->compute_angles(payload.angles, configuration);
         }

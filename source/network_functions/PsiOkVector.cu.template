@@ -48,7 +48,7 @@ Array<complex_t> psi_O_k(Psi_t& psi, const Basis_t& configuration) {
         #include "cuda_kernel_defines.h"
 
         SHARED typename Psi_t::Payload payload;
-        psi_kernel.init_payload(payload, conf);
+        psi_kernel.init_payload(payload, conf, 0u);
 
         psi_kernel.foreach_O_k(
             conf,

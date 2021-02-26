@@ -34,7 +34,7 @@ struct PsiFullyPolarized_t {
 
     template<typename Basis_t>
     HDINLINE
-    void init_payload(Payload&, const Basis_t&) const {}
+    void init_payload(Payload&, const Basis_t&, const unsigned int) const {}
 
     HDINLINE
     void save_payload(Payload& payload) const {}

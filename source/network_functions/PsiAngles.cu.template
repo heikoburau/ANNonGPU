@@ -37,9 +37,11 @@ Array<complex_t> psi_angles(Psi_t& psi, Ensemble& ensemble) {
 }
 
 
+#ifdef ENABLE_PSI_DEEP
 //! begin template
 template Array<complex_t> psi_angles(PsiDeep& psi, Ensemble<Basis>& ensemble);
 //! end template
+#endif // ENABLE_PSI_DEEP
 
 
 } // namespace ann_on_gpu

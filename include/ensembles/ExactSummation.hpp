@@ -56,7 +56,7 @@ struct ExactSummation_t {
 
             SYNC;
 
-            psi.init_payload(payload, configuration);
+            psi.init_payload(payload, configuration, conf_index);
             psi.log_psi_s(log_psi, configuration, payload);
 
             SYNC;
