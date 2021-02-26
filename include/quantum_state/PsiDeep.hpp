@@ -180,7 +180,7 @@ struct PsiDeepT {
         #include "cuda_kernel_defines.h"
 
         MULTI(i, this->layers[1].size) {
-            activations[i] = my_logcosh(angles[i]);
+            activations[i] = my_logcosh(angles[i], 0u);
         }
 
         SHARED_MEM_LOOP_BEGIN_X0(layer_idx, 2u, this->num_layers) {
@@ -205,7 +205,7 @@ struct PsiDeepT {
             }
             SYNC;
             MULTI(k, layer.size) {
-                activations[k] = deep_activation(REGISTER(activation, k));
+                activations[k] = my_logcosh(REGISTER(activation, k), layer_idx - 1u);
             }
             SHARED_MEM_LOOP_END(layer_idx);
         }
@@ -387,10 +387,10 @@ struct PsiDeepT {
                 MULTI(j, layer.size) {
                     payload.activations[j] = this->final_weights[j] * (
                         layer_idx == 1 ?
-                        my_tanh(payload.angles[j]) :
-                        deep_activation_diff(deep_angles[
+                        my_tanh(payload.angles[j], 0u) :
+                        my_tanh(deep_angles[
                             layer.begin_deep_angles + j
-                        ])
+                        ], layer_idx - 1)
                     );
                 }
             } else {
@@ -410,8 +410,8 @@ struct PsiDeepT {
                     }
                     REGISTER(unit_activation, i) *= (
                         layer_idx == 1 ?
-                        my_tanh(payload.angles[i]) :
-                        deep_activation_diff(deep_angles[layer.begin_deep_angles + i])
+                        my_tanh(payload.angles[i], 0u) :
+                        my_tanh(deep_angles[layer.begin_deep_angles + i], layer_idx - 1)
                     );
                 }
                 SYNC;
@@ -441,10 +441,10 @@ struct PsiDeepT {
                             )) :
                             (
                                 layer_idx == 2 ?
-                                my_logcosh(payload.angles[lhs_unit_idx]) :
-                                deep_activation(deep_angles[
+                                my_logcosh(payload.angles[lhs_unit_idx], 0u) :
+                                my_logcosh(deep_angles[
                                     this->layers[layer_idx - 1].begin_deep_angles + lhs_unit_idx
-                                ])
+                                ], layer_idx - 2)
                             )
                         )
                     );
@@ -455,8 +455,8 @@ struct PsiDeepT {
             function(
                 this->num_params - this->num_final_weights + j,
                 this->num_layers == 2u ?
-                my_logcosh(payload.angles[j]) :
-                deep_activation(deep_angles[this->layers[this->num_layers - 1].begin_deep_angles + j])
+                my_logcosh(payload.angles[j], 0u) :
+                my_logcosh(deep_angles[this->layers[this->num_layers - 1].begin_deep_angles + j], this->num_layers - 2u)
             );
         }
     }

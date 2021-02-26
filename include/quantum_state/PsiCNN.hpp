@@ -136,7 +136,7 @@ struct PsiCNN_t {
                         layer.channels[c_j].angles[payload.conf_idx * this->num_angles + j] = REGISTER(activation, j);
                     }
 
-                    payload.output_activations[c_j * this->N + j] = my_logcosh(REGISTER(activation, j));
+                    payload.output_activations[c_j * this->N + j] = my_logcosh(REGISTER(activation, j), layer_idx);
                 }
 
                 SHARED_MEM_LOOP_END(c_j);
@@ -229,7 +229,8 @@ struct PsiCNN_t {
                         my_tanh(
                             layer.channels[c_j].angles[
                                 payload.conf_idx * this->num_angles + j
-                            ]
+                            ],
+                            layer_idx
                         )
                     );
                 }
@@ -265,7 +266,8 @@ struct PsiCNN_t {
                                     my_logcosh(
                                         this->layers[layer_idx - 1].channels[c_i].angles[
                                             payload.conf_idx * this->num_angles + lhs_unit_idx
-                                        ]
+                                        ],
+                                        layer_idx
                                     )
                                 )
                             );

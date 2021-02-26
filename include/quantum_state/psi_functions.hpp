@@ -82,7 +82,7 @@ double deep_activation_diff(const double z) {
 
 template<typename T>
 HDINLINE
-T my_logcosh(const T z) {
+T my_logcosh(const T z, const unsigned int layer) {
     // using scalar = typename T::value_type;
 
     // const auto r = abs(z);
@@ -104,8 +104,12 @@ T my_logcosh(const T z) {
     // return complex_t(0.0, -1.0) * log(cosh(z)) + complex_t(0.0, -0.346574);
 
     // for TDVP it is important to use log cosh, or at least not Pade(2, 4)
-    return log(cosh(z));
-    // return tanh(z);
+    if(layer == 0u) {
+        return log(cosh(z));
+    }
+    else {
+       return tanh(z);
+    }
 
     // seems to be dangerous. Does not work for a SW-generator applied on an initial state.
     // return log(1.0 + z*z);
@@ -137,7 +141,7 @@ T my_logcosh(const T z) {
 
 template<typename T>
 HDINLINE
-T my_tanh(const T z) {
+T my_tanh(const T z, const unsigned int layer) {
     // using scalar = typename T::value_type;
     // const auto r = abs(z);
     // if(r < b) {
@@ -160,7 +164,13 @@ T my_tanh(const T z) {
     // return z / sqrt(1.0 + z*z);
 
     // for TDVP it is important to use tanh, or at least not Pade(2, 4)
-    return tanh(z);
+    if(layer == 0u) {
+        return tanh(z);
+    }
+    else {
+        const auto co = cosh(z);
+        return 1.0 / (co * co);
+    }
 
     // const auto e_z = exp(z);
     // return e_z + (1.0 + e_z);

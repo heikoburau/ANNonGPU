@@ -475,12 +475,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def(py::init<unsigned int, bool>());
 
 
-    m.def("activation_function", [](const complex<double>& x) {
-        return my_logcosh(complex_t(x.real(), x.imag())).to_std();
-    });
-
-    m.def("deep_activation", [](const complex<double>& x) {
-        return deep_activation(complex_t(x.real(), x.imag())).to_std();
+    m.def("activation_function", [](const complex<double>& x, const unsigned int layer=0u) {
+        return my_logcosh(complex_t(x.real(), x.imag()), layer).to_std();
     });
 
     m.def("setDevice", setDevice);
