@@ -713,9 +713,9 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
 
 
 #ifdef PSI_DEEP_SYMMETRIC
-using PsiDeep = PsiDeepT<double, true>;
+using PsiDeep = PsiDeepT<complex_t, true>;
 #else
-using PsiDeep = PsiDeepT<double, false>;
+using PsiDeep = PsiDeepT<complex_t, false>;
 #endif // PSI_DEEP_SYMMETRIC
 
 // using PsiDeep = PsiDeepT<cuda_complex::complex<double>>;
