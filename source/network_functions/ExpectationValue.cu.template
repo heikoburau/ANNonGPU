@@ -308,10 +308,12 @@ pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(
 //! begin template
 template complex<double> ExpectationValue::operator()(const Operator_t&, AllPsi& psi, Ensemble<Basis>&);
 template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, AllPsi& psi, Ensemble<Basis>&);
-template complex<double> ExpectationValue::operator()(const Operator_t&, ClPsi& psi, FFPsi&, Ensemble<Basis>&);
 template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, AllPsi&, Ensemble<Basis>&);
 template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, AllPsi& psi, Ensemble<Basis>&);
 template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, AllPsi& psi, Ensemble<Basis>&);
+//! end template
+//! begin template
+template complex<double> ExpectationValue::operator()(const Operator_t&, ClPsi& psi, FFPsi&, Ensemble<Basis>&);
 //! end template
 
 } // namespace ann_on_gpu
