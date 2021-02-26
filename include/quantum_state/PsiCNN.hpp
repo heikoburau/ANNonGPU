@@ -385,8 +385,7 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dtype> {
         return *this;
     }
 
-    template<typename Ensemble>
-    void init_gradient(const Ensemble& ensemble);
+    void init_gradient(const unsigned int num_steps);
     void init_kernel_angles();
 
     void init_kernel();

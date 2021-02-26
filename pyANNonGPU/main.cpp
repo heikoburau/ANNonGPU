@@ -141,6 +141,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             const bool
         >())
         .def("copy", &PsiCNN::copy)
+        .def("init_gradient", &PsiCNN::init_gradient)
         .def_readonly("N", &PsiCNN::N)
         .def_readonly("num_sites", &PsiCNN::num_sites)
         .def_property_readonly("num_channels_list", [](const PsiCNN& psi) {return psi.num_channels_list.to_pytensor_1d();})

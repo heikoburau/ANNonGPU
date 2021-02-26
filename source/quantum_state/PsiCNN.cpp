@@ -59,16 +59,14 @@ void PsiCNN_t<dtype>::init_kernel_angles() {
 }
 
 template<typename dtype>
-template<typename Ensemble>
-void PsiCNN_t<dtype>::init_gradient(const Ensemble& ensemble) {
-    this->angles.resize(ensemble.get_num_steps() * this->num_angles);
+void PsiCNN_t<dtype>::init_gradient(const unsigned int num_steps) {
+    this->angles.resize(num_steps * this->num_angles);
     this->init_kernel_angles();
 }
 
 
 template struct PsiCNN_t<double>;
 template struct PsiCNN_t<complex_t>;
-
 
 } // namespace ann_on_gpu
 
