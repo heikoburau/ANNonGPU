@@ -14,7 +14,7 @@
 namespace ann_on_gpu {
 
 
-#define MAX_PARAMS 2048
+#define MAX_PARAMS 1024
 
 
 template<typename Psi_t, typename Ensemble>
