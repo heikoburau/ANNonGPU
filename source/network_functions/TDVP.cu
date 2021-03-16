@@ -182,6 +182,7 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
     this->S_matrix.clear();
     this->F_vector.clear();
     this->O_k_samples->clear();
+    this->total_weight.clear();
 
     auto num_params = this->F_vector.size();
     auto op_kernel = op.kernel();
@@ -193,6 +194,8 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
     auto F_ptr = this->F_vector.data();
     auto O_k_samples_ptr = this->O_k_samples->data();
     auto weight_samples_ptr = this->weight_samples->data();
+    auto threshold = this->threshold;
+    auto total_weight_ptr = this->total_weight.data();
 
     ensemble.foreach(
         psi,
@@ -205,10 +208,21 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
         ) {
             #include "cuda_kernel_defines.h"
 
+            SHARED bool valid;
+            SINGLE {
+                valid = weight > threshold;
+            }
+            SYNC;
+            if(!valid) {
+                return;
+            }
+
+
             SHARED complex_t local_energy;
             op_kernel.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
 
             SINGLE {
+                generic_atomicAdd(total_weight_ptr, weight);
                 generic_atomicAdd(E_local_ptr, weight * local_energy);
                 generic_atomicAdd(E2_local_ptr, weight * abs2(local_energy));
 
@@ -270,6 +284,19 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
     this->O_k_ar.update_host();
     this->S_matrix.update_host();
     this->F_vector.update_host();
+    this->total_weight.update_host();
+
+
+    this->E_local.front() /= this->total_weight.front();
+    this->E2_local.front() /= this->total_weight.front();
+    for(auto k = 0u; k < num_params; k++) {
+        this->F_vector[k] /= this->total_weight.front();
+        this->O_k_ar[k] /= this->total_weight.front();
+
+        for(auto k_prime = 0u; k_prime < num_params; k_prime++) {
+            this->S_matrix[k * num_params + k_prime] /= this->total_weight.front();
+        }
+    }
 
 
     for(auto k = 0u; k < num_params; k++) {

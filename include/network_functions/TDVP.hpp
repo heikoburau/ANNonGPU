@@ -28,6 +28,9 @@ struct TDVP {
     unique_ptr<Array<complex_t>> O_k_samples;
     unique_ptr<Array<double>>    weight_samples;
 
+    double threshold;
+    Array<double> total_weight;
+
     inline TDVP(unsigned int num_params, bool gpu)
     :
     num_params(num_params),
@@ -36,7 +39,9 @@ struct TDVP {
     O_k_ar(num_params, gpu),
     S_matrix(num_params * num_params, gpu),
     F_vector(num_params, gpu),
-    prob_ratio(1, gpu)
+    prob_ratio(1, gpu),
+    threshold(0.0),
+    total_weight(1, gpu)
     {}
 
     template<typename Psi_t, typename Ensemble>

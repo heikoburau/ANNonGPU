@@ -1355,6 +1355,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("S_matrix", [](const TDVP& tdvp){return tdvp.S_matrix.to_pytensor_2d({tdvp.num_params, tdvp.num_params});})
         .def_property_readonly("F_vector", [](const TDVP& tdvp){return tdvp.F_vector.to_pytensor_1d();})
         .def_property_readonly("var_H", &TDVP::var_H)
+        .def_readwrite("threshold", &TDVP::threshold)
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
 #endif
