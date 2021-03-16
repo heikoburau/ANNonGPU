@@ -262,6 +262,24 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             }
         )
         .def("update_psi_ref_kernel", &PsiClassicalFP<1u>::update_psi_ref_kernel)
+        .def_property(
+            "H",
+            [](const PsiClassicalFP<1u>& psi){return *psi.H;},
+            [](PsiClassicalFP<1u>& psi, const Operator_t& H) {
+                psi.H = unique_ptr<Operator_t>(new Operator_t(H));
+                psi.update_kernel();
+            }
+        )
+        .def_property(
+            "H2",
+            [](const PsiClassicalFP<1u>& psi){return *psi.H2;},
+            [](PsiClassicalFP<1u>& psi, const Operator_t& H2) {
+                psi.H2 = unique_ptr<Operator_t>(new Operator_t(H2));
+                psi.update_kernel();
+            }
+        )
+        .def_readwrite("delta_t", &PsiClassicalFP<1u>::delta_t)
+        .def_readwrite("log_psi_threshold", &PsiClassicalFP<1u>::log_psi_threshold)
         #ifdef ENABLE_EXACT_SUMMATION
         #ifdef ENABLE_SPINS
         .def("vector", [](PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
@@ -338,6 +356,24 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             }
         )
         .def("update_psi_ref_kernel", &PsiClassicalFP<2u>::update_psi_ref_kernel)
+        .def_property(
+            "H",
+            [](const PsiClassicalFP<2u>& psi){return *psi.H;},
+            [](PsiClassicalFP<2u>& psi, const Operator_t& H) {
+                psi.H = unique_ptr<Operator_t>(new Operator_t(H));
+                psi.update_kernel();
+            }
+        )
+        .def_property(
+            "H2",
+            [](const PsiClassicalFP<2u>& psi){return *psi.H2;},
+            [](PsiClassicalFP<2u>& psi, const Operator_t& H2) {
+                psi.H2 = unique_ptr<Operator_t>(new Operator_t(H2));
+                psi.update_kernel();
+            }
+        )
+        .def_readwrite("delta_t", &PsiClassicalFP<2u>::delta_t)
+        .def_readwrite("log_psi_threshold", &PsiClassicalFP<2u>::log_psi_threshold)
         #ifdef ENABLE_EXACT_SUMMATION
         #ifdef ENABLE_SPINS
         .def("vector", [](PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
@@ -414,6 +450,24 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             }
         )
         .def("update_psi_ref_kernel", &PsiClassicalANN<1u>::update_psi_ref_kernel)
+        .def_property(
+            "H",
+            [](const PsiClassicalANN<1u>& psi){return *psi.H;},
+            [](PsiClassicalANN<1u>& psi, const Operator_t& H) {
+                psi.H = unique_ptr<Operator_t>(new Operator_t(H));
+                psi.update_kernel();
+            }
+        )
+        .def_property(
+            "H2",
+            [](const PsiClassicalANN<1u>& psi){return *psi.H2;},
+            [](PsiClassicalANN<1u>& psi, const Operator_t& H2) {
+                psi.H2 = unique_ptr<Operator_t>(new Operator_t(H2));
+                psi.update_kernel();
+            }
+        )
+        .def_readwrite("delta_t", &PsiClassicalANN<1u>::delta_t)
+        .def_readwrite("log_psi_threshold", &PsiClassicalANN<1u>::log_psi_threshold)
         #ifdef ENABLE_EXACT_SUMMATION
         #ifdef ENABLE_SPINS
         .def("vector", [](PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
@@ -490,6 +544,24 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             }
         )
         .def("update_psi_ref_kernel", &PsiClassicalANN<2u>::update_psi_ref_kernel)
+        .def_property(
+            "H",
+            [](const PsiClassicalANN<2u>& psi){return *psi.H;},
+            [](PsiClassicalANN<2u>& psi, const Operator_t& H) {
+                psi.H = unique_ptr<Operator_t>(new Operator_t(H));
+                psi.update_kernel();
+            }
+        )
+        .def_property(
+            "H2",
+            [](const PsiClassicalANN<2u>& psi){return *psi.H2;},
+            [](PsiClassicalANN<2u>& psi, const Operator_t& H2) {
+                psi.H2 = unique_ptr<Operator_t>(new Operator_t(H2));
+                psi.update_kernel();
+            }
+        )
+        .def_readwrite("delta_t", &PsiClassicalANN<2u>::delta_t)
+        .def_readwrite("log_psi_threshold", &PsiClassicalANN<2u>::log_psi_threshold)
         #ifdef ENABLE_EXACT_SUMMATION
         #ifdef ENABLE_SPINS
         .def("vector", [](PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
