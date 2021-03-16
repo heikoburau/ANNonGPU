@@ -37,7 +37,7 @@ double psi_norm(Psi_t& psi, Ensemble& exact_summation) {
             #include "cuda_kernel_defines.h"
 
             SINGLE {
-                generic_atomicAdd(result_ptr, psi_kernel.probability_s(log_psi.real()));
+                generic_atomicAdd(result_ptr, exp(2.0 * log_psi.real()));
             }
         }
     );

@@ -17,7 +17,6 @@ Array<complex_t> log_psi_vector(Psi_t& psi, Ensemble& ensemble) {
     Array<complex_t> result(ensemble.get_num_steps(), ensemble.gpu);
 
     auto result_ptr = result.data();
-    auto log_prefactor = log(psi.prefactor);
     auto psi_kernel = psi.kernel();
 
     ensemble.foreach(
@@ -48,7 +47,6 @@ Array<complex_t> psi_vector(Psi_t& psi, Ensemble& ensemble) {
     Array<complex_t> result(ensemble.get_num_steps(), ensemble.gpu);
 
     auto result_ptr = result.data();
-    auto log_prefactor = log(psi.prefactor);
     auto psi_kernel = psi.kernel();
 
     ensemble.foreach(
@@ -63,7 +61,7 @@ Array<complex_t> psi_vector(Psi_t& psi, Ensemble& ensemble) {
             #include "cuda_kernel_defines.h"
 
             SINGLE {
-                result_ptr[conf_index] = exp(log_prefactor + log_psi);
+                result_ptr[conf_index] = exp(log_psi);
             }
         }
     );

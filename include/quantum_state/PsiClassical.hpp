@@ -104,7 +104,6 @@ struct PsiClassical_t {
         unsigned int    begin_params;
     };
 
-    double          prefactor;
     complex_t       log_prefactor;
 
     Operator_t*     H_local;
@@ -249,17 +248,6 @@ struct PsiClassical_t {
     }
 
     template<typename Basis_t>
-    HDINLINE
-    dtype psi_s(const Basis_t& configuration, Payload& payload) const {
-        #include "cuda_kernel_defines.h"
-
-        SHARED dtype log_psi;
-        this->log_psi_s(log_psi, configuration, payload);
-
-        return exp(log(this->prefactor) + log_psi);
-    }
-
-    template<typename Basis_t>
     HDINLINE void update_input_units(
         const Basis_t& old_vector, const Basis_t& new_vector, Payload& payload
     ) const {
@@ -344,11 +332,6 @@ struct PsiClassical_t {
     HDINLINE unsigned int get_num_input_units() const {
         return this->psi_ref.get_num_input_units();
     }
-
-    HDINLINE
-    double probability_s(const double log_psi_s_real) const {
-        return exp(2.0 * (log(this->prefactor) + log_psi_s_real));
-    }
 };
 
 
@@ -385,7 +368,6 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
         ids_l_prime(other.gpu)
     {
         this->num_sites = other.num_sites;
-        this->prefactor = other.prefactor;
         this->log_prefactor = other.log_prefactor;
         this->gpu = other.gpu;
 
@@ -404,7 +386,7 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
         const vector<Operator_t>& H_2_local,
         const xt::pytensor<typename std_dtype<dtype>::type, 1u>& params,
         const PsiRef& psi_ref,
-        const double prefactor,
+        const double log_prefactor,
         const bool gpu
     )
         :
@@ -418,8 +400,7 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
         ids_l_prime(gpu)
     {
         this->num_sites = num_sites;
-        this->prefactor = prefactor;
-        this->log_prefactor = complex_t(0.0);
+        this->log_prefactor = log_prefactor;
         this->gpu = gpu;
 
         this->init_kernel();

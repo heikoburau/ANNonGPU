@@ -26,7 +26,6 @@ struct PsiFullyPolarized_t {
 
     unsigned int   num_sites;
     unsigned int   num_params;
-    double         prefactor;
     dtype          log_prefactor;
     bool           gpu;
 
@@ -100,11 +99,6 @@ struct PsiFullyPolarized_t {
     HDINLINE unsigned int get_num_input_units() const {
         return this->num_sites;
     }
-
-    HDINLINE
-    double probability_s(const double log_psi_s_real) const {
-        return exp(2.0 * (log(this->prefactor) + log_psi_s_real));
-    }
 };
 
 
@@ -122,7 +116,6 @@ struct PsiFullyPolarized_t : public kernel::PsiFullyPolarized_t<dtype> {
     inline PsiFullyPolarized_t(const PsiFullyPolarized_t& other)
     {
         this->num_sites = other.num_sites;
-        this->prefactor = other.prefactor;
         this->num_params = 0u;
         this->log_prefactor = dtype(0.0);
         this->gpu = false;
@@ -130,11 +123,10 @@ struct PsiFullyPolarized_t : public kernel::PsiFullyPolarized_t<dtype> {
 
 #ifdef __PYTHONCC__
 
-    inline PsiFullyPolarized_t(unsigned int num_sites, double prefactor) {
+    inline PsiFullyPolarized_t(unsigned int num_sites, double log_prefactor) {
         this->num_sites = num_sites;
-        this->prefactor = prefactor;
         this->num_params = 0u;
-        this->log_prefactor = dtype(0.0);
+        this->log_prefactor = log_prefactor;
         this->gpu = false;
     }
 

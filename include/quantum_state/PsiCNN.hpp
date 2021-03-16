@@ -68,7 +68,6 @@ struct PsiCNN_t {
     unsigned int   N;
     unsigned int   num_params;
 
-    double         prefactor;
     dtype          log_prefactor;
     dtype          final_factor;
 
@@ -188,17 +187,6 @@ struct PsiCNN_t {
     }
 
     template<typename Basis_t>
-    HDINLINE
-    dtype psi_s(const Basis_t& configuration, Payload& payload) const {
-        #include "cuda_kernel_defines.h"
-
-        SHARED dtype log_psi;
-        this->log_psi_s(log_psi, configuration, payload);
-
-        return exp(log(this->prefactor) + log_psi);
-    }
-
-    template<typename Basis_t>
     HDINLINE void update_input_units(
         const Basis_t& old_vector, const Basis_t& new_vector, Payload& payload
     ) const {
@@ -313,12 +301,6 @@ struct PsiCNN_t {
     HDINLINE unsigned int get_num_input_units() const {
         return this->N;
     }
-
-    HDINLINE
-    double probability_s(const double log_psi_s_real) const {
-        return exp(2.0 * (log(this->prefactor) + log_psi_s_real));
-    }
-
 };
 
 } // namespace kernel
@@ -345,7 +327,7 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dtype> {
         const xt::pytensor<unsigned int, 1u>& connectivity_list,
         const xt::pytensor<std_dtype, 1u>& params,
         const std_dtype& final_factor,
-        const double prefactor,
+        const double log_prefactor,
         const bool gpu
     )
     :
@@ -358,8 +340,7 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dtype> {
         this->num_sites = num_sites;
         this->N = N;
         this->final_factor = dtype(final_factor);
-        this->prefactor = prefactor;
-        this->log_prefactor = dtype(0.0);
+        this->log_prefactor = log_prefactor;
 
         this->init_kernel();
     }
@@ -377,7 +358,6 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dtype> {
         this->num_sites = other.num_sites;
         this->N = other.N;
         this->final_factor = other.final_factor;
-        this->prefactor = other.prefactor;
         this->log_prefactor = other.log_prefactor;
 
         this->init_kernel();

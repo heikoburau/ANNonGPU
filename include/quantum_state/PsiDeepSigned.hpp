@@ -64,7 +64,6 @@ struct PsiDeepSigned_t {
 
     unsigned int   num_params;
 
-    double         prefactor;
     dtype          log_prefactor;
 
 #ifdef __CUDACC__
@@ -107,17 +106,6 @@ struct PsiDeepSigned_t {
         SINGLE {
             result = log_psi.real();
         }
-    }
-
-    template<typename Basis_t>
-    HDINLINE
-    dtype psi_s(const Basis_t& configuration, Payload& payload) const {
-        #include "cuda_kernel_defines.h"
-
-        SHARED dtype log_psi;
-        this->log_psi_s(log_psi, configuration, payload);
-
-        return exp(log(this->prefactor) + log_psi);
     }
 
     template<typename Basis_t>
@@ -177,12 +165,6 @@ struct PsiDeepSigned_t {
     HDINLINE unsigned int get_num_input_units() const {
         return this->N;
     }
-
-    HDINLINE
-    double probability_s(const double log_psi_s_real) const {
-        return exp(2.0 * (log(this->prefactor) + log_psi_s_real));
-    }
-
 };
 
 
@@ -214,7 +196,6 @@ struct PsiDeepSigned_t : public kernel::PsiDeepSigned_t<symmetric_t> {
 
         this->num_params = psi_plus.num_params + psi_minus.num_params;
 
-        this->prefactor = psi_plus.prefactor;
         this->log_prefactor = psi_plus.log_prefactor;
 
         this->init_kernel();

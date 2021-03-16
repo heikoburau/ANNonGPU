@@ -66,4 +66,4 @@ def new_convolutional_network(
 
     params = np.array(params)
 
-    return PsiCNN(num_sites, N, num_channels_list, connectivity_list, params, final_factor, 1, gpu)
+    return PsiCNN(num_sites, N, num_channels_list, connectivity_list, params, final_factor, 0, gpu)

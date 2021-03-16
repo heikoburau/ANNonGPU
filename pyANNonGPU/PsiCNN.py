@@ -1,6 +1,7 @@
 from ._pyANNonGPU import PsiCNN, log_psi
 from .json_numpy import NumpyEncoder, NumpyDecoder
 import json
+import numpy as np
 
 
 def to_json(self):
@@ -12,7 +13,7 @@ def to_json(self):
         connectivity_list=self.connectivity_list,
         params=self.params,
         final_factor=self.final_factor,
-        prefactor=self.prefactor
+        log_prefactor=self.log_prefactor
     )
 
     return json.loads(
@@ -37,23 +38,19 @@ def from_json(json_obj, gpu):
         obj["connectivity_list"],
         obj["params"],
         obj["final_factor"],
-        obj["prefactor"],
+        obj["log_prefactor"],
         gpu
     )
 
 
 def normalize(self, exact_summation):
-    self.prefactor = 1
-    self.prefactor /= self.norm(exact_summation)
+    self.log_prefactor -= np.log(self.norm(exact_summation))
 
 
 def calibrate(self, ensemble):
     if ensemble.__class__.__name__.startswith("ExactSummation"):
-        self.prefactor = 1
-        self.log_prefactor = 0
-        self.prefactor /= self.norm(ensemble)
-        self.log_prefactor -= log_psi(self, ensemble)
-        self.prefactor /= self.norm(ensemble)
+        self.normalize(ensemble)
+        self.log_prefactor -= 1j * log_psi(self, ensemble).imag
     else:
         self.log_prefactor = 0
         self.log_prefactor -= log_psi(self, ensemble)

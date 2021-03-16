@@ -120,7 +120,6 @@ struct PsiDeepT {
 
     unsigned int   num_params;
 
-    double         prefactor;
     dtype          log_prefactor;
 
     dtype*         RESTRICT input_weights;
@@ -264,17 +263,6 @@ struct PsiDeepT {
 
             this->forward_pass(result, payload.angles, payload.activations, nullptr);
         }
-    }
-
-    template<typename Basis_t>
-    HDINLINE
-    dtype psi_s(const Basis_t& configuration, Payload& payload) const {
-        #include "cuda_kernel_defines.h"
-
-        SHARED dtype log_psi;
-        this->log_psi_s(log_psi, configuration, payload);
-
-        return exp(log(this->prefactor) + log_psi);
     }
 
 #ifdef ENABLE_SPINS
@@ -484,12 +472,6 @@ struct PsiDeepT {
     HDINLINE unsigned int get_num_input_units() const {
         return this->N;
     }
-
-    HDINLINE
-    double probability_s(const double log_psi_s_real) const {
-        return exp(2.0 * (log(this->prefactor) + log_psi_s_real));
-    }
-
 };
 
 } // namespace kernel
@@ -530,13 +512,12 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
         const vector<xt::pytensor<unsigned int, 2u>>& lhs_connections_list,
         const vector<xt::pytensor<typename std_dtype<dtype>::type, 2u>>& lhs_weights_list,
         const xt::pytensor<typename std_dtype<dtype>::type, 1u>& final_weights,
-        const double prefactor,
+        const double log_prefactor,
         const bool gpu
     ) : input_weights(input_weights, gpu), final_weights(final_weights, gpu) {
         this->num_sites = num_sites;
         this->N = input_weights.shape()[0];
-        this->prefactor = prefactor;
-        this->log_prefactor = dtype(0.0);
+        this->log_prefactor = log_prefactor;
         this->num_layers = lhs_weights_list.size() + 1u; // num hidden layers + input layer
         this->width = this->N;
         this->num_units = 0u;
@@ -604,7 +585,7 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
         // cout << "num_layers: " << this->num_layers << endl;
         // cout << "width: " << this->width << endl;
         // cout << "num_params: " << this->num_params << endl;
-        // cout << "prefactor: " << this->prefactor << endl;
+        // cout << "log_prefactor: " << this->log_prefactor << endl;
         // cout << "num_final_weights: " << this->num_final_weights << endl;
         // cout << endl;
 

@@ -122,4 +122,4 @@ def new_deep_neural_network(
         f"mismatch between num_sites = {num_sites} and len(a) = {len(a)}."
     )
 
-    return PsiDeep(num_sites, a, b, connections, W, final_weights, 1.0, gpu)
+    return PsiDeep(num_sites, a, b, connections, W, final_weights, 0.0, gpu)

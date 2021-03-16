@@ -24,7 +24,6 @@ PsiDeepT<dtype, symmetric>::PsiDeepT(const unsigned int N, const unsigned int M,
 {
     this->num_sites = N;
     this->N = N;
-    this->prefactor = 1.0;
     this->log_prefactor = dtype(0.0);
     this->num_layers = 2u;
     this->width = this->N;
@@ -110,7 +109,6 @@ PsiDeepT<dtype, symmetric>::PsiDeepT(const PsiDeepT<dtype, symmetric>& other)
 {
     this->num_sites = other.num_sites;
     this->N = other.N;
-    this->prefactor = other.prefactor;
     this->log_prefactor = other.log_prefactor;
     this->num_layers = other.num_layers;
     this->width = other.width;
@@ -129,7 +127,6 @@ PsiDeepT<dtype, symmetric>& PsiDeepT<dtype, symmetric>::operator=(const PsiDeepT
 
     this->num_sites = other.num_sites;
     this->N = other.N;
-    this->prefactor = other.prefactor;
     this->log_prefactor = other.log_prefactor;
     this->num_layers = other.num_layers;
     this->width = other.width;

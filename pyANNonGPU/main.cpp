@@ -88,7 +88,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         >())
         .def("copy", &PsiDeep::copy)
         .def_readwrite("num_sites", &PsiDeep::num_sites)
-        .def_readwrite("prefactor", &PsiDeep::prefactor)
         .def_property(
             "log_prefactor",
             [](const PsiDeep& psi) {return cuda_complex::to_std(psi.log_prefactor);},
@@ -147,7 +146,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("num_channels_list", [](const PsiCNN& psi) {return psi.num_channels_list.to_pytensor_1d();})
         .def_property_readonly("connectivity_list", [](const PsiCNN& psi) {return psi.connectivity_list.to_pytensor_1d();})
         .def_readwrite("final_factor", &PsiCNN::final_factor)
-        .def_readwrite("prefactor", &PsiCNN::prefactor)
         .def_property(
             "log_prefactor",
             [](const PsiCNN& psi) {return cuda_complex::to_std(psi.log_prefactor);},
@@ -184,7 +182,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     //     .def("copy", &PsiDeepSigned::copy)
     //     .def("__pos__", &PsiDeepSigned::copy)
     //     .def_readwrite("num_sites", &PsiDeepSigned::num_sites)
-    //     .def_readwrite("prefactor", &PsiDeepSigned::prefactor)
     //     .def_property(
     //         "log_prefactor",
     //         [](const PsiDeepSigned& psi) {return cuda_complex::to_std(psi.log_prefactor);},
@@ -231,7 +228,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_readwrite("num_sites", &PsiClassicalFP<1u>::num_sites)
         .def_readonly("H_local", &PsiClassicalFP<1u>::H_local)
         .def_readonly("H_2_local", &PsiClassicalFP<1u>::H_2_local)
-        .def_readwrite("prefactor", &PsiClassicalFP<1u>::prefactor)
         .def_property(
             "log_prefactor",
             [](const PsiClassicalFP<1u>& psi) {return psi.log_prefactor.to_std();},
@@ -270,12 +266,12 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         #ifdef ENABLE_SPINS
         .def("vector", [](PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
-        .def("normalize", [](PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
+        .def("normalize", [](PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& exact_summation) {psi.log_prefactor -= log(psi_norm(psi, exact_summation));})
         #endif // ENABLE_SPINS
         #ifdef ENABLE_PAULIS
         .def("vector", [](PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
-        .def("normalize", [](PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
+        .def("normalize", [](PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {psi.log_prefactor -= log(psi_norm(psi, exact_summation));})
         #endif // ENABLE_PAULIS
         #endif // ENABLE_EXACT_SUMMATION
 
@@ -308,7 +304,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_readwrite("num_sites", &PsiClassicalFP<2u>::num_sites)
         .def_readonly("H_local", &PsiClassicalFP<2u>::H_local)
         .def_readonly("H_2_local", &PsiClassicalFP<2u>::H_2_local)
-        .def_readwrite("prefactor", &PsiClassicalFP<2u>::prefactor)
         .def_property(
             "log_prefactor",
             [](const PsiClassicalFP<2u>& psi) {return psi.log_prefactor.to_std();},
@@ -347,12 +342,12 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         #ifdef ENABLE_SPINS
         .def("vector", [](PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
-        .def("normalize", [](PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
+        .def("normalize", [](PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& exact_summation) {psi.log_prefactor -= log(psi_norm(psi, exact_summation));})
         #endif // ENABLE_SPINS
         #ifdef ENABLE_PAULIS
         .def("vector", [](PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
-        .def("normalize", [](PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
+        .def("normalize", [](PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {psi.log_prefactor -= log(psi_norm(psi, exact_summation));})
         #endif // ENABLE_PAULIS
         #endif // ENABLE_EXACT_SUMMATION
 
@@ -385,7 +380,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_readwrite("num_sites", &PsiClassicalANN<1u>::num_sites)
         .def_readonly("H_local", &PsiClassicalANN<1u>::H_local)
         .def_readonly("H_2_local", &PsiClassicalANN<1u>::H_2_local)
-        .def_readwrite("prefactor", &PsiClassicalANN<1u>::prefactor)
         .def_property(
             "log_prefactor",
             [](const PsiClassicalANN<1u>& psi) {return psi.log_prefactor.to_std();},
@@ -424,12 +418,12 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         #ifdef ENABLE_SPINS
         .def("vector", [](PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
-        .def("normalize", [](PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
+        .def("normalize", [](PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& exact_summation) {psi.log_prefactor -= log(psi_norm(psi, exact_summation));})
         #endif // ENABLE_SPINS
         #ifdef ENABLE_PAULIS
         .def("vector", [](PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
-        .def("normalize", [](PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
+        .def("normalize", [](PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>& exact_summation) {psi.log_prefactor -= log(psi_norm(psi, exact_summation));})
         #endif // ENABLE_PAULIS
         #endif // ENABLE_EXACT_SUMMATION
 
@@ -462,7 +456,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_readwrite("num_sites", &PsiClassicalANN<2u>::num_sites)
         .def_readonly("H_local", &PsiClassicalANN<2u>::H_local)
         .def_readonly("H_2_local", &PsiClassicalANN<2u>::H_2_local)
-        .def_readwrite("prefactor", &PsiClassicalANN<2u>::prefactor)
         .def_property(
             "log_prefactor",
             [](const PsiClassicalANN<2u>& psi) {return psi.log_prefactor.to_std();},
@@ -501,12 +494,12 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         #ifdef ENABLE_SPINS
         .def("vector", [](PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
-        .def("normalize", [](PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
+        .def("normalize", [](PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& exact_summation) {psi.log_prefactor -= log(psi_norm(psi, exact_summation));})
         #endif // ENABLE_SPINS
         #ifdef ENABLE_PAULIS
         .def("vector", [](PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
-        .def("normalize", [](PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {psi.prefactor = 1.0; psi.prefactor /= psi_norm(psi, exact_summation);})
+        .def("normalize", [](PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>& exact_summation) {psi.log_prefactor -= log(psi_norm(psi, exact_summation));})
         #endif // ENABLE_PAULIS
         #endif // ENABLE_EXACT_SUMMATION
 

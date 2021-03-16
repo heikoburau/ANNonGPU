@@ -14,7 +14,6 @@ Array<complex_t> apply_operator(Psi_t& psi, const Operator_t& op, Ensemble& ense
     auto psi_kernel = psi.kernel();
     auto op_kernel = op.kernel();
     auto result_ptr = result.data();
-    auto prefactor = psi.prefactor;
 
     ensemble.foreach(
         psi,
@@ -31,7 +30,7 @@ Array<complex_t> apply_operator(Psi_t& psi, const Operator_t& op, Ensemble& ense
             op_kernel.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
 
             SINGLE {
-                result_ptr[index] = prefactor * exp(log_psi) * local_energy;
+                result_ptr[index] = exp(log_psi) * local_energy;
                 // generic_atomicAdd(
                 //     &result_ptr[index],
                 //     weight * local_energy
