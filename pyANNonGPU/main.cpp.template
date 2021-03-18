@@ -244,22 +244,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             }
         )
         .def("update_psi_ref_kernel", &ClPsi::update_psi_ref_kernel)
-        .def_property(
-            "H",
-            [](const ClPsi& psi){return *psi.H;},
-            [](ClPsi& psi, const Operator_t& H) {
-                psi.H = unique_ptr<Operator_t>(new Operator_t(H));
-                psi.update_kernel();
-            }
-        )
-        .def_property(
-            "H2",
-            [](const ClPsi& psi){return *psi.H2;},
-            [](ClPsi& psi, const Operator_t& H2) {
-                psi.H2 = unique_ptr<Operator_t>(new Operator_t(H2));
-                psi.update_kernel();
-            }
-        )
         .def_readwrite("delta_t", &ClPsi::delta_t)
         .def_readwrite("log_psi_threshold", &ClPsi::log_psi_threshold)
         #ifdef ENABLE_EXACT_SUMMATION
