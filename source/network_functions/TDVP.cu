@@ -19,7 +19,7 @@ namespace ann_on_gpu {
 
 template<typename Psi_t, typename Ensemble>
 void TDVP::compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, true_t) {
-    auto num_params = this->F_vector.size();
+    auto num_params = this->num_params;
     auto op_kernel = op.kernel();
     auto psi_kernel = psi.kernel();
     auto E_local_ptr = this->E_local.data();
@@ -175,6 +175,7 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, use_psi_re
 
     this->compute_averages(op, psi, ensemble, use_psi_ref);
 
+    auto num_params = this->num_params;
     auto S_ptr = this->S_matrix.data();
     auto O_k_samples_ptr = this->O_k_samples->data();
     auto weight_samples_ptr = this->weight_samples->data();

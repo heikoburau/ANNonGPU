@@ -50,10 +50,23 @@ struct TDVP {
     template<typename Psi_t, typename Ensemble>
     void compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, false_t);
 
-
     inline double var_H() const {
         return this->E2_local.front() - abs2(E_local.front());
     }
+
+    #ifdef __PYTHONCC__
+
+    template<typename Psi_t, typename Ensemble>
+    inline void eval_py(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
+        return this->eval(op, psi, ensemble, false_t());
+    }
+
+    template<typename Psi_t, typename Ensemble>
+    inline void eval_with_psi_ref_py(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
+        return this->eval(op, psi, ensemble, true_t());
+    }
+
+    #endif // __PYTHONCC__
 };
 
 
