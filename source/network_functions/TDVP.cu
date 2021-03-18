@@ -29,6 +29,7 @@ void TDVP::compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble
     auto F_ptr = this->F_vector.data();
     auto O_k_samples_ptr = this->O_k_samples->data();
     auto weight_samples_ptr = this->weight_samples->data();
+    auto threshold = this->threshold;
     auto total_weight_ptr = this->total_weight.data();
 
     using PsiRef = typename Psi_t::PsiRef;
@@ -43,6 +44,15 @@ void TDVP::compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble
             const typename PsiRef::real_dtype weight
         ) {
             #include "cuda_kernel_defines.h"
+
+            SHARED bool valid;
+            SINGLE {
+                valid = log_psi_ref.real() > threshold;
+            }
+            SYNC;
+            if(!valid) {
+                return;
+            }
 
             SHARED complex_t                   log_psi;
             SHARED typename Psi_t::Payload     payload;
@@ -108,7 +118,7 @@ void TDVP::compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble
 
             SHARED bool valid;
             SINGLE {
-                valid = weight > threshold;
+                valid = log_psi.real() > threshold;
             }
             SYNC;
             if(!valid) {

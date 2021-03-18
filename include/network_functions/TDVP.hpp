@@ -37,7 +37,7 @@ struct TDVP {
     O_k_ar(num_params, gpu),
     S_matrix(num_params * num_params, gpu),
     F_vector(num_params, gpu),
-    threshold(0.0),
+    threshold(-1e6),
     total_weight(1, gpu)
     {}
 
