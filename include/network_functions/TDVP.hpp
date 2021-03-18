@@ -23,8 +23,6 @@ struct TDVP {
     Array<complex_t> S_matrix;
     Array<complex_t> F_vector;
 
-    Array<double>    prob_ratio;
-
     unique_ptr<Array<complex_t>> O_k_samples;
     unique_ptr<Array<double>>    weight_samples;
 
@@ -39,16 +37,19 @@ struct TDVP {
     O_k_ar(num_params, gpu),
     S_matrix(num_params * num_params, gpu),
     F_vector(num_params, gpu),
-    prob_ratio(1, gpu),
     threshold(0.0),
     total_weight(1, gpu)
     {}
 
-    template<typename Psi_t, typename Ensemble>
-    void eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble);
+    template<typename Psi_t, typename Ensemble, typename use_psi_ref>
+    void eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, use_psi_ref);
 
     template<typename Psi_t, typename Ensemble>
-    void eval_with_psi_ref(const Operator_t& op, Psi_t& psi, Ensemble& ensemble);
+    void compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, true_t);
+
+    template<typename Psi_t, typename Ensemble>
+    void compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, false_t);
+
 
     inline double var_H() const {
         return this->E2_local.front() - abs2(E_local.front());

@@ -424,10 +424,10 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("var_H", &TDVP::var_H)
         .def_readwrite("threshold", &TDVP::threshold)
         //! begin template
-        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<ClPsi, Ensemble<Basis>>)
+        .def("eval_with_psi_ref", &TDVP::eval<ClPsi, Ensemble<Basis>, true_t>)
         //! end template
         //! begin template
-        .def("eval", &TDVP::eval<AllPsi, Ensemble<Basis>>)
+        .def("eval", &TDVP::eval<AllPsi, Ensemble<Basis>, false_t>)
         //! end template
         ;
 

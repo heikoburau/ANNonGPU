@@ -1358,136 +1358,136 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("var_H", &TDVP::var_H)
         .def_readwrite("threshold", &TDVP::threshold)
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("eval_with_psi_ref", &TDVP::eval<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>, true_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("eval_with_psi_ref", &TDVP::eval<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>, true_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("eval_with_psi_ref", &TDVP::eval<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>, true_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("eval_with_psi_ref", &TDVP::eval<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>, true_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("eval_with_psi_ref", &TDVP::eval<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>, true_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("eval_with_psi_ref", &TDVP::eval<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>, true_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("eval_with_psi_ref", &TDVP::eval<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>, true_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("eval_with_psi_ref", &TDVP::eval<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>, true_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("eval_with_psi_ref", &TDVP::eval<PsiClassicalFP<1u>, ExactSummation_t<Spins>, true_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("eval_with_psi_ref", &TDVP::eval<PsiClassicalFP<2u>, ExactSummation_t<Spins>, true_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("eval_with_psi_ref", &TDVP::eval<PsiClassicalANN<1u>, ExactSummation_t<Spins>, true_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("eval_with_psi_ref", &TDVP::eval<PsiClassicalANN<2u>, ExactSummation_t<Spins>, true_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("eval_with_psi_ref", &TDVP::eval<PsiClassicalFP<1u>, ExactSummation_t<PauliString>, true_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("eval_with_psi_ref", &TDVP::eval<PsiClassicalFP<2u>, ExactSummation_t<PauliString>, true_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("eval_with_psi_ref", &TDVP::eval<PsiClassicalANN<1u>, ExactSummation_t<PauliString>, true_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("eval_with_psi_ref", &TDVP::eval<PsiClassicalANN<2u>, ExactSummation_t<PauliString>, true_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
-        .def("eval", &TDVP::eval<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("eval", &TDVP::eval<PsiDeep, MonteCarlo_tt<Spins>, false_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
-        .def("eval", &TDVP::eval<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("eval", &TDVP::eval<PsiCNN, MonteCarlo_tt<Spins>, false_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval", &TDVP::eval<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("eval", &TDVP::eval<PsiFullyPolarized, MonteCarlo_tt<Spins>, false_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval", &TDVP::eval<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("eval", &TDVP::eval<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>, false_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval", &TDVP::eval<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("eval", &TDVP::eval<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>, false_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval", &TDVP::eval<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("eval", &TDVP::eval<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>, false_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval", &TDVP::eval<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("eval", &TDVP::eval<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>, false_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
-        .def("eval", &TDVP::eval<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("eval", &TDVP::eval<PsiDeep, MonteCarlo_tt<PauliString>, false_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
-        .def("eval", &TDVP::eval<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("eval", &TDVP::eval<PsiCNN, MonteCarlo_tt<PauliString>, false_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval", &TDVP::eval<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("eval", &TDVP::eval<PsiFullyPolarized, MonteCarlo_tt<PauliString>, false_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval", &TDVP::eval<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("eval", &TDVP::eval<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>, false_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval", &TDVP::eval<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("eval", &TDVP::eval<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>, false_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval", &TDVP::eval<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("eval", &TDVP::eval<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>, false_t>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval", &TDVP::eval<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("eval", &TDVP::eval<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>, false_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
-        .def("eval", &TDVP::eval<PsiDeep, ExactSummation_t<Spins>>)
+        .def("eval", &TDVP::eval<PsiDeep, ExactSummation_t<Spins>, false_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
-        .def("eval", &TDVP::eval<PsiCNN, ExactSummation_t<Spins>>)
+        .def("eval", &TDVP::eval<PsiCNN, ExactSummation_t<Spins>, false_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval", &TDVP::eval<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("eval", &TDVP::eval<PsiFullyPolarized, ExactSummation_t<Spins>, false_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval", &TDVP::eval<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("eval", &TDVP::eval<PsiClassicalFP<1u>, ExactSummation_t<Spins>, false_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval", &TDVP::eval<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("eval", &TDVP::eval<PsiClassicalFP<2u>, ExactSummation_t<Spins>, false_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval", &TDVP::eval<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("eval", &TDVP::eval<PsiClassicalANN<1u>, ExactSummation_t<Spins>, false_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval", &TDVP::eval<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("eval", &TDVP::eval<PsiClassicalANN<2u>, ExactSummation_t<Spins>, false_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
-        .def("eval", &TDVP::eval<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("eval", &TDVP::eval<PsiDeep, ExactSummation_t<PauliString>, false_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
-        .def("eval", &TDVP::eval<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("eval", &TDVP::eval<PsiCNN, ExactSummation_t<PauliString>, false_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval", &TDVP::eval<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("eval", &TDVP::eval<PsiFullyPolarized, ExactSummation_t<PauliString>, false_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval", &TDVP::eval<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("eval", &TDVP::eval<PsiClassicalFP<1u>, ExactSummation_t<PauliString>, false_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval", &TDVP::eval<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("eval", &TDVP::eval<PsiClassicalFP<2u>, ExactSummation_t<PauliString>, false_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval", &TDVP::eval<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("eval", &TDVP::eval<PsiClassicalANN<1u>, ExactSummation_t<PauliString>, false_t>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval", &TDVP::eval<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("eval", &TDVP::eval<PsiClassicalANN<2u>, ExactSummation_t<PauliString>, false_t>)
 #endif
         ;
 

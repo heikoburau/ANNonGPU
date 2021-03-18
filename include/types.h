@@ -338,4 +338,8 @@ struct Dim {
     static constexpr unsigned int value = x;
 };
 
+
+struct true_t {};
+struct false_t {};
+
 } // namespace ann_on_gpu
