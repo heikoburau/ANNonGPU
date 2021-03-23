@@ -261,6 +261,16 @@ PYBIND11_MODULE(_pyANNonGPU, m)
                 psi.psi_ref.set_params(Array<complex_t>(new_params, false));
             }
         )
+        .def_property(
+            "H",
+            [](const PsiClassicalFP<1u>& psi) {return *psi.H;},
+            [](PsiClassicalFP<1u>& psi, const Operator_t& H) {psi.H = unique_ptr<Operator_t>(new Operator_t(H)); psi.update_kernel();}
+        )
+        .def_property(
+            "H2",
+            [](const PsiClassicalFP<1u>& psi) {return *psi.H2;},
+            [](PsiClassicalFP<1u>& psi, const Operator_t& H2) {psi.H2 = unique_ptr<Operator_t>(new Operator_t(H2)); psi.update_kernel();}
+        )
         .def("update_psi_ref_kernel", &PsiClassicalFP<1u>::update_psi_ref_kernel)
         .def_readwrite("delta_t", &PsiClassicalFP<1u>::delta_t)
         .def_readwrite("log_psi_threshold", &PsiClassicalFP<1u>::log_psi_threshold)
@@ -338,6 +348,16 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             [](PsiClassicalFP<2u>& psi, const complex_tensor<1u>& new_params) {
                 psi.psi_ref.set_params(Array<complex_t>(new_params, false));
             }
+        )
+        .def_property(
+            "H",
+            [](const PsiClassicalFP<2u>& psi) {return *psi.H;},
+            [](PsiClassicalFP<2u>& psi, const Operator_t& H) {psi.H = unique_ptr<Operator_t>(new Operator_t(H)); psi.update_kernel();}
+        )
+        .def_property(
+            "H2",
+            [](const PsiClassicalFP<2u>& psi) {return *psi.H2;},
+            [](PsiClassicalFP<2u>& psi, const Operator_t& H2) {psi.H2 = unique_ptr<Operator_t>(new Operator_t(H2)); psi.update_kernel();}
         )
         .def("update_psi_ref_kernel", &PsiClassicalFP<2u>::update_psi_ref_kernel)
         .def_readwrite("delta_t", &PsiClassicalFP<2u>::delta_t)
@@ -417,6 +437,16 @@ PYBIND11_MODULE(_pyANNonGPU, m)
                 psi.psi_ref.set_params(Array<complex_t>(new_params, false));
             }
         )
+        .def_property(
+            "H",
+            [](const PsiClassicalANN<1u>& psi) {return *psi.H;},
+            [](PsiClassicalANN<1u>& psi, const Operator_t& H) {psi.H = unique_ptr<Operator_t>(new Operator_t(H)); psi.update_kernel();}
+        )
+        .def_property(
+            "H2",
+            [](const PsiClassicalANN<1u>& psi) {return *psi.H2;},
+            [](PsiClassicalANN<1u>& psi, const Operator_t& H2) {psi.H2 = unique_ptr<Operator_t>(new Operator_t(H2)); psi.update_kernel();}
+        )
         .def("update_psi_ref_kernel", &PsiClassicalANN<1u>::update_psi_ref_kernel)
         .def_readwrite("delta_t", &PsiClassicalANN<1u>::delta_t)
         .def_readwrite("log_psi_threshold", &PsiClassicalANN<1u>::log_psi_threshold)
@@ -494,6 +524,16 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             [](PsiClassicalANN<2u>& psi, const complex_tensor<1u>& new_params) {
                 psi.psi_ref.set_params(Array<complex_t>(new_params, false));
             }
+        )
+        .def_property(
+            "H",
+            [](const PsiClassicalANN<2u>& psi) {return *psi.H;},
+            [](PsiClassicalANN<2u>& psi, const Operator_t& H) {psi.H = unique_ptr<Operator_t>(new Operator_t(H)); psi.update_kernel();}
+        )
+        .def_property(
+            "H2",
+            [](const PsiClassicalANN<2u>& psi) {return *psi.H2;},
+            [](PsiClassicalANN<2u>& psi, const Operator_t& H2) {psi.H2 = unique_ptr<Operator_t>(new Operator_t(H2)); psi.update_kernel();}
         )
         .def("update_psi_ref_kernel", &PsiClassicalANN<2u>::update_psi_ref_kernel)
         .def_readwrite("delta_t", &PsiClassicalANN<2u>::delta_t)
@@ -1357,6 +1397,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("F_vector", [](const TDVP& tdvp){return tdvp.F_vector.to_pytensor_1d();})
         .def_property_readonly("var_H", &TDVP::var_H)
         .def_readwrite("threshold", &TDVP::threshold)
+        .def_property_readonly("total_weight", [](const TDVP& tdvp){return tdvp.total_weight.front();})
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref_py<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
 #endif

@@ -118,6 +118,8 @@ struct PsiClassical_t {
     PsiRef       psi_ref;
 
     double       log_psi_threshold;
+    Operator_t   H;
+    Operator_t   H2;
     double       delta_t;
 
 
@@ -238,6 +240,24 @@ struct PsiClassical_t {
 
         this->init_payload(payload, configuration, 0u);
 
+        SYNC;
+        if(payload.log_psi_ref.real() < this->log_psi_threshold) {
+            SHARED complex_t local_energy_H;
+            SHARED complex_t local_energy_H2;
+
+            this->H.local_energy(local_energy_H, this->psi_ref, configuration, payload.log_psi_ref, payload.ref_payload);
+            this->H2.local_energy(local_energy_H2, this->psi_ref, configuration, payload.log_psi_ref, payload.ref_payload);
+
+            SINGLE {
+                result = this->log_prefactor + payload.log_psi_ref + log(
+                    1.0 - complex_t(0.0, 1.0) * local_energy_H * this->delta_t - 0.5 * local_energy_H2 * this->delta_t * this->delta_t
+                );
+            }
+            SYNC;
+
+            return;
+        }
+
         SINGLE {
             result = this->log_prefactor + payload.log_psi_ref;
         }
@@ -248,27 +268,6 @@ struct PsiClassical_t {
         }
 
         SYNC;
-
-        if(result.real() < this->log_psi_threshold) {
-            SHARED complex_t local_energy;
-            SINGLE {
-                local_energy = complex_t(0.0);
-            }
-            SYNC;
-            LOOP(n, this->num_ops_H) {
-                generic_atomicAdd(&local_energy, payload.local_energy_H_full[n]);
-            }
-            SYNC;
-
-            SINGLE {
-                result = 1.0;
-                // result += complex_t(0.0, -1.0) * local_energy * this->delta_t;
-                // result += -0.5 * abs2(local_energy) * this->delta_t * this->delta_t;
-
-                result = this->log_prefactor + payload.log_psi_ref + log(result);
-            }
-            SYNC;
-        }
     }
 
     template<typename Basis_t>
@@ -380,6 +379,9 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
     Array<unsigned int> ids_l;
     Array<unsigned int> ids_l_prime;
 
+    unique_ptr<Operator_t> H;
+    unique_ptr<Operator_t> H2;
+
     inline PsiClassical_t(const PsiClassical_t& other)
         :
         H_local(other.H_local),
@@ -397,11 +399,28 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
         this->delta_t = other.delta_t;
         this->log_psi_threshold = other.log_psi_threshold;
 
+        if(other.H) {
+            this->H = unique_ptr<Operator_t>(new Operator_t(*other.H));
+        }
+        if(other.H2) {
+            this->H2 = unique_ptr<Operator_t>(new Operator_t(*other.H2));
+        }
+
         this->init_kernel();
+        this->update_kernel();
     }
 
     inline void update_psi_ref_kernel() {
         this->kernel().psi_ref = this->psi_ref.kernel();
+    }
+
+    inline void update_kernel() {
+        if(this->H) {
+            this->kernel().H = this->H->kernel();
+        }
+        if(this->H2) {
+            this->kernel().H2 = this->H2->kernel();
+        }
     }
 
 #ifdef __PYTHONCC__

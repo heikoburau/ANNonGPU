@@ -40,7 +40,7 @@ def new_classical_network(
             )
 
         return pyANNonGPU.PsiClassicalANN_1(
-            num_sites, H_local, H_2_local, params, psi_ref, log_prefactor, gpu
+            num_sites, H_local, H_2_local, params, psi_ref, 0, gpu
         )
 
     if order == 2:
@@ -91,5 +91,5 @@ def new_classical_network(
         assert num_sites == psi_ref.num_sites
 
         return pyANNonGPU.PsiClassicalANN_2(
-            num_sites, H_local, H_2_local, params, psi_ref, log_prefactor, gpu
+            num_sites, H_local, H_2_local, params, psi_ref, 0, gpu
         )
