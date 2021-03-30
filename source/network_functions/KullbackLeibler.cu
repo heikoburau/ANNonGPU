@@ -52,7 +52,7 @@ void kernel::KullbackLeibler::compute_averages(
             SINGLE {
                 prob_ratio = exp(2.0 * (log_psi.real() - log_psi_prime.real()));
                 weight = prob_ratio * weight_prime;
-                generic_atomicAdd(this_.prob_ratio, weight);
+                generic_atomicAdd(this_.total_weight, weight);
                 generic_atomicAdd(this_.mean_deviation, weight * (log_psi_prime - log_psi));
                 deviation = log_psi_prime - log_psi - *this_.last_mean_deviation;
 
@@ -130,7 +130,7 @@ KullbackLeibler::KullbackLeibler(const unsigned int num_params, const bool gpu)
         O_k2(num_params, gpu),
         mean_deviation(1, gpu),
         last_mean_deviation(1, gpu),
-        prob_ratio(1, gpu)
+        total_weight(1, gpu)
     {
     this->gpu = gpu;
 
@@ -148,7 +148,7 @@ KullbackLeibler::KullbackLeibler(const unsigned int num_params, const bool gpu)
     this->kernel().mean_deviation = this->mean_deviation.data();
     this->kernel().last_mean_deviation = this->last_mean_deviation.data();
 
-    this->kernel().prob_ratio = this->prob_ratio.data();
+    this->kernel().total_weight = this->total_weight.data();
 
     this->last_mean_deviation.clear();
 }
@@ -168,12 +168,12 @@ void KullbackLeibler::clear() {
 
     this->mean_deviation.clear();
 
-    this->prob_ratio.clear();
+    this->total_weight.clear();
 }
 
 void KullbackLeibler::update_last_mean_deviation() {
     this->mean_deviation.update_host();
-    this->mean_deviation.front() /= this->prob_ratio.front();
+    this->mean_deviation.front() /= this->total_weight.front();
 
     this->last_mean_deviation.front() = this->mean_deviation.front();
     this->last_mean_deviation.update_device();
@@ -185,14 +185,14 @@ double KullbackLeibler::value(
 ) {
     this->clear();
     this->compute_averages<false, false>(psi, psi_prime, ensemble, threshold);
-    this->prob_ratio.update_host();
+    this->total_weight.update_host();
     this->update_last_mean_deviation();
 
     this->deviation.update_host();
     this->deviation2.update_host();
 
-    this->deviation.front() /= this->prob_ratio.front();
-    this->deviation2.front() /= this->prob_ratio.front();
+    this->deviation.front() /= this->total_weight.front();
+    this->deviation2.front() /= this->total_weight.front();
 
     return sqrt(max(
         1e-8,
@@ -209,7 +209,7 @@ double KullbackLeibler::gradient(
 ) {
     this->clear();
     this->compute_averages<true, false>(psi, psi_prime, ensemble, threshold);
-    this->prob_ratio.update_host();
+    this->total_weight.update_host();
     this->update_last_mean_deviation();
 
     this->deviation.update_host();
@@ -218,11 +218,11 @@ double KullbackLeibler::gradient(
     this->deviation_O_k_conj.update_host();
 
 
-    this->deviation.front() /= this->prob_ratio.front();
-    this->deviation2.front() /= this->prob_ratio.front();
+    this->deviation.front() /= this->total_weight.front();
+    this->deviation2.front() /= this->total_weight.front();
     for(auto k = 0u; k < this->num_params; k++) {
-        this->O_k[k] /= this->prob_ratio.front();
-        this->deviation_O_k_conj[k] /= this->prob_ratio.front();
+        this->O_k[k] /= this->total_weight.front();
+        this->deviation_O_k_conj[k] /= this->total_weight.front();
     }
 
 
@@ -251,7 +251,7 @@ tuple<
 ) {
     this->clear();
     this->compute_averages<true, true>(psi, psi_prime, ensemble, threshold);
-    this->prob_ratio.update_host();
+    this->total_weight.update_host();
     this->update_last_mean_deviation();
 
     this->deviation.update_host();
@@ -265,17 +265,17 @@ tuple<
     this->deviation2_O_k.update_host();
     this->O_k2.update_host();
 
-    this->deviation.front() /= this->prob_ratio.front();
-    this->deviation2.front() /= this->prob_ratio.front();
+    this->deviation.front() /= this->total_weight.front();
+    this->deviation2.front() /= this->total_weight.front();
     for(auto k = 0u; k < this->num_params; k++) {
-        this->O_k[k] /= this->prob_ratio.front();
-        this->deviation_O_k_conj[k] /= this->prob_ratio.front();
+        this->O_k[k] /= this->total_weight.front();
+        this->deviation_O_k_conj[k] /= this->total_weight.front();
 
-        this->deviation2_O_k2[k] /= this->prob_ratio.front();
-        this->deviation_O_k[k] /= this->prob_ratio.front();
-        this->deviation_O_k2[k] /= this->prob_ratio.front();
-        this->deviation2_O_k[k] /= this->prob_ratio.front();
-        this->O_k2[k] /= this->prob_ratio.front();
+        this->deviation2_O_k2[k] /= this->total_weight.front();
+        this->deviation_O_k[k] /= this->total_weight.front();
+        this->deviation_O_k2[k] /= this->total_weight.front();
+        this->deviation2_O_k[k] /= this->total_weight.front();
+        this->O_k2[k] /= this->total_weight.front();
     }
 
 
