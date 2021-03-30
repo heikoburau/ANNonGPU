@@ -255,7 +255,7 @@ struct PsiCNN_t {
                                         this->layers[layer_idx - 1].channels[c_i].angles[
                                             payload.conf_idx * this->num_angles + lhs_unit_idx
                                         ],
-                                        layer_idx
+                                        layer_idx - 1
                                     )
                                 )
                             );

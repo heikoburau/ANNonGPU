@@ -254,13 +254,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             [](const PsiClassicalFP<1u>& psi) {return psi.params.to_pytensor_1d();},
             [](PsiClassicalFP<1u>& psi, const complex_tensor<1u>& new_params) {psi.params = new_params;}
         )
-        .def_property(
-            "ref_params",
-            [](const PsiClassicalFP<1u>& psi) {return psi.psi_ref.get_params().to_pytensor_1d();},
-            [](PsiClassicalFP<1u>& psi, const complex_tensor<1u>& new_params) {
-                psi.psi_ref.set_params(Array<complex_t>(new_params, false));
-            }
-        )
+        // .def_property(
+        //     "ref_params",
+        //     [](const PsiClassicalFP<1u>& psi) {return psi.psi_ref.get_params().to_pytensor_1d();},
+        //     [](PsiClassicalFP<1u>& psi, const complex_tensor<1u>& new_params) {
+        //         psi.psi_ref.set_params(Array<complex_t>(new_params, false));
+        //     }
+        // )
         .def_property(
             "H",
             [](const PsiClassicalFP<1u>& psi) {return *psi.H;},
@@ -342,13 +342,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             [](const PsiClassicalFP<2u>& psi) {return psi.params.to_pytensor_1d();},
             [](PsiClassicalFP<2u>& psi, const complex_tensor<1u>& new_params) {psi.params = new_params;}
         )
-        .def_property(
-            "ref_params",
-            [](const PsiClassicalFP<2u>& psi) {return psi.psi_ref.get_params().to_pytensor_1d();},
-            [](PsiClassicalFP<2u>& psi, const complex_tensor<1u>& new_params) {
-                psi.psi_ref.set_params(Array<complex_t>(new_params, false));
-            }
-        )
+        // .def_property(
+        //     "ref_params",
+        //     [](const PsiClassicalFP<2u>& psi) {return psi.psi_ref.get_params().to_pytensor_1d();},
+        //     [](PsiClassicalFP<2u>& psi, const complex_tensor<1u>& new_params) {
+        //         psi.psi_ref.set_params(Array<complex_t>(new_params, false));
+        //     }
+        // )
         .def_property(
             "H",
             [](const PsiClassicalFP<2u>& psi) {return *psi.H;},
@@ -430,13 +430,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             [](const PsiClassicalANN<1u>& psi) {return psi.params.to_pytensor_1d();},
             [](PsiClassicalANN<1u>& psi, const complex_tensor<1u>& new_params) {psi.params = new_params;}
         )
-        .def_property(
-            "ref_params",
-            [](const PsiClassicalANN<1u>& psi) {return psi.psi_ref.get_params().to_pytensor_1d();},
-            [](PsiClassicalANN<1u>& psi, const complex_tensor<1u>& new_params) {
-                psi.psi_ref.set_params(Array<complex_t>(new_params, false));
-            }
-        )
+        // .def_property(
+        //     "ref_params",
+        //     [](const PsiClassicalANN<1u>& psi) {return psi.psi_ref.get_params().to_pytensor_1d();},
+        //     [](PsiClassicalANN<1u>& psi, const complex_tensor<1u>& new_params) {
+        //         psi.psi_ref.set_params(Array<complex_t>(new_params, false));
+        //     }
+        // )
         .def_property(
             "H",
             [](const PsiClassicalANN<1u>& psi) {return *psi.H;},
@@ -518,13 +518,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             [](const PsiClassicalANN<2u>& psi) {return psi.params.to_pytensor_1d();},
             [](PsiClassicalANN<2u>& psi, const complex_tensor<1u>& new_params) {psi.params = new_params;}
         )
-        .def_property(
-            "ref_params",
-            [](const PsiClassicalANN<2u>& psi) {return psi.psi_ref.get_params().to_pytensor_1d();},
-            [](PsiClassicalANN<2u>& psi, const complex_tensor<1u>& new_params) {
-                psi.psi_ref.set_params(Array<complex_t>(new_params, false));
-            }
-        )
+        // .def_property(
+        //     "ref_params",
+        //     [](const PsiClassicalANN<2u>& psi) {return psi.psi_ref.get_params().to_pytensor_1d();},
+        //     [](PsiClassicalANN<2u>& psi, const complex_tensor<1u>& new_params) {
+        //         psi.psi_ref.set_params(Array<complex_t>(new_params, false));
+        //     }
+        // )
         .def_property(
             "H",
             [](const PsiClassicalANN<2u>& psi) {return *psi.H;},

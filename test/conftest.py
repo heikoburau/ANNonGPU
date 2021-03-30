@@ -1,4 +1,9 @@
-from pyANNonGPU import new_deep_neural_network, new_convolutional_network, new_classical_network, ExactSummationSpins#, ExactSummationPaulis
+from pyANNonGPU import (
+    # new_deep_neural_network,
+    new_convolutional_network,
+    # new_classical_network,
+    ExactSummationSpins
+)
 from QuantumExpression import sigma_x, sigma_y, sigma_z
 import quantum_tools as qt
 

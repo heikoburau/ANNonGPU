@@ -1,4 +1,13 @@
-from pyANNonGPU import PsiDeep, PsiCNN, Spins, activation_function, deep_activation, psi_O_k, log_psi_s, ExactSummationSpins #, PauliString
+from pyANNonGPU import (
+    # PsiDeep,
+    PsiCNN,
+    Spins,
+    # activation_function,
+    # deep_activation,
+    psi_O_k,
+    log_psi_s,
+    ExactSummationSpins
+)
 
 from pytest import approx
 import numpy as np

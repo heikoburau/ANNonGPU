@@ -4,7 +4,7 @@
 #include "bases.hpp"
 
 #include "quantum_state/PsiFullyPolarized.hpp"
-#include "quantum_state/PsiDeep.hpp"
+#include "quantum_state/PsiCNN.hpp"
 
 #include "cuda_complex.hpp"
 #include "Array.hpp"
@@ -131,7 +131,7 @@ struct PsiClassical_t {
         this->psi_ref.init_payload(payload.ref_payload, configuration, conf_idx);
         this->psi_ref.log_psi_s(payload.log_psi_ref, configuration, payload.ref_payload);
 
-        this->compute_local_energies(configuration, payload);
+        // this->compute_local_energies(configuration, payload);
     }
 
     template<typename Basis_t>
@@ -240,17 +240,19 @@ struct PsiClassical_t {
 
         this->init_payload(payload, configuration, 0u);
 
+        SHARED complex_t local_energy_H;
+        SHARED complex_t local_energy_H2;
+
+        this->H.local_energy(local_energy_H, this->psi_ref, configuration, payload.log_psi_ref, payload.ref_payload);
+        this->H2.local_energy(local_energy_H2, this->psi_ref, configuration, payload.log_psi_ref, payload.ref_payload);
+
         SYNC;
         if(payload.log_psi_ref.real() < this->log_psi_threshold) {
-            SHARED complex_t local_energy_H;
-            SHARED complex_t local_energy_H2;
-
-            this->H.local_energy(local_energy_H, this->psi_ref, configuration, payload.log_psi_ref, payload.ref_payload);
-            this->H2.local_energy(local_energy_H2, this->psi_ref, configuration, payload.log_psi_ref, payload.ref_payload);
-
             SINGLE {
                 result = this->log_prefactor + payload.log_psi_ref + log(
-                    1.0 - complex_t(0.0, 1.0) * local_energy_H * this->delta_t - 0.5 * local_energy_H2 * this->delta_t * this->delta_t
+                    1.0 -
+                    complex_t(0.0, 1.0) * local_energy_H * this->delta_t -
+                    0.5 * local_energy_H2 * this->delta_t * this->delta_t
                 );
             }
             SYNC;
@@ -259,14 +261,12 @@ struct PsiClassical_t {
         }
 
         SINGLE {
-            result = this->log_prefactor + payload.log_psi_ref;
+            result = this->log_prefactor + payload.log_psi_ref + (
+                -complex_t(0.0, 1.0) * local_energy_H * this->delta_t - 0.5 * (
+                    local_energy_H2 - local_energy_H * local_energy_H
+                ) * this->delta_t * this->delta_t
+            );
         }
-
-        LOOP(k, this->num_params) {
-            generic_atomicAdd(&result, this->params[k] * this->get_O_k(k, payload));
-            // printf("params %d, %f, %f\n", k, this->params[k].real(), this->params[k].imag());
-        }
-
         SYNC;
     }
 
@@ -472,7 +472,7 @@ template<unsigned int order>
 using PsiClassicalFP = PsiClassical_t<complex_t, Operator_t, order, true, PsiFullyPolarized>;
 
 template<unsigned int order>
-using PsiClassicalANN = PsiClassical_t<complex_t, Operator_t, order, true, PsiDeep>;
+using PsiClassicalANN = PsiClassical_t<complex_t, Operator_t, order, true, PsiCNN>;
 
 #else
 
@@ -480,7 +480,7 @@ template<unsigned int order>
 using PsiClassicalFP = PsiClassical_t<complex_t, Operator_t, order, false, PsiFullyPolarized>;
 
 template<unsigned int order>
-using PsiClassicalANN = PsiClassical_t<complex_t, Operator_t, order, false, PsiDeep>;
+using PsiClassicalANN = PsiClassical_t<complex_t, Operator_t, order, false, PsiCNN>;
 
 #endif // PSI_CLASSICAL_SYMMETRIC
 
