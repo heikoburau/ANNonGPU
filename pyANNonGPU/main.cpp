@@ -1388,6 +1388,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
         .def_property_readonly("total_weight", [](const KullbackLeibler& kl){return kl.total_weight.front();})
         .def_property_readonly("mean_deviation", [](const KullbackLeibler& kl){return kl.mean_deviation.front().to_std();})
+        .def_readwrite("log_psi_scale", &KullbackLeibler::log_psi_scale)
     ;
 
 

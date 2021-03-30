@@ -37,6 +37,8 @@ struct KullbackLeibler {
 
     double*     total_weight;
 
+    double      log_psi_scale;
+
 
     template<bool compute_gradient, bool noise, typename Psi_t, typename Psi_t_prime, typename Ensemble>
     void compute_averages(

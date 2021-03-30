@@ -44,6 +44,8 @@ void kernel::KullbackLeibler::compute_averages(
             psi_kernel.log_psi_s(log_psi, configuration, payload);
 
             SINGLE {
+                log_psi *= this_.log_psi_scale;
+
                 prob_ratio = exp(2.0 * (log_psi.real() - log_psi_prime.real()));
                 weight = prob_ratio * weight_prime;
                 generic_atomicAdd(this_.total_weight, weight);
@@ -145,6 +147,8 @@ KullbackLeibler::KullbackLeibler(const unsigned int num_params, const bool gpu)
     this->kernel().total_weight = this->total_weight.data();
 
     this->last_mean_deviation.clear();
+
+    this->log_psi_scale = 1.0;
 }
 
 
