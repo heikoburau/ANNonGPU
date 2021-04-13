@@ -14,7 +14,7 @@
 namespace ann_on_gpu {
 
 
-#define MAX_PARAMS 1024
+#define TILE_SIZE 64
 
 
 template<typename Psi_t, typename Ensemble>
@@ -180,34 +180,69 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, use_psi_re
     auto O_k_samples_ptr = this->O_k_samples->data();
     auto weight_samples_ptr = this->weight_samples->data();
 
+
     auto fill_S_matrix = [=] __device__ __host__ (
         const unsigned int index
     ) {
         #include "cuda_kernel_defines.h"
 
-        SHARED double    weight;
-        SHARED complex_t O_k_list[MAX_PARAMS];
+        SHARED complex_t    row_data[TILE_SIZE]; // using a register is not faster
+        SHARED complex_t    col_data[TILE_SIZE];
+        SHARED complex_t*   O_k;
+        SHARED double       weight;
 
         SINGLE {
+            O_k = O_k_samples_ptr + index * num_params;
             weight = weight_samples_ptr[index];
-        }
-        LOOP(k, num_params) {
-            O_k_list[k] = O_k_samples_ptr[index * num_params + k];
         }
         SYNC;
 
-        LOOP(k_prime, num_params) {
-            for(auto k = 0u; k < num_params; k++) {
-                generic_atomicAdd(
-                    &S_ptr[k * num_params + k_prime],
-                    weight * conj(O_k_list[k]) * O_k_list[k_prime]
-                );
+        SHARED_MEM_LOOP_BEGIN(tile_row, num_params / TILE_SIZE + 1) {
+
+            MULTI(i, TILE_SIZE) {
+                const auto i_abs = tile_row * TILE_SIZE + i;
+
+                if(i_abs < num_params) {
+                    row_data[i] = O_k[i_abs];
+                }
             }
+
+            SHARED_MEM_LOOP_BEGIN(tile_col, num_params / TILE_SIZE + 1) {
+                MULTI(i, TILE_SIZE) {
+                    const auto i_abs = tile_col * TILE_SIZE + i;
+
+                    if(i_abs < num_params) {
+                        col_data[i] = O_k[i_abs];
+                    }
+                }
+                SYNC;
+
+                MULTI(row, TILE_SIZE) {
+                    const auto row_abs = tile_row * TILE_SIZE + row;
+
+                    if(row_abs < num_params) {
+                        for(auto col = 0u; col < TILE_SIZE; col++) {
+                            const auto col_abs = tile_col * TILE_SIZE + col;
+
+                            if(col_abs < num_params) {
+                                generic_atomicAdd(
+                                    &S_ptr[row_abs * num_params + col_abs],
+                                    weight * conj(row_data[row]) * col_data[col]
+                                );
+                            }
+                        }
+                    }
+                }
+
+                SHARED_MEM_LOOP_END(tile_col);
+            }
+
+            SHARED_MEM_LOOP_END(tile_row);
         }
     };
 
     if(psi.gpu) {
-        cuda_kernel<<<ensemble.get_num_steps(), num_params>>>(
+        cuda_kernel<<<ensemble.get_num_steps(), TILE_SIZE>>>(
             [=] __device__ () {fill_S_matrix(blockIdx.x);}
         );
     }
