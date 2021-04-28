@@ -464,11 +464,6 @@ struct PsiDeepT {
         return this->width;
     }
 
-    HDINLINE
-    unsigned int get_num_angles() const {
-        return this->layers[1].size;
-    }
-
     HDINLINE unsigned int get_num_input_units() const {
         return this->N;
     }

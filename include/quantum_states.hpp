@@ -8,7 +8,12 @@
 #include "quantum_state/PsiCNN.hpp"
 #endif // ENABLE_PSI_CNN
 
+#ifdef ENABLE_PSI_EXACT
+#include "quantum_state/PsiExact.hpp"
+#endif // ENABLE_PSI_EXACT
+
 #ifdef ENABLE_PSI_CLASSICAL
 #include "quantum_state/PsiFullyPolarized.hpp"
 #include "quantum_state/PsiClassical.hpp"
 #endif  // ENABLE_PSI_CLASSICAL
+

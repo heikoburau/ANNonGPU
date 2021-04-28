@@ -73,8 +73,8 @@ template struct PsiClassical_t<complex_t, Operator_t, 1u, true, PsiFullyPolarize
 template struct PsiClassical_t<complex_t, Operator_t, 2u, true, PsiFullyPolarized>;
 
 #ifdef ENABLE_PSI_CLASSICAL_ANN
-template struct PsiClassical_t<complex_t, Operator_t, 1u, true, PsiCNN>;
-template struct PsiClassical_t<complex_t, Operator_t, 2u, true, PsiCNN>;
+template struct PsiClassical_t<complex_t, Operator_t, 1u, true, PsiExact>;
+template struct PsiClassical_t<complex_t, Operator_t, 2u, true, PsiExact>;
 #endif // ENABLE_PSI_CLASSICAL_ANN
 
 #else
@@ -83,8 +83,8 @@ template struct PsiClassical_t<complex_t, Operator_t, 1u, false, PsiFullyPolariz
 template struct PsiClassical_t<complex_t, Operator_t, 2u, false, PsiFullyPolarized>;
 
 #ifdef ENABLE_PSI_CLASSICAL_ANN
-template struct PsiClassical_t<complex_t, Operator_t, 1u, false, PsiCNN>;
-template struct PsiClassical_t<complex_t, Operator_t, 2u, false, PsiCNN>;
+template struct PsiClassical_t<complex_t, Operator_t, 1u, false, PsiExact>;
+template struct PsiClassical_t<complex_t, Operator_t, 2u, false, PsiExact>;
 #endif // ENABLE_PSI_CLASSICAL_ANN
 
 #endif // PSI_CLASSICAL_SYMMETRIC

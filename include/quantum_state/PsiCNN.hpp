@@ -293,11 +293,6 @@ struct PsiCNN_t {
         return this->N;
     }
 
-    HDINLINE
-    unsigned int get_num_angles() const {
-        return 0u;
-    }
-
     HDINLINE unsigned int get_num_input_units() const {
         return this->N;
     }

@@ -10,7 +10,6 @@
 #include "network_functions/PsiVector.hpp"
 #include "network_functions/PsiNorm.hpp"
 #include "network_functions/PsiOkVector.hpp"
-#include "network_functions/PsiAngles.hpp"
 #include "network_functions/ApplyOperator.hpp"
 #include "quantum_states.hpp"
 #include "quantum_state/psi_functions.hpp"
@@ -288,6 +287,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def(py::init<unsigned int, double>())
         .def_readwrite("num_sites", &PsiFullyPolarized::num_sites);
 #endif // ENABLE_PSI_CLASSICAL
+
+#ifdef ENABLE_PSI_EXACT
+    py::class_<PsiExact>(m, "PsiExact")
+        .def(py::init<real_tensor<1u>, bool>())
+        .def_readwrite("num_sites", &PsiExact::num_sites);
+#endif // ENABLE_PSI_EXACT
+
 
 #ifdef USE_SUPER_OPERATOR
 

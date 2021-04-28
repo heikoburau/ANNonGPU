@@ -4,7 +4,8 @@
 #include "bases.hpp"
 
 #include "quantum_state/PsiFullyPolarized.hpp"
-#include "quantum_state/PsiCNN.hpp"
+// #include "quantum_state/PsiCNN.hpp"
+#include "quantum_state/PsiExact.hpp"
 
 #include "cuda_complex.hpp"
 #include "Array.hpp"
@@ -472,7 +473,7 @@ template<unsigned int order>
 using PsiClassicalFP = PsiClassical_t<complex_t, Operator_t, order, true, PsiFullyPolarized>;
 
 template<unsigned int order>
-using PsiClassicalANN = PsiClassical_t<complex_t, Operator_t, order, true, PsiCNN>;
+using PsiClassicalANN = PsiClassical_t<complex_t, Operator_t, order, true, PsiExact>;
 
 #else
 
@@ -480,7 +481,7 @@ template<unsigned int order>
 using PsiClassicalFP = PsiClassical_t<complex_t, Operator_t, order, false, PsiFullyPolarized>;
 
 template<unsigned int order>
-using PsiClassicalANN = PsiClassical_t<complex_t, Operator_t, order, false, PsiCNN>;
+using PsiClassicalANN = PsiClassical_t<complex_t, Operator_t, order, false, PsiExact>;
 
 #endif // PSI_CLASSICAL_SYMMETRIC
 
