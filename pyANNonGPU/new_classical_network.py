@@ -7,6 +7,7 @@ def new_classical_network(
     num_sites,
     order,
     H_local,
+    H_2_local=None,
     symmetric=True,
     distance="max",
     params=0,
@@ -15,9 +16,6 @@ def new_classical_network(
     gpu=False
 ):
     assert order in (1, 2)
-
-    H_local = +H_local
-    H_local.assign(1)
 
     log_prefactor = np.log(1 / 4**(num_sites / 2) if use_super_operator else 1 / 2**(num_sites / 2))
 
@@ -44,20 +42,19 @@ def new_classical_network(
         )
 
     if order == 2:
-        if distance == "max":
-            distance = num_sites // 2
+        if H_2_local is None:
+            if distance == "max":
+                distance = num_sites // 2
 
-        if symmetric:
-            H = sum(H_local.roll(l, num_sites) for l in range(distance))
-            H_2_local = (H**2).translationally_invariant(distance)
-            H_2_local.assign(1)
-            H_2_local -= H_2_local[PauliExpression(1).pauli_string]
-        else:
-            H_2_local = H_local**2
-            H_2_local.assign(1)
-            H_2_local -= H_2_local[PauliExpression(1).pauli_string]
-
-        H_local.assign(1)
+            if symmetric:
+                H = sum(H_local.roll(l, num_sites) for l in range(distance))
+                H_2_local = (H**2).translationally_invariant(distance)
+                H_2_local.assign(1)
+                H_2_local -= H_2_local[PauliExpression(1).pauli_string]
+            else:
+                H_2_local = H_local**2
+                H_2_local.assign(1)
+                H_2_local -= H_2_local[PauliExpression(1).pauli_string]
 
         if symmetric:
             num_params = (

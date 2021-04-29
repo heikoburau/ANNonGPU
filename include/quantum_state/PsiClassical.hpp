@@ -132,7 +132,7 @@ struct PsiClassical_t {
         this->psi_ref.init_payload(payload.ref_payload, configuration, conf_idx);
         this->psi_ref.log_psi_s(payload.log_psi_ref, configuration, payload.ref_payload);
 
-        // this->compute_local_energies(configuration, payload);
+        this->compute_local_energies(configuration, payload);
     }
 
     template<typename Basis_t>
@@ -239,35 +239,47 @@ struct PsiClassical_t {
         #include "cuda_kernel_defines.h"
         // CAUTION: 'result' has to be a shared variable.
 
+        SINGLE {
+            result = this->log_prefactor;
+        }
+
         this->init_payload(payload, configuration, 0u);
 
-        SHARED complex_t local_energy_H;
-        SHARED complex_t local_energy_H2;
-
-        this->H.local_energy(local_energy_H, this->psi_ref, configuration, payload.log_psi_ref, payload.ref_payload);
-        this->H2.local_energy(local_energy_H2, this->psi_ref, configuration, payload.log_psi_ref, payload.ref_payload);
-
-        SYNC;
-        if(payload.log_psi_ref.real() < this->log_psi_threshold) {
-            SINGLE {
-                result = this->log_prefactor + payload.log_psi_ref + log(
-                    1.0 -
-                    complex_t(0.0, 1.0) * local_energy_H * this->delta_t -
-                    0.5 * local_energy_H2 * this->delta_t * this->delta_t
-                );
+        this->foreach_O_k(
+            configuration,
+            payload,
+            [&](const unsigned int k, const complex_t& O_k) {
+                generic_atomicAdd(&result, this->params[k] * O_k);
             }
-            SYNC;
+        );
 
-            return;
-        }
+        // SHARED complex_t local_energy_H;
+        // SHARED complex_t local_energy_H2;
 
-        SINGLE {
-            result = this->log_prefactor + payload.log_psi_ref + (
-                -complex_t(0.0, 1.0) * local_energy_H * this->delta_t - 0.5 * (
-                    local_energy_H2 - local_energy_H * local_energy_H
-                ) * this->delta_t * this->delta_t
-            );
-        }
+        // this->H.local_energy(local_energy_H, this->psi_ref, configuration, payload.log_psi_ref, payload.ref_payload);
+        // this->H2.local_energy(local_energy_H2, this->psi_ref, configuration, payload.log_psi_ref, payload.ref_payload);
+
+        // SYNC;
+        // if(payload.log_psi_ref.real() < this->log_psi_threshold) {
+        //     SINGLE {
+        //         result = this->log_prefactor + payload.log_psi_ref + log(
+        //             1.0 -
+        //             complex_t(0.0, 1.0) * local_energy_H * this->delta_t -
+        //             0.5 * local_energy_H2 * this->delta_t * this->delta_t
+        //         );
+        //     }
+        //     SYNC;
+
+        //     return;
+        // }
+
+        // SINGLE {
+        //     result = this->log_prefactor + payload.log_psi_ref + (
+        //         -complex_t(0.0, 1.0) * local_energy_H * this->delta_t - 0.5 * (
+        //             local_energy_H2 - local_energy_H * local_energy_H
+        //         ) * this->delta_t * this->delta_t
+        //     );
+        // }
         SYNC;
     }
 
