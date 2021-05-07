@@ -48,7 +48,7 @@ struct Operator {
         SHARED MatrixElement<Basis_t> matrix_element;
 
         SINGLE {
-            matrix_element = this->pauli_strings[n].roll(shift, psi.num_sites).apply(configuration);
+            matrix_element = this->pauli_strings[n].apply(configuration);
             matrix_element.coefficient *= this->coefficients[n];
         }
         SYNC;
@@ -110,6 +110,28 @@ struct Operator {
 
             SHARED_MEM_LOOP_END(n);
         }
+    }
+
+    template<typename Basis_t>
+    HDINLINE
+    void fast_local_energy(
+        complex_t& result,
+        const Basis_t& configuration
+    ) const {
+        #include "cuda_kernel_defines.h"
+
+        SINGLE {
+            result = complex_t(0.0);
+        }
+        SYNC;
+
+        LOOP(n, this->num_strings) {
+            generic_atomicAdd(
+                &result,
+                this->coefficients[n] * this->pauli_strings[n].apply(configuration).coefficient
+            );
+        }
+        SYNC;
     }
 
 

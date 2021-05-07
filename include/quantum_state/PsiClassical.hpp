@@ -178,14 +178,9 @@ struct PsiClassical_t {
 
             }
             else {
-                this->H_local[n].local_energy(
+                this->H_local[n].fast_local_energy(
                     payload.local_energies[n],
-                    this->psi_ref,
-                    configuration,
-                    payload.log_psi_ref,
-                    payload.ref_payload,
-                    0,
-                    true
+                    configuration
                 );
             }
 
