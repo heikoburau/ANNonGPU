@@ -35,38 +35,12 @@ using namespace cuda_complex;
 
 namespace PsiClassicalPayload {
 
-template<bool, typename PsiRefPayload, int max_local_terms, int max_sites>
-struct Payload_t;
-
-template<typename PsiRefPayload, int max_local_terms, int max_sites>
-struct Payload_t<true, PsiRefPayload, max_local_terms, max_sites> {
-    // todo: add configuration to detect whether re-calculation is neccessary at all.
-
+template<typename PsiRefPayload>
+struct Payload_t {
     complex_t       log_psi_ref;
+    complex_t       local_energies[64];
 
-    // structure:
-    //
-    // first-order:
-    // [this->num_sites] x [this->num_ops_H]
-    //
-    // second-order:
-    // H^2_local terms
-    //
-    complex_t   local_energies[max_local_terms * max_sites];
-
-    complex_t   local_energy_H_full[max_local_terms];
-
-    PsiRefPayload ref_payload;
-};
-
-template<typename PsiRefPayload, int max_local_terms, int max_sites>
-struct Payload_t<false, PsiRefPayload, max_local_terms, max_sites> {
-    complex_t       log_psi_ref;
-
-    complex_t   local_energies[max_local_terms * max_sites * (max_sites + 1)];
-    complex_t   local_energy_H_full[1];
-
-    PsiRefPayload ref_payload;
+    PsiRefPayload   ref_payload;
 };
 
 } // namespace PsiClassicalPayload
@@ -80,20 +54,11 @@ struct PsiClassical_t {
     static constexpr unsigned int max_sites = 32u;
     static constexpr unsigned int max_local_terms = 2u;
 
-    using Payload = PsiClassicalPayload::Payload_t<symmetric, typename PsiRef::Payload, max_local_terms, max_sites>;
+    using Payload = PsiClassicalPayload::Payload_t<typename PsiRef::Payload>;
 
     dtype*          params;
     unsigned int    num_params;
     unsigned int    num_sites;
-
-    // data for the second moment
-    struct M_2 {
-        // Hamiltonian^2, but having only terms which are not congruent to each other (symmetric).
-
-        unsigned int    begin_local_energies;
-        unsigned int    begin_params;
-        unsigned int    end_params;
-    };
 
     // data for the squared first moment
     struct M_1_squared {
@@ -108,21 +73,12 @@ struct PsiClassical_t {
     complex_t       log_prefactor;
 
     Operator_t*     H_local;
-    Operator_t*     H_2_local;
 
     unsigned int    num_ops_H;
-    unsigned int    num_ops_H_2;
 
-    M_2          m_2;
     M_1_squared  m_1_squared;
 
     PsiRef       psi_ref;
-
-    double       log_psi_threshold;
-    Operator_t   H;
-    Operator_t   H2;
-    double       delta_t;
-
 
 #ifdef __CUDACC__
 
@@ -139,10 +95,6 @@ struct PsiClassical_t {
     HDINLINE
     void compute_local_energies(const Basis_t& configuration, Payload& payload) const {
         this->compute_1st_order_local_energies(configuration, payload);
-
-        if(order > 1u) {
-            this->compute_2nd_order_local_energies(configuration, payload);
-        }
     }
 
     template<typename Basis_t>
@@ -150,79 +102,10 @@ struct PsiClassical_t {
     void compute_1st_order_local_energies(const Basis_t& configuration, Payload& payload) const {
         SHARED_MEM_LOOP_BEGIN(n, this->num_ops_H) {
 
-            if(symmetric) {
-
-                SINGLE {
-                    payload.local_energy_H_full[n] = complex_t(0.0);
-                }
-
-                SHARED_MEM_LOOP_BEGIN(m, this->num_sites) {
-                    this->H_local[n].local_energy(
-                        payload.local_energies[m * this->num_ops_H + n],
-                        this->psi_ref,
-                        configuration,
-                        payload.log_psi_ref,
-                        payload.ref_payload,
-                        m,
-                        true
-                    );
-
-                    SHARED_MEM_LOOP_END(m);
-                }
-                MULTI(i, this->num_sites) {
-                    generic_atomicAdd(
-                        &payload.local_energy_H_full[n],
-                        payload.local_energies[i * this->num_ops_H + n]
-                    );
-                }
-
-            }
-            else {
-                this->H_local[n].fast_local_energy(
-                    payload.local_energies[n],
-                    configuration
-                );
-            }
-
-            SHARED_MEM_LOOP_END(n);
-        }
-    }
-
-    template<typename Basis_t>
-    HDINLINE
-    void compute_2nd_order_local_energies(const Basis_t& configuration, Payload& payload) const {
-        SHARED_MEM_LOOP_BEGIN(n, this->num_ops_H_2) {
-
-            if(symmetric) {
-                SINGLE {
-                    payload.local_energies[this->m_2.begin_local_energies + n] = complex_t(0.0);
-                }
-
-                SHARED_MEM_LOOP_BEGIN(m, this->num_sites) {
-                    this->H_2_local[n].local_energy(
-                        payload.local_energies[this->m_2.begin_local_energies + n],
-                        this->psi_ref,
-                        configuration,
-                        payload.log_psi_ref,
-                        payload.ref_payload,
-                        m,
-                        false
-                    );
-
-                    SHARED_MEM_LOOP_END(m);
-                }
-            }
-            else {
-                this->H_2_local[n].local_energy(
-                    payload.local_energies[this->m_2.begin_local_energies + n],
-                    this->psi_ref,
-                    configuration,
-                    payload.log_psi_ref,
-                    payload.ref_payload,
-                    0,
-                    true
-                );
-            }
+            this->H_local[n].fast_local_energy(
+                payload.local_energies[n],
+                configuration
+            );
 
             SHARED_MEM_LOOP_END(n);
         }
@@ -248,33 +131,6 @@ struct PsiClassical_t {
             }
         );
 
-        // SHARED complex_t local_energy_H;
-        // SHARED complex_t local_energy_H2;
-
-        // this->H.local_energy(local_energy_H, this->psi_ref, configuration, payload.log_psi_ref, payload.ref_payload);
-        // this->H2.local_energy(local_energy_H2, this->psi_ref, configuration, payload.log_psi_ref, payload.ref_payload);
-
-        // SYNC;
-        // if(payload.log_psi_ref.real() < this->log_psi_threshold) {
-        //     SINGLE {
-        //         result = this->log_prefactor + payload.log_psi_ref + log(
-        //             1.0 -
-        //             complex_t(0.0, 1.0) * local_energy_H * this->delta_t -
-        //             0.5 * local_energy_H2 * this->delta_t * this->delta_t
-        //         );
-        //     }
-        //     SYNC;
-
-        //     return;
-        // }
-
-        // SINGLE {
-        //     result = this->log_prefactor + payload.log_psi_ref + (
-        //         -complex_t(0.0, 1.0) * local_energy_H * this->delta_t - 0.5 * (
-        //             local_energy_H2 - local_energy_H * local_energy_H
-        //         ) * this->delta_t * this->delta_t
-        //     );
-        // }
         SYNC;
     }
 
@@ -288,45 +144,22 @@ struct PsiClassical_t {
     HDINLINE
     complex_t get_O_k(const unsigned int k, const Payload& payload) const {
         if(k < this->num_ops_H) {
-            if(symmetric) {
-                return payload.local_energy_H_full[k];
-            }
-            else {
-                return payload.local_energies[k];
-            }
+            return payload.local_energies[k];
         }
 
         if(order > 1u) {
-            if(k < this->m_2.end_params) {
-                return payload.local_energies[this->m_2.begin_local_energies + k - this->m_2.begin_params];
-            }
-
             if(k < this->num_params) {
                 complex_t result(0.0);
 
                 const auto k_rel = k - this->m_1_squared.begin_params;
 
-                const auto n = k_rel / this->m_1_squared.num_ll_pairs;
-                const auto l = this->m_1_squared.ids_l[k_rel % this->m_1_squared.num_ll_pairs];
-                const auto l_prime = this->m_1_squared.ids_l_prime[k_rel % this->m_1_squared.num_ll_pairs];
+                const auto l = this->m_1_squared.ids_l[k_rel];
+                const auto l_prime = this->m_1_squared.ids_l_prime[k_rel];
 
-                if(symmetric)
-                {
-                    for(auto delta = 0u; delta < this->num_sites; delta++) {
-                        result += (
-                            payload.local_energies[delta * this->num_ops_H + l] *
-                            payload.local_energies[((n + delta) % this->num_sites) * this->num_ops_H + l_prime]
-                        );
-                    }
-                }
-                else {
-                    result = (
-                        payload.local_energies[l] *
-                        payload.local_energies[l_prime]
-                    );
-                }
-
-                return result;
+                return (
+                    payload.local_energies[l] *
+                    payload.local_energies[l_prime]
+                );
             }
         }
 
@@ -377,9 +210,7 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
     using Operator = Operator_t;
 
     vector<Operator_t>        H_local;
-    vector<Operator_t>        H_2_local;
     Array<typename Operator_t::Kernel>        H_local_kernel;
-    Array<typename Operator_t::Kernel>        H_2_local_kernel;
     Array<dtype>    params;
     PsiRef          psi_ref;
     bool            gpu;
@@ -387,15 +218,10 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
     Array<unsigned int> ids_l;
     Array<unsigned int> ids_l_prime;
 
-    unique_ptr<Operator_t> H;
-    unique_ptr<Operator_t> H2;
-
     inline PsiClassical_t(const PsiClassical_t& other)
         :
         H_local(other.H_local),
-        H_2_local(other.H_2_local),
         H_local_kernel(other.H_local_kernel),
-        H_2_local_kernel(other.H_2_local_kernel),
         params(other.params),
         psi_ref(other.psi_ref),
         ids_l(other.gpu),
@@ -404,15 +230,6 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
         this->num_sites = other.num_sites;
         this->log_prefactor = other.log_prefactor;
         this->gpu = other.gpu;
-        this->delta_t = other.delta_t;
-        this->log_psi_threshold = other.log_psi_threshold;
-
-        if(other.H) {
-            this->H = unique_ptr<Operator_t>(new Operator_t(*other.H));
-        }
-        if(other.H2) {
-            this->H2 = unique_ptr<Operator_t>(new Operator_t(*other.H2));
-        }
 
         this->init_kernel();
         this->update_kernel();
@@ -423,12 +240,6 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
     }
 
     inline void update_kernel() {
-        if(this->H) {
-            this->kernel().H = this->H->kernel();
-        }
-        if(this->H2) {
-            this->kernel().H2 = this->H2->kernel();
-        }
     }
 
 #ifdef __PYTHONCC__
@@ -436,7 +247,6 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
     inline PsiClassical_t(
         const unsigned int num_sites,
         const vector<Operator_t>& H_local,
-        const vector<Operator_t>& H_2_local,
         const xt::pytensor<typename std_dtype<dtype>::type, 1u>& params,
         const PsiRef& psi_ref,
         const double log_prefactor,
@@ -444,9 +254,7 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
     )
         :
         H_local(H_local),
-        H_2_local(H_2_local),
         H_local_kernel(H_local.size(), gpu),
-        H_2_local_kernel(H_2_local.size(), gpu),
         params(params, gpu),
         psi_ref(psi_ref),
         ids_l(gpu),
@@ -455,7 +263,6 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
         this->num_sites = num_sites;
         this->log_prefactor = log_prefactor;
         this->gpu = gpu;
-        this->log_psi_threshold = -1e6;
 
         this->init_kernel();
     }

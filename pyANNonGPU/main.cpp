@@ -216,7 +216,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def(py::init<
             const unsigned int,
             const vector<Operator_t>&,
-            const vector<Operator_t>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalFP<1u>::PsiRef&,
             const double,
@@ -226,7 +225,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("__pos__", &PsiClassicalFP<1u>::copy)
         .def_readwrite("num_sites", &PsiClassicalFP<1u>::num_sites)
         .def_readonly("H_local", &PsiClassicalFP<1u>::H_local)
-        .def_readonly("H_2_local", &PsiClassicalFP<1u>::H_2_local)
         .def_property(
             "log_prefactor",
             [](const PsiClassicalFP<1u>& psi) {return psi.log_prefactor.to_std();},
@@ -260,19 +258,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         //         psi.psi_ref.set_params(Array<complex_t>(new_params, false));
         //     }
         // )
-        .def_property(
-            "H",
-            [](const PsiClassicalFP<1u>& psi) {return *psi.H;},
-            [](PsiClassicalFP<1u>& psi, const Operator_t& H) {psi.H = unique_ptr<Operator_t>(new Operator_t(H)); psi.update_kernel();}
-        )
-        .def_property(
-            "H2",
-            [](const PsiClassicalFP<1u>& psi) {return *psi.H2;},
-            [](PsiClassicalFP<1u>& psi, const Operator_t& H2) {psi.H2 = unique_ptr<Operator_t>(new Operator_t(H2)); psi.update_kernel();}
-        )
         .def("update_psi_ref_kernel", &PsiClassicalFP<1u>::update_psi_ref_kernel)
-        .def_readwrite("delta_t", &PsiClassicalFP<1u>::delta_t)
-        .def_readwrite("log_psi_threshold", &PsiClassicalFP<1u>::log_psi_threshold)
         #ifdef ENABLE_EXACT_SUMMATION
         #ifdef ENABLE_SPINS
         .def("vector", [](PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
@@ -304,7 +290,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def(py::init<
             const unsigned int,
             const vector<Operator_t>&,
-            const vector<Operator_t>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalFP<2u>::PsiRef&,
             const double,
@@ -314,7 +299,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("__pos__", &PsiClassicalFP<2u>::copy)
         .def_readwrite("num_sites", &PsiClassicalFP<2u>::num_sites)
         .def_readonly("H_local", &PsiClassicalFP<2u>::H_local)
-        .def_readonly("H_2_local", &PsiClassicalFP<2u>::H_2_local)
         .def_property(
             "log_prefactor",
             [](const PsiClassicalFP<2u>& psi) {return psi.log_prefactor.to_std();},
@@ -348,19 +332,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         //         psi.psi_ref.set_params(Array<complex_t>(new_params, false));
         //     }
         // )
-        .def_property(
-            "H",
-            [](const PsiClassicalFP<2u>& psi) {return *psi.H;},
-            [](PsiClassicalFP<2u>& psi, const Operator_t& H) {psi.H = unique_ptr<Operator_t>(new Operator_t(H)); psi.update_kernel();}
-        )
-        .def_property(
-            "H2",
-            [](const PsiClassicalFP<2u>& psi) {return *psi.H2;},
-            [](PsiClassicalFP<2u>& psi, const Operator_t& H2) {psi.H2 = unique_ptr<Operator_t>(new Operator_t(H2)); psi.update_kernel();}
-        )
         .def("update_psi_ref_kernel", &PsiClassicalFP<2u>::update_psi_ref_kernel)
-        .def_readwrite("delta_t", &PsiClassicalFP<2u>::delta_t)
-        .def_readwrite("log_psi_threshold", &PsiClassicalFP<2u>::log_psi_threshold)
         #ifdef ENABLE_EXACT_SUMMATION
         #ifdef ENABLE_SPINS
         .def("vector", [](PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
@@ -392,7 +364,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def(py::init<
             const unsigned int,
             const vector<Operator_t>&,
-            const vector<Operator_t>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalANN<1u>::PsiRef&,
             const double,
@@ -402,7 +373,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("__pos__", &PsiClassicalANN<1u>::copy)
         .def_readwrite("num_sites", &PsiClassicalANN<1u>::num_sites)
         .def_readonly("H_local", &PsiClassicalANN<1u>::H_local)
-        .def_readonly("H_2_local", &PsiClassicalANN<1u>::H_2_local)
         .def_property(
             "log_prefactor",
             [](const PsiClassicalANN<1u>& psi) {return psi.log_prefactor.to_std();},
@@ -436,19 +406,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         //         psi.psi_ref.set_params(Array<complex_t>(new_params, false));
         //     }
         // )
-        .def_property(
-            "H",
-            [](const PsiClassicalANN<1u>& psi) {return *psi.H;},
-            [](PsiClassicalANN<1u>& psi, const Operator_t& H) {psi.H = unique_ptr<Operator_t>(new Operator_t(H)); psi.update_kernel();}
-        )
-        .def_property(
-            "H2",
-            [](const PsiClassicalANN<1u>& psi) {return *psi.H2;},
-            [](PsiClassicalANN<1u>& psi, const Operator_t& H2) {psi.H2 = unique_ptr<Operator_t>(new Operator_t(H2)); psi.update_kernel();}
-        )
         .def("update_psi_ref_kernel", &PsiClassicalANN<1u>::update_psi_ref_kernel)
-        .def_readwrite("delta_t", &PsiClassicalANN<1u>::delta_t)
-        .def_readwrite("log_psi_threshold", &PsiClassicalANN<1u>::log_psi_threshold)
         #ifdef ENABLE_EXACT_SUMMATION
         #ifdef ENABLE_SPINS
         .def("vector", [](PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
@@ -480,7 +438,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def(py::init<
             const unsigned int,
             const vector<Operator_t>&,
-            const vector<Operator_t>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalANN<2u>::PsiRef&,
             const double,
@@ -490,7 +447,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("__pos__", &PsiClassicalANN<2u>::copy)
         .def_readwrite("num_sites", &PsiClassicalANN<2u>::num_sites)
         .def_readonly("H_local", &PsiClassicalANN<2u>::H_local)
-        .def_readonly("H_2_local", &PsiClassicalANN<2u>::H_2_local)
         .def_property(
             "log_prefactor",
             [](const PsiClassicalANN<2u>& psi) {return psi.log_prefactor.to_std();},
@@ -524,19 +480,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         //         psi.psi_ref.set_params(Array<complex_t>(new_params, false));
         //     }
         // )
-        .def_property(
-            "H",
-            [](const PsiClassicalANN<2u>& psi) {return *psi.H;},
-            [](PsiClassicalANN<2u>& psi, const Operator_t& H) {psi.H = unique_ptr<Operator_t>(new Operator_t(H)); psi.update_kernel();}
-        )
-        .def_property(
-            "H2",
-            [](const PsiClassicalANN<2u>& psi) {return *psi.H2;},
-            [](PsiClassicalANN<2u>& psi, const Operator_t& H2) {psi.H2 = unique_ptr<Operator_t>(new Operator_t(H2)); psi.update_kernel();}
-        )
         .def("update_psi_ref_kernel", &PsiClassicalANN<2u>::update_psi_ref_kernel)
-        .def_readwrite("delta_t", &PsiClassicalANN<2u>::delta_t)
-        .def_readwrite("log_psi_threshold", &PsiClassicalANN<2u>::log_psi_threshold)
         #ifdef ENABLE_EXACT_SUMMATION
         #ifdef ENABLE_SPINS
         .def("vector", [](PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})

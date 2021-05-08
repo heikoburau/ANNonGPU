@@ -198,7 +198,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def(py::init<
             const unsigned int,
             const vector<Operator_t>&,
-            const vector<Operator_t>&,
             const complex_tensor<1u>&,
             const typename ClPsi::PsiRef&,
             const double,
@@ -208,7 +207,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("__pos__", &ClPsi::copy)
         .def_readwrite("num_sites", &ClPsi::num_sites)
         .def_readonly("H_local", &ClPsi::H_local)
-        .def_readonly("H_2_local", &ClPsi::H_2_local)
         .def_property(
             "log_prefactor",
             [](const ClPsi& psi) {return psi.log_prefactor.to_std();},
@@ -242,19 +240,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         //         psi.psi_ref.set_params(Array<complex_t>(new_params, false));
         //     }
         // )
-        .def_property(
-            "H",
-            [](const ClPsi& psi) {return *psi.H;},
-            [](ClPsi& psi, const Operator_t& H) {psi.H = unique_ptr<Operator_t>(new Operator_t(H)); psi.update_kernel();}
-        )
-        .def_property(
-            "H2",
-            [](const ClPsi& psi) {return *psi.H2;},
-            [](ClPsi& psi, const Operator_t& H2) {psi.H2 = unique_ptr<Operator_t>(new Operator_t(H2)); psi.update_kernel();}
-        )
         .def("update_psi_ref_kernel", &ClPsi::update_psi_ref_kernel)
-        .def_readwrite("delta_t", &ClPsi::delta_t)
-        .def_readwrite("log_psi_threshold", &ClPsi::log_psi_threshold)
         #ifdef ENABLE_EXACT_SUMMATION
         #ifdef ENABLE_SPINS
         .def("vector", [](ClPsi& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})

@@ -11,39 +11,19 @@ void PsiClassical_t<dtype, Operator_t, order, symmetric, PsiRef>::init_kernel() 
     this->kernel().params = this->params.data();
 
     this->kernel().num_ops_H = this->H_local.size();
-    this->kernel().num_ops_H_2 = this->H_2_local.size();
 
     for(auto i = 0u; i < this->H_local.size(); i++) {
         this->H_local_kernel[i] = this->H_local[i].kernel();
     }
-    for(auto i = 0u; i < this->H_2_local.size(); i++) {
-        this->H_2_local_kernel[i] = this->H_2_local[i].kernel();
-    }
 
     this->H_local_kernel.update_device();
-    this->H_2_local_kernel.update_device();
 
     this->kernel().H_local = this->H_local_kernel.data();
-    this->kernel().H_2_local = this->H_2_local_kernel.data();
 
     this->num_params = this->params.size();
 
     if(order > 1u) {
-        if(symmetric) {
-            this->m_2.begin_local_energies = this->num_sites * this->H_local.size();
-        }
-        else {
-            this->m_2.begin_local_energies = this->H_local.size();
-        }
-
-        this->m_2.begin_params = this->H_local.size();
-        this->m_2.end_params = this->m_2.begin_params + this->H_2_local.size();
-
-        // std::cout << "this->m_2.begin_local_energies: " << this->m_2.begin_local_energies << std::endl;
-        // std::cout << "this->m_2.begin_params: " << this->m_2.begin_params << std::endl;
-        // std::cout << "this->m_2.end_params: " << this->m_2.end_params << std::endl;
-
-        this->m_1_squared.begin_params = this->m_2.end_params;
+        this->m_1_squared.begin_params = this->H_local.size();
 
         this->m_1_squared.num_ll_pairs = this->H_local.size() * (this->H_local.size() + 1u) / 2u;
 
