@@ -198,6 +198,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def(py::init<
             const unsigned int,
             const vector<Operator_t>&,
+            const vector<unsigned int>&,
+            const vector<unsigned int>&,
             const complex_tensor<1u>&,
             const typename ClPsi::PsiRef&,
             const double,

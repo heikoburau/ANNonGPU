@@ -38,7 +38,7 @@ namespace PsiClassicalPayload {
 template<typename PsiRefPayload>
 struct Payload_t {
     complex_t       log_psi_ref;
-    complex_t       local_energies[64];
+    complex_t       local_energies[300];
 
     PsiRefPayload   ref_payload;
 };
@@ -50,9 +50,6 @@ struct PsiClassical_t {
 
     using dtype = dtype_t;
     using real_dtype = typename cuda_complex::get_real_type<dtype>::type;
-
-    static constexpr unsigned int max_sites = 32u;
-    static constexpr unsigned int max_local_terms = 2u;
 
     using Payload = PsiClassicalPayload::Payload_t<typename PsiRef::Payload>;
 
@@ -224,8 +221,8 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
         H_local_kernel(other.H_local_kernel),
         params(other.params),
         psi_ref(other.psi_ref),
-        ids_l(other.gpu),
-        ids_l_prime(other.gpu)
+        ids_l(other.ids_l),
+        ids_l_prime(other.ids_l_prime)
     {
         this->num_sites = other.num_sites;
         this->log_prefactor = other.log_prefactor;
@@ -247,6 +244,8 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
     inline PsiClassical_t(
         const unsigned int num_sites,
         const vector<Operator_t>& H_local,
+        const vector<unsigned int>& ids_l,
+        const vector<unsigned int>& ids_l_prime,
         const xt::pytensor<typename std_dtype<dtype>::type, 1u>& params,
         const PsiRef& psi_ref,
         const double log_prefactor,
@@ -257,8 +256,8 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
         H_local_kernel(H_local.size(), gpu),
         params(params, gpu),
         psi_ref(psi_ref),
-        ids_l(gpu),
-        ids_l_prime(gpu)
+        ids_l(ids_l, gpu),
+        ids_l_prime(ids_l_prime, gpu)
     {
         this->num_sites = num_sites;
         this->log_prefactor = log_prefactor;

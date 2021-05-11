@@ -25,17 +25,7 @@ void PsiClassical_t<dtype, Operator_t, order, symmetric, PsiRef>::init_kernel() 
     if(order > 1u) {
         this->m_1_squared.begin_params = this->H_local.size();
 
-        this->m_1_squared.num_ll_pairs = this->H_local.size() * (this->H_local.size() + 1u) / 2u;
-
-        for(auto l = 0u; l < this->H_local.size(); l++) {
-            for(auto l_prime = 0u; l_prime <= l; l_prime++) {
-                this->ids_l.push_back(l);
-                this->ids_l_prime.push_back(l_prime);
-            }
-        }
-
-        this->ids_l.resize(this->m_1_squared.num_ll_pairs);
-        this->ids_l_prime.resize(this->m_1_squared.num_ll_pairs);
+        this->m_1_squared.num_ll_pairs = this->ids_l.size();
 
         this->ids_l.update_device();
         this->ids_l_prime.update_device();

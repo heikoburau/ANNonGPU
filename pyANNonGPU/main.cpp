@@ -216,6 +216,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def(py::init<
             const unsigned int,
             const vector<Operator_t>&,
+            const vector<unsigned int>&,
+            const vector<unsigned int>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalFP<1u>::PsiRef&,
             const double,
@@ -290,6 +292,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def(py::init<
             const unsigned int,
             const vector<Operator_t>&,
+            const vector<unsigned int>&,
+            const vector<unsigned int>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalFP<2u>::PsiRef&,
             const double,
@@ -364,6 +368,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def(py::init<
             const unsigned int,
             const vector<Operator_t>&,
+            const vector<unsigned int>&,
+            const vector<unsigned int>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalANN<1u>::PsiRef&,
             const double,
@@ -438,6 +444,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def(py::init<
             const unsigned int,
             const vector<Operator_t>&,
+            const vector<unsigned int>&,
+            const vector<unsigned int>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalANN<2u>::PsiRef&,
             const double,
