@@ -7,8 +7,8 @@ def new_classical_network(
     num_sites,
     order,
     H_local,
-    ids_l=None,
-    ids_l_prime=None,
+    ids_l=[],
+    ids_l_prime=[],
     symmetric=True,
     distance="max",
     params=0,
@@ -33,11 +33,11 @@ def new_classical_network(
         if psi_ref == "fully polarized":
             psi_ref = pyANNonGPU.PsiFullyPolarized(num_sites, log_prefactor)
             return pyANNonGPU.PsiClassicalFP_1(
-                num_sites, H_local, params, psi_ref, log_prefactor, gpu
+                num_sites, H_local, ids_l, ids_l_prime, params, psi_ref, log_prefactor, gpu
             )
 
         return pyANNonGPU.PsiClassicalANN_1(
-            num_sites, H_local, params, psi_ref, 0, gpu
+            num_sites, H_local, ids_l, ids_l_prime, params, psi_ref, 0, gpu
         )
 
     if order == 2:
@@ -66,7 +66,7 @@ def new_classical_network(
                 num_sites, H_local, ids_l, ids_l_prime, params, psi_ref, log_prefactor, gpu
             )
 
-        assert num_sites == psi_ref.num_sites
+        # assert num_sites == psi_ref.num_sites
 
         return pyANNonGPU.PsiClassicalANN_2(
             num_sites, H_local, ids_l, ids_l_prime, params, psi_ref, 0, gpu

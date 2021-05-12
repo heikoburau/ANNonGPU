@@ -250,8 +250,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("order", [](const PsiClassicalFP<1u>& psi) {return psi.get_order();})
         .def_property(
             "params",
-            [](const PsiClassicalFP<1u>& psi) {return psi.params.to_pytensor_1d();},
-            [](PsiClassicalFP<1u>& psi, const complex_tensor<1u>& new_params) {psi.params = new_params;}
+            [](const PsiClassicalFP<1u>& psi) {return psi.get_params().to_pytensor_1d();},
+            [](PsiClassicalFP<1u>& psi, const complex_tensor<1u>& new_params) {psi.set_params(Array<complex_t>(new_params, false));}
         )
         // .def_property(
         //     "ref_params",
@@ -326,8 +326,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("order", [](const PsiClassicalFP<2u>& psi) {return psi.get_order();})
         .def_property(
             "params",
-            [](const PsiClassicalFP<2u>& psi) {return psi.params.to_pytensor_1d();},
-            [](PsiClassicalFP<2u>& psi, const complex_tensor<1u>& new_params) {psi.params = new_params;}
+            [](const PsiClassicalFP<2u>& psi) {return psi.get_params().to_pytensor_1d();},
+            [](PsiClassicalFP<2u>& psi, const complex_tensor<1u>& new_params) {psi.set_params(Array<complex_t>(new_params, false));}
         )
         // .def_property(
         //     "ref_params",
@@ -402,8 +402,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("order", [](const PsiClassicalANN<1u>& psi) {return psi.get_order();})
         .def_property(
             "params",
-            [](const PsiClassicalANN<1u>& psi) {return psi.params.to_pytensor_1d();},
-            [](PsiClassicalANN<1u>& psi, const complex_tensor<1u>& new_params) {psi.params = new_params;}
+            [](const PsiClassicalANN<1u>& psi) {return psi.get_params().to_pytensor_1d();},
+            [](PsiClassicalANN<1u>& psi, const complex_tensor<1u>& new_params) {psi.set_params(Array<complex_t>(new_params, false));}
         )
         // .def_property(
         //     "ref_params",
@@ -478,8 +478,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("order", [](const PsiClassicalANN<2u>& psi) {return psi.get_order();})
         .def_property(
             "params",
-            [](const PsiClassicalANN<2u>& psi) {return psi.params.to_pytensor_1d();},
-            [](PsiClassicalANN<2u>& psi, const complex_tensor<1u>& new_params) {psi.params = new_params;}
+            [](const PsiClassicalANN<2u>& psi) {return psi.get_params().to_pytensor_1d();},
+            [](PsiClassicalANN<2u>& psi, const complex_tensor<1u>& new_params) {psi.set_params(Array<complex_t>(new_params, false));}
         )
         // .def_property(
         //     "ref_params",

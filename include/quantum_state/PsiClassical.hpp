@@ -5,7 +5,7 @@
 
 #include "quantum_state/PsiFullyPolarized.hpp"
 // #include "quantum_state/PsiCNN.hpp"
-#include "quantum_state/PsiExact.hpp"
+#include "quantum_state/PsiDeep.hpp"
 
 #include "cuda_complex.hpp"
 #include "Array.hpp"
@@ -120,13 +120,17 @@ struct PsiClassical_t {
 
         this->init_payload(payload, configuration, 0u);
 
-        this->foreach_O_k(
-            configuration,
-            payload,
-            [&](const unsigned int k, const complex_t& O_k) {
-                generic_atomicAdd(&result, this->params[k] * O_k);
+        LOOP(k, this->num_ops_H) {
+            generic_atomicAdd(&result, this->params[k] * payload.local_energies[k]);
+        }
+
+        if(order > 1u) {
+            this->psi_ref.log_psi_s(payload.log_psi_ref, payload.local_energies, payload.ref_payload);
+
+            SINGLE {
+                result += payload.log_psi_ref;
             }
-        );
+        }
 
         SYNC;
     }
@@ -138,38 +142,48 @@ struct PsiClassical_t {
 
     }
 
-    HDINLINE
-    complex_t get_O_k(const unsigned int k, const Payload& payload) const {
-        if(k < this->num_ops_H) {
-            return payload.local_energies[k];
-        }
+    // HDINLINE
+    // complex_t get_O_k(const unsigned int k, const Payload& payload) const {
+    //     if(k < this->num_ops_H) {
+    //         return payload.local_energies[k];
+    //     }
 
-        if(order > 1u) {
-            if(k < this->num_params) {
-                complex_t result(0.0);
+    //     // if(order > 1u) {
+    //     //     if(k < this->num_params) {
+    //     //         complex_t result(0.0);
 
-                const auto k_rel = k - this->m_1_squared.begin_params;
+    //     //         const auto k_rel = k - this->m_1_squared.begin_params;
 
-                const auto l = this->m_1_squared.ids_l[k_rel];
-                const auto l_prime = this->m_1_squared.ids_l_prime[k_rel];
+    //     //         const auto l = this->m_1_squared.ids_l[k_rel];
+    //     //         const auto l_prime = this->m_1_squared.ids_l_prime[k_rel];
 
-                return (
-                    payload.local_energies[l] *
-                    payload.local_energies[l_prime]
-                );
-            }
-        }
+    //     //         return (
+    //     //             payload.local_energies[l] *
+    //     //             payload.local_energies[l_prime]
+    //     //         );
+    //     //     }
+    //     // }
 
-        return complex_t(0.0);
-    }
+    //     return complex_t(0.0);
+    // }
 
     template<typename Basis_t, typename Function>
     HDINLINE
     void foreach_O_k(const Basis_t& configuration, Payload& payload, Function function) const {
         #include "cuda_kernel_defines.h"
 
-        LOOP(k, this->num_params) {
-            function(k, this->get_O_k(k, payload));
+        LOOP(k, this->num_ops_H) {
+            return function(k, payload.local_energies[k]);
+        }
+
+        if(order > 1u) {
+            this->psi_ref.foreach_O_k(
+                payload.local_energies,
+                payload.ref_payload,
+                [&](const unsigned int k, const complex_t& O_k) {
+                    function(this->num_ops_H + k, O_k);
+                }
+            );
         }
     }
 
@@ -237,7 +251,11 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
     }
 
     inline void update_kernel() {
+        this->update_psi_ref_kernel();
     }
+
+    Array<dtype> get_params() const;
+    void set_params(const Array<dtype>& new_params);
 
 #ifdef __PYTHONCC__
 
@@ -286,7 +304,7 @@ template<unsigned int order>
 using PsiClassicalFP = PsiClassical_t<complex_t, Operator_t, order, true, PsiFullyPolarized>;
 
 template<unsigned int order>
-using PsiClassicalANN = PsiClassical_t<complex_t, Operator_t, order, true, PsiExact>;
+using PsiClassicalANN = PsiClassical_t<complex_t, Operator_t, order, true, PsiDeep>;
 
 #else
 
@@ -294,7 +312,7 @@ template<unsigned int order>
 using PsiClassicalFP = PsiClassical_t<complex_t, Operator_t, order, false, PsiFullyPolarized>;
 
 template<unsigned int order>
-using PsiClassicalANN = PsiClassical_t<complex_t, Operator_t, order, false, PsiExact>;
+using PsiClassicalANN = PsiClassical_t<complex_t, Operator_t, order, false, PsiDeep>;
 
 #endif // PSI_CLASSICAL_SYMMETRIC
 

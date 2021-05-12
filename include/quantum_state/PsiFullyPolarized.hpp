@@ -1,7 +1,5 @@
 #pragma once
 
-#include "bases.hpp"
-
 #include "cuda_complex.hpp"
 #include "Array.hpp"
 #include "types.h"
@@ -38,41 +36,15 @@ struct PsiFullyPolarized_t {
     HDINLINE
     void save_payload(Payload& payload) const {}
 
-#ifdef ENABLE_SPINS
-    template<typename result_dtype>
+    template<typename result_dtype, typename Basis_t>
     HDINLINE
-    void log_psi_s(result_dtype& result, const Spins& spins, Payload& payload) const {
+    void log_psi_s(result_dtype& result, const Basis_t&, Payload&) const {
         #include "cuda_kernel_defines.h"
         // CAUTION: 'result' has to be a shared variable.
 
         SINGLE {
             result = result_dtype(0.0);
         }
-    }
-#endif // ENABLE_SPINS
-
-#ifdef ENABLE_PAULIS
-    template<typename result_dtype>
-    HDINLINE
-    void log_psi_s(result_dtype& result, const PauliString& paulis, Payload& payload) const {
-        #include "cuda_kernel_defines.h"
-        // CAUTION: 'result' has to be a shared variable.
-
-        SINGLE {
-            result = result_dtype(0.0);
-        }
-    }
-#endif // ENABLE_PAULIS
-
-    template<typename Basis_t>
-    HDINLINE
-    dtype psi_s(const Basis_t& configuration, Payload& payload) const {
-        #include "cuda_kernel_defines.h"
-
-        SHARED dtype log_psi;
-        this->log_psi_s(log_psi, configuration, payload);
-
-        return exp(log_psi);
     }
 
     template<typename Basis_t>
@@ -121,6 +93,11 @@ struct PsiFullyPolarized_t : public kernel::PsiFullyPolarized_t<dtype> {
         this->gpu = false;
     }
 
+    inline Array<dtype> get_params() const {
+        return Array<dtype>(false);
+    }
+    inline void set_params(const Array<dtype>& new_params) {}
+
 #ifdef __PYTHONCC__
 
     inline PsiFullyPolarized_t(unsigned int num_sites, double log_prefactor) {
@@ -133,11 +110,6 @@ struct PsiFullyPolarized_t : public kernel::PsiFullyPolarized_t<dtype> {
     PsiFullyPolarized_t copy() const {
         return *this;
     }
-
-    inline Array<dtype> get_params() const {
-        return Array<dtype>(false);
-    }
-    inline void set_params(const Array<dtype>& new_params) {}
 
 #endif // __PYTHONCC__
 

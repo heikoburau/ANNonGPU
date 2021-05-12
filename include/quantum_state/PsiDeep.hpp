@@ -80,10 +80,10 @@ struct PsiDeepT {
     using dtype = dtype_t;
     using real_dtype = typename cuda_complex::get_real_type<dtype>::type;
 
-    static constexpr unsigned int max_N = MAX_SPINS;
+    static constexpr unsigned int max_N = 40u;
     static constexpr unsigned int max_layers = 4u;
-    static constexpr unsigned int max_width = MAX_SPINS;
-    static constexpr unsigned int max_deep_angles = MAX_SPINS;
+    static constexpr unsigned int max_width = max_N;
+    static constexpr unsigned int max_deep_angles = max_N;
 
 
     using Payload = PsiDeep::Payload_t<dtype, max_width, symmetric>;
@@ -138,15 +138,17 @@ struct PsiDeepT {
     template<typename Basis_t>
     HDINLINE
     void compute_angles(dtype* angles, const Basis_t& configuration) const {
+    }
+
+    HDINLINE
+    void compute_angles(dtype* angles, const complex_t* configuration) const {
         const Layer& layer = this->layers[1];
 
         MULTI(j, layer.size) {
             angles[j] = dtype(0.0);
 
             for(auto i = 0u; i < layer.lhs_connectivity; i++) {
-                angles[j] += layer.lhs_weight(i, j) * dtype(
-                    (double)configuration.network_unit_at(layer.lhs_connection(i, j))
-                );
+                angles[j] += layer.lhs_weight(i, j) * configuration[layer.lhs_connection(i, j)];
             }
 
             #ifdef ENABLE_NETWORK_BASES
@@ -159,9 +161,9 @@ struct PsiDeepT {
     template<typename Basis_t>
     HDINLINE
     void init_payload(Payload& payload, const Basis_t& configuration, const unsigned int conf_idx) const {
-        if(!symmetric) {
-            this->compute_angles(payload.angles, configuration);
-        }
+        // if(!symmetric) {
+        //     this->compute_angles(payload.angles, configuration);
+        // }
     }
 
     HDINLINE
@@ -220,132 +222,42 @@ struct PsiDeepT {
         #include "cuda_kernel_defines.h"
         // CAUTION: 'result' has to be a shared variable.
 
-        SHARED Basis_t shifted_configuration;
+        // SHARED Basis_t shifted_configuration;
 
         SINGLE {
             result = result_dtype(this->log_prefactor);
 
-            if(symmetric) {
-                shifted_configuration = configuration;
-                result *= this->num_sites;
-            }
-        }
-        SYNC;
-
-        if(symmetric) {
-            SHARED_MEM_LOOP_BEGIN(n, this->num_sites) {
-
-                // MULTI(i, this->N) {
-                //     generic_atomicAdd(&result, result_dtype(shifted_configuration.network_unit_at(i)) * this->input_weights[i]);
-                // }
-
-                this->compute_angles(payload.activations, shifted_configuration);
-                this->forward_pass(result, payload.activations, payload.activations, nullptr);
-
-                SINGLE {
-                    shifted_configuration = shifted_configuration.roll(
-                        1,
-                        this->num_sites
-                    );
-                }
-
-                SHARED_MEM_LOOP_END(n);
-            }
-            SINGLE {
-                result *= 1.0 / this->num_sites;
-            }
-            SYNC; // might be not neccessary
-        }
-        else {
-            // MULTI(i, this->N) {
-            //     generic_atomicAdd(&result, result_dtype(configuration.network_unit_at(i)) * this->input_weights[i]);
+            // if(symmetric) {
+            //     shifted_configuration = configuration;
+            //     result *= this->num_sites;
             // }
-
-            this->forward_pass(result, payload.angles, payload.activations, nullptr);
         }
+        this->compute_angles(payload.angles, configuration);
+
+        // MULTI(i, this->N) {
+        //     generic_atomicAdd(&result, result_dtype(configuration.network_unit_at(i)) * this->input_weights[i]);
+        // }
+
+        this->forward_pass(result, payload.angles, payload.activations, nullptr);
     }
 
-#ifdef ENABLE_SPINS
-    HDINLINE void update_angles(
-        dtype* angles, const unsigned int pos, const Spins&, const Spins& new_spins
-    ) const {
-        // caution: this implementation has to be consistent with `Spins::network_unit_at()`
-        #include "cuda_kernel_defines.h"
-
-        MULTI(j, this->layers[0].rhs_connectivity) {
-            angles[this->layers[0].rhs_connection(pos, j)] += (
-                real_dtype(2.0) * new_spins[pos] * this->layers[0].rhs_weight(pos, j)
-            );
-        }
-    }
-#endif  // ENABLE_SPINS
-
-#ifdef ENABLE_PAULIS
-    HDINLINE void update_angles(
-        dtype* angles, const unsigned int pos, const PauliString& old_paulis, const PauliString& new_paulis
-    ) const {
-        // caution: this implementation has to be consistent with `PauliString::network_unit_at()`
-        #include "cuda_kernel_defines.h"
-
-        MULTI(j, this->layers[0].rhs_connectivity) {
-            // todo: try optimization
-            if(old_paulis[pos]) {
-                const auto unit_idx = 3u * pos + old_paulis[pos] - 1u;
-
-                angles[this->layers[0].rhs_connection(unit_idx, j)] -= (
-                    real_dtype(2.0) * this->layers[0].rhs_weight(unit_idx, j)
-                );
-            }
-
-            if(new_paulis[pos]) {
-                const auto unit_idx = 3u * pos + new_paulis[pos] - 1u;
-
-                angles[this->layers[0].rhs_connection(unit_idx, j)] += (
-                    real_dtype(2.0) * this->layers[0].rhs_weight(unit_idx, j)
-                );
-            }
-        }
-    }
-#endif  // ENABLE_PAULIS
 
     template<typename Basis_t>
     HDINLINE void update_input_units(
         const Basis_t& old_vector, const Basis_t& new_vector, Payload& payload
     ) const {
         #include "cuda_kernel_defines.h"
-        if(symmetric) {
-            return;
-        }
 
-        // 'updated_units' must be shared
-        SHARED uint64_t     updated_units;
-        SHARED unsigned int unit_position;
-
-        SINGLE {
-            updated_units = old_vector.is_different(new_vector);
-            unit_position = first_bit_set(updated_units) - 1u;
-        }
-        SYNC;
-
-        while(updated_units) {
-            this->update_angles(
-                payload.angles,
-                unit_position,
-                old_vector,
-                new_vector
-            );
-            SYNC;
-            SINGLE {
-                updated_units &= ~(1lu << unit_position);
-                unit_position = first_bit_set(updated_units) - 1u;
-            }
-            SYNC;
-        }
     }
 
     template<typename Basis_t, typename Function>
     HDINLINE
     void foreach_O_k(const Basis_t& configuration, Payload& payload, Function function) const {
+    }
+
+    template<typename Function>
+    HDINLINE
+    void foreach_O_k(const complex_t* configuration, Payload& payload, Function function) const {
         #include "cuda_kernel_defines.h"
 
         SHARED dtype deep_angles[max_deep_angles];
@@ -355,9 +267,7 @@ struct PsiDeepT {
         MULTI(i, this->N) {
             function(
                 i,
-                get_real<dtype>(static_cast<real_dtype>(
-                    configuration.network_unit_at(i)
-                ))
+                configuration[i]
             );
         }
         #endif // ENABLE_NETWORK_BASES
@@ -424,9 +334,7 @@ struct PsiDeepT {
                         #endif // ENABLE_NETWORK_BASES
                         payload.activations[j] * (
                             layer_idx == 1 ?
-                            get_real<dtype>(static_cast<real_dtype>(
-                                configuration.network_unit_at(lhs_unit_idx)
-                            )) :
+                            configuration[lhs_unit_idx] :
                             (
                                 layer_idx == 2 ?
                                 my_logcosh(payload.angles[lhs_unit_idx], 0u) :
@@ -491,8 +399,6 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
     Array<dtype> input_weights;
     Array<dtype> final_weights;
     bool         gpu;
-
-    unique_ptr<RNGStates>   rng_states;
 
     PsiDeepT(const unsigned int N, const unsigned int M, const bool gpu);
     PsiDeepT(const PsiDeepT& other);

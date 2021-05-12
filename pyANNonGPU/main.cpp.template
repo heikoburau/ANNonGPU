@@ -232,8 +232,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("order", [](const ClPsi& psi) {return psi.get_order();})
         .def_property(
             "params",
-            [](const ClPsi& psi) {return psi.params.to_pytensor_1d();},
-            [](ClPsi& psi, const complex_tensor<1u>& new_params) {psi.params = new_params;}
+            [](const ClPsi& psi) {return psi.get_params().to_pytensor_1d();},
+            [](ClPsi& psi, const complex_tensor<1u>& new_params) {psi.set_params(Array<complex_t>(new_params, false));}
         )
         // .def_property(
         //     "ref_params",
