@@ -29,7 +29,6 @@ void TDVP::compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble
     auto F_ptr = this->F_vector.data();
     auto O_k_samples_ptr = this->O_k_samples->data();
     auto weight_samples_ptr = this->weight_samples->data();
-    auto threshold = this->threshold;
     auto total_weight_ptr = this->total_weight.data();
 
     using PsiRef = typename Psi_t::PsiRef;
@@ -44,15 +43,6 @@ void TDVP::compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble
             const typename PsiRef::real_dtype weight
         ) {
             #include "cuda_kernel_defines.h"
-
-            SHARED bool valid;
-            SINGLE {
-                valid = log_psi_ref.real() > threshold;
-            }
-            SYNC;
-            if(!valid) {
-                return;
-            }
 
             SHARED complex_t                   log_psi;
             SHARED typename Psi_t::Payload     payload;
@@ -102,7 +92,6 @@ void TDVP::compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble
     auto F_ptr = this->F_vector.data();
     auto O_k_samples_ptr = this->O_k_samples->data();
     auto weight_samples_ptr = this->weight_samples->data();
-    auto threshold = this->threshold;
     auto total_weight_ptr = this->total_weight.data();
 
     ensemble.foreach(
@@ -116,16 +105,6 @@ void TDVP::compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble
         ) {
             #include "cuda_kernel_defines.h"
 
-            SHARED bool valid;
-            SINGLE {
-                valid = log_psi.real() > threshold;
-            }
-            SYNC;
-            if(!valid) {
-                return;
-            }
-
-
             SHARED complex_t local_energy;
             op_kernel.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
 
@@ -135,6 +114,8 @@ void TDVP::compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble
                 generic_atomicAdd(E2_local_ptr, weight * abs2(local_energy));
 
                 weight_samples_ptr[index] = weight;
+
+                // printf("%f, %f\n", local_energy.real(), local_energy.imag());
             }
 
             psi_kernel.init_payload(payload, configuration, index);
@@ -142,6 +123,13 @@ void TDVP::compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble
                 configuration,
                 payload,
                 [&](const unsigned int k, const complex_t& O_k) {
+
+                    // #ifdef __CUDA_ARCH__
+                    // if(blockIdx.x == 0 && threadIdx.x == 0) {
+                        // printf("%d, %f, %f\n", k, O_k.real(), O_k.imag());
+                    // }
+                    // #endif
+
                     generic_atomicAdd(&O_k_ptr[k], weight * O_k);
                     generic_atomicAdd(&F_ptr[k], weight * local_energy * conj(O_k));
                     generic_atomicAdd(&O_k_samples_ptr[index * num_params + k], O_k);
@@ -260,16 +248,16 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, use_psi_re
     this->total_weight.update_host();
 
 
-    this->E_local.front() /= this->total_weight.front();
-    this->E2_local.front() /= this->total_weight.front();
-    for(auto k = 0u; k < num_params; k++) {
-        this->F_vector[k] /= this->total_weight.front();
-        this->O_k_ar[k] /= this->total_weight.front();
+    // this->E_local.front() /= this->total_weight.front();
+    // this->E2_local.front() /= this->total_weight.front();
+    // for(auto k = 0u; k < num_params; k++) {
+    //     this->F_vector[k] /= this->total_weight.front();
+    //     this->O_k_ar[k] /= this->total_weight.front();
 
-        for(auto k_prime = 0u; k_prime < num_params; k_prime++) {
-            this->S_matrix[k * num_params + k_prime] /= this->total_weight.front();
-        }
-    }
+    //     for(auto k_prime = 0u; k_prime < num_params; k_prime++) {
+    //         this->S_matrix[k * num_params + k_prime] /= this->total_weight.front();
+    //     }
+    // }
 
 
     for(auto k = 0u; k < num_params; k++) {

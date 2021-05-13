@@ -80,7 +80,7 @@ struct PsiDeepT {
     using dtype = dtype_t;
     using real_dtype = typename cuda_complex::get_real_type<dtype>::type;
 
-    static constexpr unsigned int max_N = 40u;
+    static constexpr unsigned int max_N = 100u;
     static constexpr unsigned int max_layers = 4u;
     static constexpr unsigned int max_width = max_N;
     static constexpr unsigned int max_deep_angles = max_N;
@@ -135,10 +135,11 @@ struct PsiDeepT {
 
 #ifdef __CUDACC__
 
-    template<typename Basis_t>
+#ifdef ENABLE_SPINS
     HDINLINE
-    void compute_angles(dtype* angles, const Basis_t& configuration) const {
+    void compute_angles(dtype* angles, const Spins& configuration) const {
     }
+#endif // ENABLE_SPINS
 
     HDINLINE
     void compute_angles(dtype* angles, const complex_t* configuration) const {
@@ -239,6 +240,8 @@ struct PsiDeepT {
         // }
 
         this->forward_pass(result, payload.angles, payload.activations, nullptr);
+
+        // printf("%f, %f\n", result.real(), result.imag());
     }
 
 
@@ -250,10 +253,12 @@ struct PsiDeepT {
 
     }
 
-    template<typename Basis_t, typename Function>
+#ifdef ENABLE_SPINS
+    template<typename Function>
     HDINLINE
-    void foreach_O_k(const Basis_t& configuration, Payload& payload, Function function) const {
+    void foreach_O_k(const Spins& configuration, Payload& payload, Function function) const {
     }
+#endif // ENABLE_SPINS
 
     template<typename Function>
     HDINLINE

@@ -1,6 +1,6 @@
 from pyANNonGPU import (
     # PsiDeep,
-    PsiCNN,
+    # PsiCNN,
     Spins,
     # activation_function,
     # deep_activation,
@@ -244,8 +244,8 @@ def test_O_k(psi_all, gpu):
         ])
 
         if (
-            (hasattr(psi, "symmetric") and psi.symmetric) or
-            type(psi) is PsiCNN
+            (hasattr(psi, "symmetric") and psi.symmetric)
+            # type(psi) is PsiCNN
         ):
             O_k_vector_test = sum(
                 psi_O_k(psi, conf.roll(i, psi.num_sites))

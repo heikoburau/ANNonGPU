@@ -83,29 +83,16 @@ struct PsiClassical_t {
     HDINLINE
     void init_payload(Payload& payload, const Basis_t& configuration, const unsigned int conf_idx) const {
         this->psi_ref.init_payload(payload.ref_payload, configuration, conf_idx);
-        this->psi_ref.log_psi_s(payload.log_psi_ref, configuration, payload.ref_payload);
+        // this->psi_ref.log_psi_s(payload.log_psi_ref, configuration, payload.ref_payload);
 
-        this->compute_local_energies(configuration, payload);
-    }
-
-    template<typename Basis_t>
-    HDINLINE
-    void compute_local_energies(const Basis_t& configuration, Payload& payload) const {
-        this->compute_1st_order_local_energies(configuration, payload);
-    }
-
-    template<typename Basis_t>
-    HDINLINE
-    void compute_1st_order_local_energies(const Basis_t& configuration, Payload& payload) const {
-        SHARED_MEM_LOOP_BEGIN(n, this->num_ops_H) {
-
+        MULTI(n, this->num_ops_H) {
             this->H_local[n].fast_local_energy(
                 payload.local_energies[n],
                 configuration
             );
-
-            SHARED_MEM_LOOP_END(n);
         }
+
+        SYNC; // might not be neccessary
     }
 
     template<typename result_dtype, typename Basis_t>
@@ -120,7 +107,7 @@ struct PsiClassical_t {
 
         this->init_payload(payload, configuration, 0u);
 
-        LOOP(k, this->num_ops_H) {
+        MULTI(k, this->num_ops_H) {
             generic_atomicAdd(&result, this->params[k] * payload.local_energies[k]);
         }
 
@@ -172,8 +159,8 @@ struct PsiClassical_t {
     void foreach_O_k(const Basis_t& configuration, Payload& payload, Function function) const {
         #include "cuda_kernel_defines.h"
 
-        LOOP(k, this->num_ops_H) {
-            return function(k, payload.local_energies[k]);
+        MULTI(k, this->num_ops_H) {
+            function(k, payload.local_energies[k]);
         }
 
         if(order > 1u) {
@@ -201,11 +188,11 @@ struct PsiClassical_t {
 
     HDINLINE
     unsigned int get_width() const {
-        return this->psi_ref.get_width();
+        return max(this->num_ops_H, this->psi_ref.get_width());
     }
 
     HDINLINE unsigned int get_num_input_units() const {
-        return this->psi_ref.get_num_input_units();
+        return this->num_sites;
     }
 };
 

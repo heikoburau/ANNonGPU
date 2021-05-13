@@ -118,20 +118,11 @@ struct Operator {
         complex_t& result,
         const Basis_t& configuration
     ) const {
-        #include "cuda_kernel_defines.h"
+        result = complex_t(0.0);
 
-        SINGLE {
-            result = complex_t(0.0);
+        for(auto n = 0u; n < this->num_strings; n++) {
+            result += this->coefficients[n] * this->pauli_strings[n].apply(configuration).coefficient;
         }
-        SYNC;
-
-        LOOP(n, this->num_strings) {
-            generic_atomicAdd(
-                &result,
-                this->coefficients[n] * this->pauli_strings[n].apply(configuration).coefficient
-            );
-        }
-        SYNC;
     }
 
 
