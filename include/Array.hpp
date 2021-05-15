@@ -87,9 +87,30 @@ struct Array : public vector<T>, public kernel::Array<T> {
         (*this) = python_vec;
     }
 
-    template<long unsigned int dim>
-    inline Array<T>& operator=(const xt::pytensor<std_T, dim>& python_vec) {
-        memcpy(this->host_data(), python_vec.data(), sizeof(std_T) * this->size());
+    // template<long unsigned int dim>
+    // inline Array<T>& operator=(const xt::pytensor<std_T, dim>& python_vec) {
+    //     memcpy(this->host_data(), python_vec.data(), sizeof(std_T) * this->size());
+    //     this->update_device();
+    //     return *this;
+    // }
+
+    inline Array<T>& operator=(const xt::pytensor<std_T, 1u>& python_vec) {
+        for(auto i = 0u; i < this->size(); i++) {
+            (*this)[i] = python_vec[i];
+        }
+        this->update_device();
+        return *this;
+    }
+
+    inline Array<T>& operator=(const xt::pytensor<std_T, 2u>& python_vec) {
+        const auto N = python_vec.shape()[0];
+        const auto M = python_vec.shape()[1];
+
+        for(auto i = 0u; i < N; i++) {
+            for(auto j = 0u; j < M; j++) {
+                (*this)[i * M + j] = python_vec(i, j);
+            }
+        }
         this->update_device();
         return *this;
     }
