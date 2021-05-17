@@ -93,25 +93,16 @@ struct PsiDeepT {
         unsigned int  size;                 // number of units
         unsigned int  begin_deep_angles;         // index of the first unit of this layer in a global list of angles
         unsigned int  begin_params;         // index of the first unit of this layer in a global list of parameters
-        unsigned int  lhs_connectivity;     // number of connections to the lhs per unit
-        unsigned int  rhs_connectivity;     // number of connections to the rhs per unit
-        unsigned int* RESTRICT lhs_connections;      // connectivity matrix to the lhs: lhs-connectivity x size
-        unsigned int* RESTRICT rhs_connections;      // connectivity matrix to the rhs: size x rhs-connectivity
-        dtype*    RESTRICT lhs_weights;          // weight matrix to the lhs: lhs-connectivity x size, var.parameters
-        dtype*    RESTRICT rhs_weights;          // weight matrix to the rhs: size x rhs-connectivity, var.parameters
+        unsigned int  connectivity;     // number of connections per unit
+        unsigned int* RESTRICT connections;      // connectivity matrix: lhs-connectivity x size
+        dtype*    RESTRICT weights;          // weight matrix: lhs-connectivity x size, var.parameters
         dtype*    RESTRICT biases;               // bias factors, var.parameters
 
-        HDINLINE unsigned int lhs_connection(const unsigned int i, const unsigned int j) const {
-            return this->lhs_connections[i * this->size + j];
+        HDINLINE unsigned int connection(const unsigned int i, const unsigned int j) const {
+            return this->connections[i * this->size + j];
         }
-        HDINLINE unsigned int rhs_connection(const unsigned int i, const unsigned int j) const {
-            return this->rhs_connections[i * this->rhs_connectivity + j];
-        }
-        HDINLINE dtype lhs_weight(const unsigned int i, const unsigned int j) const {
-            return this->lhs_weights[i * this->size + j];
-        }
-        HDINLINE dtype rhs_weight(const unsigned int i, const unsigned int j) const {
-            return this->rhs_weights[i * this->rhs_connectivity + j];
+        HDINLINE dtype weight(const unsigned int i, const unsigned int j) const {
+            return this->weights[i * this->size + j];
         }
     };
 
@@ -148,8 +139,8 @@ struct PsiDeepT {
         MULTI(j, layer.size) {
             angles[j] = dtype(0.0);
 
-            for(auto i = 0u; i < layer.lhs_connectivity; i++) {
-                angles[j] += layer.lhs_weight(i, j) * configuration[layer.lhs_connection(i, j)];
+            for(auto i = 0u; i < layer.connectivity; i++) {
+                angles[j] += layer.weight(i, j) * configuration[layer.connection(i, j)];
             }
 
             #ifdef ENABLE_NETWORK_BASES
@@ -191,10 +182,10 @@ struct PsiDeepT {
             MULTI(j, layer.size) {
                 REGISTER(activation, j) = dtype(0.0);
 
-                for(auto i = 0u; i < layer.lhs_connectivity; i++) {
+                for(auto i = 0u; i < layer.connectivity; i++) {
                     REGISTER(activation, j) += (
-                        layer.lhs_weight(i, j) *
-                        activations[layer.lhs_connection(i, j)]
+                        layer.weight(i, j) *
+                        activations[layer.connection(i, j)]
                     );
                 }
                 #ifdef ENABLE_NETWORK_BASES
@@ -281,84 +272,88 @@ struct PsiDeepT {
         // note: since log_psi isn't needed here, it doesn't need to be initialized too
         this->forward_pass(log_psi, payload.angles, payload.activations, deep_angles);
 
+        MULTI(j, this->num_final_weights) {
+            payload.activations[j] = this->final_weights[j] * (
+                this->num_layers == 2u ?
+                my_tanh(payload.angles[j], 0u) :
+                my_tanh(deep_angles[
+                    this->layers[this->num_layers - 1u].begin_deep_angles + j
+                ], this->num_layers - 2)
+            );
+        }
+
         for(int layer_idx = int(this->num_layers) - 1; layer_idx > 0; layer_idx--) {
             const Layer& layer = this->layers[layer_idx];
 
-            // calculate the activations of the layer.
-            // here, these are the back-propagated derivatives.
-            if(layer_idx == this->num_layers - 1) {
+            {
                 MULTI(j, layer.size) {
-                    payload.activations[j] = this->final_weights[j] * (
-                        layer_idx == 1 ?
-                        my_tanh(payload.angles[j], 0u) :
-                        my_tanh(deep_angles[
-                            layer.begin_deep_angles + j
-                        ], layer_idx - 1)
-                    );
-                }
-            } else {
-                // TODO: check if shared memory solution is faster (most likely not)
-                dtype REGISTER(unit_activation, max_width);
+                    #ifdef ENABLE_NETWORK_BASES
+                    function(layer.begin_params + j, payload.activations[j]);
+                    #endif // ENABLE_NETWORK_BASES
 
-                SYNC;
-                MULTI(i, layer.size) {
-                    REGISTER(unit_activation, i) = dtype(0.0);
+                    for(auto i = 0u; i < layer.connectivity; i++) {
+                        const auto unit_idx = layer.connection(i, j);
+                        // TODO: check if shared memory solution is faster
 
-                    for(auto j = 0u; j < layer.rhs_connectivity; j++) {
-                        REGISTER(unit_activation, i) += (
-                            layer.rhs_weight(i, j) * payload.activations[
-                                layer.rhs_connection(i, j)
-                            ]
+                        function(
+                            #ifdef ENABLE_NETWORK_BASES
+                            layer.begin_params + layer.size + i * layer.size + j,
+                            #else
+                            layer.begin_params + i * layer.size + j,
+                            #endif // ENABLE_NETWORK_BASES
+                            payload.activations[j] * (
+                                layer_idx == 1 ?
+                                configuration[unit_idx] :
+                                (
+                                    layer_idx == 2 ?
+                                    my_logcosh(payload.angles[unit_idx], 0u) :
+                                    my_logcosh(deep_angles[
+                                        this->layers[layer_idx - 1].begin_deep_angles + unit_idx
+                                    ], layer_idx - 2)
+                                )
+                            )
                         );
                     }
-                    REGISTER(unit_activation, i) *= (
-                        layer_idx == 1 ?
-                        my_tanh(payload.angles[i], 0u) :
-                        my_tanh(deep_angles[layer.begin_deep_angles + i], layer_idx - 1)
-                    );
                 }
-                SYNC;
+            }
+            if(layer_idx < 2) {
+                break;
+            }
+
+            // calculate the activations of the layer.
+            // here, these are the back-propagated derivatives.
+            SHARED dtype unit_activation[max_width];
+            const Layer& prev_layer = this->layers[layer_idx - 1];
+
+            {
+                MULTI(i, prev_layer.size) {
+                    unit_activation[i] = dtype(0.0);
+                }
+            }
+            SYNC;
+            {
                 MULTI(j, layer.size) {
-                    payload.activations[j] = REGISTER(unit_activation, j);
+                    for(auto i = 0u; i < layer.connectivity; i++) {
+                        generic_atomicAdd(
+                            &unit_activation[layer.connection(i, j)],
+                            layer.weight(i, j) * payload.activations[j]
+                        );
+                    }
                 }
             }
-            MULTI(j, layer.size) {
-                #ifdef ENABLE_NETWORK_BASES
-                function(layer.begin_params + j, payload.activations[j]);
-                #endif // ENABLE_NETWORK_BASES
-
-                for(auto i = 0u; i < layer.lhs_connectivity; i++) {
-                    const auto lhs_unit_idx = layer.lhs_connection(i, j);
-                    // TODO: check if shared memory solution is faster
-
-                    function(
-                        #ifdef ENABLE_NETWORK_BASES
-                        layer.begin_params + layer.size + i * layer.size + j,
-                        #else
-                        layer.begin_params + i * layer.size + j,
-                        #endif // ENABLE_NETWORK_BASES
-                        payload.activations[j] * (
-                            layer_idx == 1 ?
-                            configuration[lhs_unit_idx] :
-                            (
-                                layer_idx == 2 ?
-                                my_logcosh(payload.angles[lhs_unit_idx], 0u) :
-                                my_logcosh(deep_angles[
-                                    this->layers[layer_idx - 1].begin_deep_angles + lhs_unit_idx
-                                ], layer_idx - 2)
-                            )
-                        )
+            SYNC;
+            {
+                MULTI(i, prev_layer.size) {
+                    unit_activation[i] *= (
+                        layer_idx == 2 ?
+                        my_tanh(payload.angles[i], 0u) :
+                        my_tanh(deep_angles[prev_layer.begin_deep_angles + i], layer_idx - 2)
                     );
+
+                    payload.activations[i] = unit_activation[i];
                 }
             }
-        }
-        MULTI(j, this->num_final_weights) {
-            function(
-                this->num_params - this->num_final_weights + j,
-                this->num_layers == 2u ?
-                my_logcosh(payload.angles[j], 0u) :
-                my_logcosh(deep_angles[this->layers[this->num_layers - 1].begin_deep_angles + j], this->num_layers - 2u)
-            );
+            SYNC;
         }
     }
 
@@ -393,11 +388,9 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
 
     struct Layer {
         unsigned int        size;
-        unsigned int        lhs_connectivity;
-        Array<unsigned int> lhs_connections;
-        Array<unsigned int> rhs_connections;
-        Array<dtype>        lhs_weights;
-        Array<dtype>        rhs_weights;
+        unsigned int        connectivity;
+        Array<unsigned int> connections;
+        Array<dtype>        weights;
         Array<dtype>        biases;
     };
     list<Layer>  layers;
@@ -415,8 +408,8 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
         const unsigned int num_sites,
         const xt::pytensor<typename std_dtype<dtype>::type, 1u>& input_weights,
         const vector<xt::pytensor<typename std_dtype<dtype>::type, 1u>> biases_list,
-        const vector<xt::pytensor<unsigned int, 2u>>& lhs_connections_list,
-        const vector<xt::pytensor<typename std_dtype<dtype>::type, 2u>>& lhs_weights_list,
+        const vector<xt::pytensor<unsigned int, 2u>>& connections_list,
+        const vector<xt::pytensor<typename std_dtype<dtype>::type, 2u>>& weights_list,
         const xt::pytensor<typename std_dtype<dtype>::type, 1u>& final_weights,
         const double log_prefactor,
         const bool gpu
@@ -424,21 +417,18 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
         this->num_sites = num_sites;
         this->N = input_weights.shape()[0];
         this->log_prefactor = log_prefactor;
-        this->num_layers = lhs_weights_list.size() + 1u; // num hidden layers + input layer
+        this->num_layers = weights_list.size() + 1u; // num hidden layers + input layer
         this->width = this->N;
         this->num_units = 0u;
         this->gpu = gpu;
 
-        Array<unsigned int> rhs_connections_array(0, false);
-        Array<dtype> rhs_weights_array(0, false);
-
         for(auto layer_idx = int(this->num_layers) - 1; layer_idx > 0; layer_idx--) {
-            const auto& lhs_connections = lhs_connections_list[layer_idx - 1];
-            const auto& lhs_weights = lhs_weights_list[layer_idx - 1];
+            const auto& connections = connections_list[layer_idx - 1];
+            const auto& weights = weights_list[layer_idx - 1];
             const auto& biases = biases_list[layer_idx - 1];
 
             const unsigned int size = biases.size();
-            const unsigned int lhs_connectivity = lhs_connections.shape()[0];
+            const unsigned int connectivity = connections.shape()[0];
 
             if(size > this->width) {
                 this->width = size;
@@ -446,32 +436,17 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
 
             this->num_units += size;
 
-            Array<unsigned int> lhs_connections_array(lhs_connections, gpu);
-            Array<dtype> lhs_weights_array(lhs_weights, gpu);
+            Array<unsigned int> connections_array(connections, gpu);
+            Array<dtype> weights_array(weights, gpu);
             Array<dtype> biases_array(biases, gpu);
-
-            // WARNING: do not make this const! Otherwise its content will be copied on assignment, not moved.
-            auto rhs_connections_and_weights = this->compile_rhs_connections_and_weights(
-                layer_idx > 1 ? biases_list[layer_idx - 2].size() : this->N,
-                size,
-                lhs_connectivity,
-                lhs_connections_array,
-                lhs_weights_array
-            );
-
 
             this->layers.push_front({
                 size,
-                lhs_connectivity,
-                move(lhs_connections_array),
-                move(rhs_connections_array),
-                move(lhs_weights_array),
-                move(rhs_weights_array),
+                connectivity,
+                move(connections_array),
+                move(weights_array),
                 move(biases_array)
             });
-
-            rhs_connections_array = move(rhs_connections_and_weights.first);
-            rhs_weights_array = move(rhs_connections_and_weights.second);
         }
 
         // input layer (spins)
@@ -479,9 +454,7 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
             this->N,
             0u,
             move(Array<unsigned int>(1, gpu)),
-            move(rhs_connections_array),
             move(Array<dtype>(1, gpu)),
-            move(rhs_weights_array),
             move(Array<dtype>(1, gpu))
         });
 
@@ -501,18 +474,18 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
 
         //     cout << "Layer: " << layer_idx << endl;
         //     cout << "size: " << kernel_layer.size << endl;
-        //     cout << "lhs_connectivity: " << kernel_layer.lhs_connectivity << endl;
+        //     cout << "connectivity: " << kernel_layer.connectivity << endl;
         //     cout << "rhs_connectivity: " << kernel_layer.rhs_connectivity << endl;
         //     cout << "begin_params: " << kernel_layer.begin_params << endl;
         //     cout << "begin_deep_angles: " << kernel_layer.begin_deep_angles << endl;
-        //     cout << "lhs_weights.size: " << layer.lhs_weights.size() << endl;
+        //     cout << "weights.size: " << layer.weights.size() << endl;
         //     cout << "rhs_weights.size: " << layer.rhs_weights.size() << endl;
         //     cout << "biases.size: " << layer.biases.size() << endl;
         //     cout << "rhs_connections.size: " << layer.rhs_connections.size() << endl;
-        //     cout << "lhs_connections: " << endl;
-        //     for(auto i = 0u; i < layer.lhs_connectivity; i++) {
+        //     cout << "connections: " << endl;
+        //     for(auto i = 0u; i < layer.connectivity; i++) {
         //         for(auto j = 0u; j < layer.size; j++) {
-        //             cout << layer.lhs_connections[i * layer.size + j] << ", ";
+        //             cout << layer.connections[i * layer.size + j] << ", ";
         //         }
         //         cout << endl;
         //     }
@@ -555,8 +528,8 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
         for(auto layer_it = next(this->layers.begin()); layer_it != this->layers.end(); layer_it++) {
             auto& layer = *layer_it;
         // for(const auto& layer : this->layers) {
-            result.push_back(layer.lhs_weights.to_pytensor_2d(shape_t<2u>{
-                (long int)layer.lhs_connectivity, (long int)layer.size
+            result.push_back(layer.weights.to_pytensor_2d(shape_t<2u>{
+                (long int)layer.connectivity, (long int)layer.size
             }));
         }
 
@@ -569,8 +542,8 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
         for(auto layer_it = next(this->layers.begin()); layer_it != this->layers.end(); layer_it++) {
             auto& layer = *layer_it;
         // for(const auto& layer : this->layers) {
-            result.push_back(layer.lhs_connections.to_pytensor_2d(shape_t<2u>{
-                (long int)layer.lhs_connectivity, (long int)layer.size
+            result.push_back(layer.connections.to_pytensor_2d(shape_t<2u>{
+                (long int)layer.connectivity, (long int)layer.size
             }));
         }
 
@@ -588,14 +561,6 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
 
     void init_kernel();
     void update_kernel();
-
-    pair<Array<unsigned int>, Array<dtype>> compile_rhs_connections_and_weights(
-        const unsigned int prev_size,
-        const unsigned int size,
-        const unsigned int lhs_connectivity,
-        const Array<unsigned int>& lhs_connections,
-        const Array<dtype>& lhs_weights
-    );
 };
 
 
