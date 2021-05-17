@@ -24,6 +24,7 @@ struct TDVP {
     Array<complex_t> F_vector;
 
     unique_ptr<Array<complex_t>> O_k_samples;
+    unique_ptr<Array<complex_t>> E_local_samples;
     unique_ptr<Array<double>>    weight_samples;
 
     double threshold;

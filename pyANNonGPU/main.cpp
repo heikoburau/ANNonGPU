@@ -1358,6 +1358,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_property_readonly("var_H", &TDVP::var_H)
         .def_readwrite("threshold", &TDVP::threshold)
         .def_property_readonly("total_weight", [](const TDVP& tdvp){return tdvp.total_weight.front();})
+        .def_property_readonly("O_k_samples", [](const TDVP& tdvp){return tdvp.O_k_samples->to_pytensor_1d();})
+        .def_property_readonly("E_local_samples", [](const TDVP& tdvp){return tdvp.E_local_samples->to_pytensor_1d();})
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref_py<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
 #endif
