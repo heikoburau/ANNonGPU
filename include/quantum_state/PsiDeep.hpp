@@ -80,7 +80,7 @@ struct PsiDeepT {
     using dtype = dtype_t;
     using real_dtype = typename cuda_complex::get_real_type<dtype>::type;
 
-    static constexpr unsigned int max_N = 80u;
+    static constexpr unsigned int max_N = 128u;
     static constexpr unsigned int max_layers = 4u;
     static constexpr unsigned int max_width = max_N;
     static constexpr unsigned int max_deep_angles = max_N;

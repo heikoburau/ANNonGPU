@@ -38,7 +38,7 @@ namespace PsiClassicalPayload {
 template<typename PsiRefPayload>
 struct Payload_t {
     complex_t       log_psi_ref;
-    complex_t       local_energies[40];
+    complex_t       local_energies[150];
 
     PsiRefPayload   ref_payload;
 };
@@ -57,23 +57,11 @@ struct PsiClassical_t {
     unsigned int    num_params;
     unsigned int    num_sites;
 
-    // data for the squared first moment
-    struct M_1_squared {
-        // N * (N + 1) / 2 index pairs for evaluating the double-sum of (m_1)^2.
-        unsigned int    num_ll_pairs;
-        unsigned int*   ids_l;
-        unsigned int*   ids_l_prime;
-
-        unsigned int    begin_params;
-    };
-
     complex_t       log_prefactor;
 
     Operator_t*     H_local;
 
     unsigned int    num_ops_H;
-
-    M_1_squared  m_1_squared;
 
     PsiRef       psi_ref;
 
@@ -128,31 +116,6 @@ struct PsiClassical_t {
     ) const {
 
     }
-
-    // HDINLINE
-    // complex_t get_O_k(const unsigned int k, const Payload& payload) const {
-    //     if(k < this->num_ops_H) {
-    //         return payload.local_energies[k];
-    //     }
-
-    //     // if(order > 1u) {
-    //     //     if(k < this->num_params) {
-    //     //         complex_t result(0.0);
-
-    //     //         const auto k_rel = k - this->m_1_squared.begin_params;
-
-    //     //         const auto l = this->m_1_squared.ids_l[k_rel];
-    //     //         const auto l_prime = this->m_1_squared.ids_l_prime[k_rel];
-
-    //     //         return (
-    //     //             payload.local_energies[l] *
-    //     //             payload.local_energies[l_prime]
-    //     //         );
-    //     //     }
-    //     // }
-
-    //     return complex_t(0.0);
-    // }
 
     template<typename Basis_t, typename Function>
     HDINLINE
@@ -213,17 +176,12 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
     PsiRef          psi_ref;
     bool            gpu;
 
-    Array<unsigned int> ids_l;
-    Array<unsigned int> ids_l_prime;
-
     inline PsiClassical_t(const PsiClassical_t& other)
         :
         H_local(other.H_local),
         H_local_kernel(other.H_local_kernel),
         params(other.params),
-        psi_ref(other.psi_ref),
-        ids_l(other.ids_l),
-        ids_l_prime(other.ids_l_prime)
+        psi_ref(other.psi_ref)
     {
         this->num_sites = other.num_sites;
         this->log_prefactor = other.log_prefactor;
@@ -249,8 +207,6 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
     inline PsiClassical_t(
         const unsigned int num_sites,
         const vector<Operator_t>& H_local,
-        const vector<unsigned int>& ids_l,
-        const vector<unsigned int>& ids_l_prime,
         const xt::pytensor<typename std_dtype<dtype>::type, 1u>& params,
         const PsiRef& psi_ref,
         const double log_prefactor,
@@ -260,9 +216,7 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
         H_local(H_local),
         H_local_kernel(H_local.size(), gpu),
         params(params, gpu),
-        psi_ref(psi_ref),
-        ids_l(ids_l, gpu),
-        ids_l_prime(ids_l_prime, gpu)
+        psi_ref(psi_ref)
     {
         this->num_sites = num_sites;
         this->log_prefactor = log_prefactor;

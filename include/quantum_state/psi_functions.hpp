@@ -41,7 +41,9 @@ T my_logcosh(const T z, const unsigned int layer) {
     const auto z4 = z2 * z2;
 
     if(layer == 0u) {
-        return 0.5 * z2 + (1.0 / 6.0) * z2 * z - (1.0 / 12.0) * z4 + (1.0 / 45.0) * z4 * z2;
+        // return 0.5 * z2 + (1.0 / 6.0) * z2 * z - (1.0 / 12.0) * z4 + (1.0 / 45.0) * z4 * z2;
+        return 0.5 * z2 - (1.0 / 12.0) * z4 + (1.0 / 45.0) * z4 * z2;
+        // return -(1.0 / 3.0) * z2 * z + (2.0 / 15.0) * z4 * z;
     }
     return z - (1.0 / 3.0) * z2 * z + (2.0 / 15.0) * z4 * z;
 
@@ -103,7 +105,9 @@ T my_tanh(const T z, const unsigned int layer) {
     // for TDVP it is important to use tanh, or at least not Pade(2, 4)
     if(layer == 0u) {
         // return tanh(z);
-        return z + 0.5 * z2 - (1.0 / 3.0) * z2 * z + (2.0 / 15.0) * z4 * z;
+        // return z + 0.5 * z2 - (1.0 / 3.0) * z2 * z + (2.0 / 15.0) * z4 * z;
+        return z - (1.0 / 3.0) * z2 * z + (2.0 / 15.0) * z4 * z;
+        // return -z2 + (2.0 / 3.0) * z4;
     }
     else {
         // const auto co = cosh(z);

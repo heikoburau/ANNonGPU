@@ -85,7 +85,7 @@ void TDVP::compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble
     auto S_ptr = this->S_matrix.data();
     auto F_ptr = this->F_vector.data();
     auto O_k_samples_ptr = this->O_k_samples->data();
-    auto E_local_samples_ptr = this->E_local_samples->data();
+    // auto E_local_samples_ptr = this->E_local_samples->data();
     auto weight_samples_ptr = this->weight_samples->data();
     auto total_weight_ptr = this->total_weight.data();
 
@@ -104,12 +104,12 @@ void TDVP::compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble
             op_kernel.local_energy(local_energy, psi_kernel, configuration, log_psi, payload);
 
             SINGLE {
-                generic_atomicAdd(total_weight_ptr, weight);
+                // generic_atomicAdd(total_weight_ptr, weight);
                 generic_atomicAdd(E_local_ptr, weight * local_energy);
                 generic_atomicAdd(E2_local_ptr, weight * abs2(local_energy));
 
                 weight_samples_ptr[index] = weight;
-                E_local_samples_ptr[index] = local_energy;
+                // E_local_samples_ptr[index] = local_energy;
 
                 // printf("%f, %f\n", local_energy.real(), local_energy.imag());
             }
@@ -143,11 +143,11 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, use_psi_re
             new Array<complex_t>(ensemble.get_num_steps() * psi.num_params, psi.gpu)
         );
     }
-    if(!this->E_local_samples || this->E_local_samples->size() != ensemble.get_num_steps()) {
-        this->E_local_samples = unique_ptr<Array<complex_t>>(
-            new Array<complex_t>(ensemble.get_num_steps(), psi.gpu)
-        );
-    }
+    // if(!this->E_local_samples || this->E_local_samples->size() != ensemble.get_num_steps()) {
+    //     this->E_local_samples = unique_ptr<Array<complex_t>>(
+    //         new Array<complex_t>(ensemble.get_num_steps(), psi.gpu)
+    //     );
+    // }
     if(!this->weight_samples || this->weight_samples->size() != ensemble.get_num_steps()) {
         this->weight_samples = unique_ptr<Array<double>>(
             new Array<double>(ensemble.get_num_steps(), psi.gpu)
@@ -160,7 +160,7 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, use_psi_re
     this->S_matrix.clear();
     this->F_vector.clear();
     this->O_k_samples->clear();
-    this->E_local_samples->clear();
+    // this->E_local_samples->clear();
     this->total_weight.clear();
 
     this->compute_averages(op, psi, ensemble, use_psi_ref);
@@ -247,10 +247,10 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, use_psi_re
     this->O_k_ar.update_host();
     this->S_matrix.update_host();
     this->F_vector.update_host();
-    this->total_weight.update_host();
+    // this->total_weight.update_host();
 
-    this->O_k_samples->update_host();
-    this->E_local_samples->update_host();
+    // this->O_k_samples->update_host();
+    // this->E_local_samples->update_host();
 
 
     // this->E_local.front() /= this->total_weight.front();
