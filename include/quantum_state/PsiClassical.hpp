@@ -38,7 +38,7 @@ namespace PsiClassicalPayload {
 template<typename PsiRefPayload>
 struct Payload_t {
     complex_t       log_psi_ref;
-    complex_t       local_energies[300];
+    complex_t       local_energies[40];
 
     PsiRefPayload   ref_payload;
 };

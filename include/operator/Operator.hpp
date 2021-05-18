@@ -60,7 +60,11 @@ struct Operator {
             SHARED typename Psi_t::dtype log_psi_prime;
             psi.log_psi_s(log_psi_prime, matrix_element.vector, payload);
             SINGLE {
-                result += matrix_element.coefficient * exp(log_psi_prime - log_psi);
+                auto diff = log_psi_prime - log_psi;
+
+                diff.__re_ = min(diff.__re_, 10.0);
+
+                result += matrix_element.coefficient * exp(diff);
             }
 
             psi.update_input_units(matrix_element.vector, configuration, payload);
