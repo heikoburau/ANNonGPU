@@ -100,7 +100,7 @@ struct PsiFullyPolarized_t : public kernel::PsiFullyPolarized_t<dtype> {
 
 #ifdef __PYTHONCC__
 
-    inline PsiFullyPolarized_t(unsigned int num_sites, double log_prefactor) {
+    inline PsiFullyPolarized_t(unsigned int num_sites, std::complex<double> log_prefactor) {
         this->num_sites = num_sites;
         this->num_params = 0u;
         this->log_prefactor = log_prefactor;

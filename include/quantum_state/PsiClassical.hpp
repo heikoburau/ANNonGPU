@@ -209,7 +209,7 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
         const vector<Operator_t>& H_local,
         const xt::pytensor<typename std_dtype<dtype>::type, 1u>& params,
         const PsiRef& psi_ref,
-        const double log_prefactor,
+        const std::complex<double> log_prefactor,
         const bool gpu
     )
         :

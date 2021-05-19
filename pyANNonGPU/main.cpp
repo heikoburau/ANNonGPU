@@ -82,7 +82,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             const vector<xt::pytensor<unsigned int, 2u>>&,
             const vector<std_tensor<PsiDeep::dtype, 2u>>&,
             const std_tensor<PsiDeep::dtype, 1u>&,
-            const double,
+            const std::complex<double>,
             const bool
         >())
         .def("copy", &PsiDeep::copy)
@@ -135,7 +135,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             const xt::pytensor<unsigned int, 1u>&,
             const std_tensor<PsiCNN::dtype, 1u>&,
             const PsiCNN::std_dtype&,
-            const double,
+            const std::complex<double>,
             const bool
         >())
         .def("copy", &PsiCNN::copy)
@@ -218,7 +218,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             const vector<Operator_t>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalFP<1u>::PsiRef&,
-            const double,
+            const std::complex<double>,
             const bool
         >())
         .def("copy", &PsiClassicalFP<1u>::copy)
@@ -292,7 +292,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             const vector<Operator_t>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalFP<2u>::PsiRef&,
-            const double,
+            const std::complex<double>,
             const bool
         >())
         .def("copy", &PsiClassicalFP<2u>::copy)
@@ -366,7 +366,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             const vector<Operator_t>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalANN<1u>::PsiRef&,
-            const double,
+            const std::complex<double>,
             const bool
         >())
         .def("copy", &PsiClassicalANN<1u>::copy)
@@ -440,7 +440,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             const vector<Operator_t>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalANN<2u>::PsiRef&,
-            const double,
+            const std::complex<double>,
             const bool
         >())
         .def("copy", &PsiClassicalANN<2u>::copy)
@@ -510,8 +510,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 
 #ifdef ENABLE_PSI_CLASSICAL
     py::class_<PsiFullyPolarized>(m, "PsiFullyPolarized")
-        .def(py::init<unsigned int, double>())
-        .def_readwrite("num_sites", &PsiFullyPolarized::num_sites);
+        .def(py::init<unsigned int, complex<double>>())
+        .def_readwrite("num_sites", &PsiFullyPolarized::num_sites)
+        .def_property(
+            "log_prefactor",
+            [](const PsiFullyPolarized& psi) {return psi.log_prefactor.to_std();},
+            [](PsiFullyPolarized& psi, complex<double> value) {psi.log_prefactor = complex_t(value);}
+        );
 #endif // ENABLE_PSI_CLASSICAL
 
 #ifdef ENABLE_PSI_EXACT

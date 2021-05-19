@@ -411,7 +411,7 @@ struct PsiDeepT : public kernel::PsiDeepT<dtype, symmetric> {
         const vector<xt::pytensor<unsigned int, 2u>>& connections_list,
         const vector<xt::pytensor<typename std_dtype<dtype>::type, 2u>>& weights_list,
         const xt::pytensor<typename std_dtype<dtype>::type, 1u>& final_weights,
-        const double log_prefactor,
+        const std::complex<double> log_prefactor,
         const bool gpu
     ) : input_weights(input_weights, gpu), final_weights(final_weights, gpu) {
         this->num_sites = num_sites;

@@ -322,7 +322,7 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dtype> {
         const xt::pytensor<unsigned int, 1u>& connectivity_list,
         const xt::pytensor<std_dtype, 1u>& params,
         const std_dtype& final_factor,
-        const double log_prefactor,
+        const std::complex<double> log_prefactor,
         const bool gpu
     )
     :

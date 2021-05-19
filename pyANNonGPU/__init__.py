@@ -19,6 +19,12 @@ except ImportError:
     pass
 
 from .new_classical_network import *
+from .PsiClassical import *
+
+try:
+    from .PsiFullyPolarized import PsiFullyPolarized
+except ImportError:
+    pass
 
 from .LearningByGradientDescent import LearningByGradientDescent, DidNotConverge
 from .L2Regularization import L2Regularization

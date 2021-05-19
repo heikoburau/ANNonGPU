@@ -13,7 +13,8 @@ def to_json(self):
         connections=self.connections,
         W=self.W,
         final_weights=self.final_weights,
-        log_prefactor=self.log_prefactor,
+        log_prefactor_re=self.log_prefactor.real,
+        log_prefactor_im=self.log_prefactor.imag
     )
 
     return json.loads(
@@ -38,7 +39,7 @@ def from_json(json_obj, gpu):
         obj["connections"],
         obj["W"],
         obj["final_weights"],
-        obj["log_prefactor"],
+        obj["log_prefactor_re"] + 1j * obj["log_prefactor_im"],
         gpu
     )
 
