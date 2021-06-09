@@ -101,10 +101,10 @@ struct Spins_t {
         }
     }
 
-    HDINLINE float operator[](const unsigned int position) const {
-        return 2.0f * static_cast<float>(
+    HDINLINE double operator[](const unsigned int position) const {
+        return 2.0 * static_cast<double>(
             static_cast<bool>(this->configurations[position / 64u] & (1lu << (position % 64u)))
-        ) - 1.0f;
+        ) - 1.0;
     }
 
     HDINLINE int network_unit_at(const unsigned int idx) const {

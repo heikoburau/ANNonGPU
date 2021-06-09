@@ -38,7 +38,7 @@ namespace PsiClassicalPayload {
 template<typename PsiRefPayload>
 struct Payload_t {
     complex_t       log_psi_ref;
-    complex_t       local_energies[150];
+    complex_t       local_energies[400];
 
     PsiRefPayload   ref_payload;
 };
@@ -71,7 +71,6 @@ struct PsiClassical_t {
     HDINLINE
     void init_payload(Payload& payload, const Basis_t& configuration, const unsigned int conf_idx) const {
         this->psi_ref.init_payload(payload.ref_payload, configuration, conf_idx);
-        // this->psi_ref.log_psi_s(payload.log_psi_ref, configuration, payload.ref_payload);
 
         MULTI(n, this->num_ops_H) {
             this->H_local[n].fast_local_energy(

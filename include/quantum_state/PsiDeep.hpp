@@ -126,14 +126,9 @@ struct PsiDeepT {
 
 #ifdef __CUDACC__
 
-#ifdef ENABLE_SPINS
+    template<typename Basis_t>
     HDINLINE
-    void compute_angles(dtype* angles, const Spins& configuration) const {
-    }
-#endif // ENABLE_SPINS
-
-    HDINLINE
-    void compute_angles(dtype* angles, const complex_t* configuration) const {
+    void compute_angles(dtype* angles, const Basis_t& configuration) const {
         const Layer& layer = this->layers[1];
 
         MULTI(j, layer.size) {
@@ -231,8 +226,6 @@ struct PsiDeepT {
         // }
 
         this->forward_pass(result, payload.angles, payload.activations, nullptr);
-
-        // printf("%f, %f\n", result.real(), result.imag());
     }
 
 
@@ -244,16 +237,9 @@ struct PsiDeepT {
 
     }
 
-#ifdef ENABLE_SPINS
-    template<typename Function>
+    template<typename Basis_t, typename Function>
     HDINLINE
-    void foreach_O_k(const Spins& configuration, Payload& payload, Function function) const {
-    }
-#endif // ENABLE_SPINS
-
-    template<typename Function>
-    HDINLINE
-    void foreach_O_k(const complex_t* configuration, Payload& payload, Function function) const {
+    void foreach_O_k(const Basis_t& configuration, Payload& payload, Function function) const {
         #include "cuda_kernel_defines.h"
 
         SHARED dtype deep_angles[max_deep_angles];

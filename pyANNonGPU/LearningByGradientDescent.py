@@ -244,7 +244,12 @@ class LearningByGradientDescent:
             self.distance_history += list(islice(algorithm, 200))
             num_steps += 200
 
-        print(algorithm_name, num_steps, self.smoothed_distance_history[-1])
+        print(
+            algorithm_name,
+            num_steps,
+            f"{self.smoothed_distance_history[0]:.3g}",
+            f"{self.smoothed_distance_history[-1]:.3g}"
+        )
 
         # if self.is_learning_poorly:
         #     raise PoorLearning()
@@ -330,7 +335,7 @@ class LearningByGradientDescent:
         self.best_solution = min(self.solutions, key=lambda solution: solution["distance_history"][-1])
         self.distance_history = self.best_solution["distance_history"]
         self.psi = self.best_solution["psi"]
-        print(self.smoothed_distance_history[-1])
+        print(f"{self.smoothed_distance_history[-1]:.3g}")
 
         if not self.mc:
             self.psi.normalize(self.spin_ensemble)
