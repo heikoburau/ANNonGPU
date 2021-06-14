@@ -129,6 +129,26 @@ struct Operator {
         }
     }
 
+    template<typename Basis_t>
+    HDINLINE
+    void fast_local_energy_parallel(
+        complex_t& result,
+        const Basis_t& configuration
+    ) const {
+        SINGLE {
+            result = complex_t(0.0);
+        }
+        SYNC;
+
+        LOOP(n, this->num_strings) {
+            generic_atomicAdd(
+                &result,
+                this->coefficients[n] * this->pauli_strings[n].apply(configuration).coefficient
+            );
+        }
+        SYNC;
+    }
+
 
 #endif // __CUDACC__
 

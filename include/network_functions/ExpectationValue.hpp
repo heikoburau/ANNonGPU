@@ -24,6 +24,9 @@ public:
     complex<double> operator()(const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble);
 
     template<typename Psi_t, typename Ensemble>
+    complex<double> exp_sigma_z(const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble);
+
+    template<typename Psi_t, typename Ensemble>
     Array<complex_t> operator()(const vector<Operator_t>& operator_array, Psi_t& psi, Ensemble& ensemble);
 
     template<typename Psi_t, typename PsiSampling_t, typename Ensemble>
