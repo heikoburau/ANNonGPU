@@ -38,7 +38,7 @@ namespace PsiClassicalPayload {
 template<typename PsiRefPayload>
 struct Payload_t {
     complex_t       log_psi_ref;
-    complex_t       local_energies[400];
+    complex_t       local_energies[200];
 
     PsiRefPayload   ref_payload;
 };
@@ -99,7 +99,7 @@ struct PsiClassical_t {
         }
 
         if(order > 1u) {
-            this->psi_ref.log_psi_s(payload.log_psi_ref, payload.local_energies, payload.ref_payload);
+            this->psi_ref.log_psi_s(payload.log_psi_ref, configuration, payload.ref_payload);
 
             SINGLE {
                 result += payload.log_psi_ref;
@@ -127,7 +127,7 @@ struct PsiClassical_t {
 
         if(order > 1u) {
             this->psi_ref.foreach_O_k(
-                payload.local_energies,
+                configuration,
                 payload.ref_payload,
                 [&](const unsigned int k, const complex_t& O_k) {
                     function(this->num_ops_H + k, O_k);
