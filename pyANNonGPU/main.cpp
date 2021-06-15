@@ -125,6 +125,50 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 
     #endif // ENABLE_PSI_DEEP
 
+    #ifdef ENABLE_PSI_RBM
+
+    py::class_<PsiRBM>(m, "PsiRBM")
+        .def(py::init<
+            const std_tensor<PsiRBM::dtype, 2u>&,
+            const std::complex<double>,
+            const std::complex<double>,
+            const bool
+        >())
+        .def("copy", &PsiRBM::copy)
+        .def_readwrite("num_sites", &PsiRBM::N)
+        .def_property(
+            "log_prefactor",
+            [](const PsiRBM& psi) {return cuda_complex::to_std(psi.log_prefactor);},
+            [](PsiRBM& psi, typename std_dtype<PsiRBM::dtype>::type value) {psi.log_prefactor = PsiRBM::dtype(value);}
+        )
+        .def_readonly("gpu", &PsiRBM::gpu)
+        .def_readonly("N", &PsiRBM::N)
+        .def_readonly("M", &PsiRBM::M)
+        .def_property_readonly("num_params", [](const PsiRBM& psi){return psi.W.size();})
+        .def_property(
+            "params",
+            [](const PsiRBM& psi) {return psi.get_params().to_pytensor_1d();},
+            [](PsiRBM& psi, const std_tensor<PsiRBM::dtype, 1u> new_params) { // reference is to pytensor leads to undefined behavior
+                psi.set_params(Array<PsiRBM::dtype>(new_params, false));
+            }
+        )
+        .def_property_readonly("symmetric", [](const PsiRBM& psi){return psi.is_symmetric();})
+        .def_property_readonly("W", [](const PsiRBM& psi){return psi.W.to_pytensor_1d();})
+        .def_readonly("final_weight", &PsiRBM::final_weight)
+        #ifdef ENABLE_EXACT_SUMMATION
+#if defined(ENABLE_SPINS)
+        .def("_vector", [](PsiRBM& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
+        .def("norm", [](PsiRBM& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
+#endif
+#if defined(ENABLE_PAULIS)
+        .def("_vector", [](PsiRBM& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
+        .def("norm", [](PsiRBM& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
+#endif
+        #endif // ENABLE_EXACT_SUMMATION
+        ;
+
+    #endif // ENABLE_PSI_RBM
+
     #ifdef ENABLE_PSI_CNN
 
     py::class_<PsiCNN>(m, "PsiCNN")
@@ -631,6 +675,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<Spins>>)
         .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiDeep, MonteCarlo_tt<Spins>>)
 #endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
+        .def("__call__", &ExpectationValue::__call__<PsiRBM, MonteCarlo_tt<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiRBM, MonteCarlo_tt<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiRBM, MonteCarlo_tt<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiRBM, MonteCarlo_tt<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiRBM, MonteCarlo_tt<Spins>>)
+        .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiRBM, MonteCarlo_tt<Spins>>)
+#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
         .def("__call__", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<Spins>>)
         .def("__call__array", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<Spins>>)
@@ -686,6 +738,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &ExpectationValue::gradient_py<PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<PauliString>>)
         .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiDeep, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
+        .def("__call__", &ExpectationValue::__call__<PsiRBM, MonteCarlo_tt<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiRBM, MonteCarlo_tt<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiRBM, MonteCarlo_tt<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiRBM, MonteCarlo_tt<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiRBM, MonteCarlo_tt<PauliString>>)
+        .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiRBM, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
         .def("__call__", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<PauliString>>)
@@ -743,6 +803,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<Spins>>)
         .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiDeep, ExactSummation_t<Spins>>)
 #endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
+        .def("__call__", &ExpectationValue::__call__<PsiRBM, ExactSummation_t<Spins>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiRBM, ExactSummation_t<Spins>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiRBM, ExactSummation_t<Spins>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiRBM, ExactSummation_t<Spins>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiRBM, ExactSummation_t<Spins>>)
+        .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiRBM, ExactSummation_t<Spins>>)
+#endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
         .def("__call__", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<Spins>>)
         .def("__call__array", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<Spins>>)
@@ -798,6 +866,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &ExpectationValue::gradient_py<PsiDeep, ExactSummation_t<PauliString>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<PauliString>>)
         .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiDeep, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
+        .def("__call__", &ExpectationValue::__call__<PsiRBM, ExactSummation_t<PauliString>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiRBM, ExactSummation_t<PauliString>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiRBM, ExactSummation_t<PauliString>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiRBM, ExactSummation_t<PauliString>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiRBM, ExactSummation_t<PauliString>>)
+        .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiRBM, ExactSummation_t<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
         .def("__call__", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<PauliString>>)
@@ -1436,6 +1512,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
         .def("eval", &TDVP::eval_py<PsiDeep, MonteCarlo_tt<Spins>>)
 #endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
+        .def("eval", &TDVP::eval_py<PsiRBM, MonteCarlo_tt<Spins>>)
+#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
         .def("eval", &TDVP::eval_py<PsiCNN, MonteCarlo_tt<Spins>>)
 #endif
@@ -1456,6 +1535,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
         .def("eval", &TDVP::eval_py<PsiDeep, MonteCarlo_tt<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
+        .def("eval", &TDVP::eval_py<PsiRBM, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
         .def("eval", &TDVP::eval_py<PsiCNN, MonteCarlo_tt<PauliString>>)
@@ -1478,6 +1560,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
         .def("eval", &TDVP::eval_py<PsiDeep, ExactSummation_t<Spins>>)
 #endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
+        .def("eval", &TDVP::eval_py<PsiRBM, ExactSummation_t<Spins>>)
+#endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
         .def("eval", &TDVP::eval_py<PsiCNN, ExactSummation_t<Spins>>)
 #endif
@@ -1498,6 +1583,9 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
         .def("eval", &TDVP::eval_py<PsiDeep, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
+        .def("eval", &TDVP::eval_py<PsiRBM, ExactSummation_t<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
         .def("eval", &TDVP::eval_py<PsiCNN, ExactSummation_t<PauliString>>)
@@ -1527,6 +1615,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return log_psi_s(psi, basis);
     });
     m.def("psi_O_k", [](PsiDeep& psi, const Spins& basis) {
+        return psi_O_k(psi, basis).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
+    m.def("log_psi_s", [](PsiRBM& psi, const Spins& basis) {
+        return log_psi_s(psi, basis);
+    });
+    m.def("psi_O_k", [](PsiRBM& psi, const Spins& basis) {
         return psi_O_k(psi, basis).to_pytensor_1d();
     });
 #endif
@@ -1586,6 +1682,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_O_k(psi, basis).to_pytensor_1d();
     });
 #endif
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
+    m.def("log_psi_s", [](PsiRBM& psi, const PauliString& basis) {
+        return log_psi_s(psi, basis);
+    });
+    m.def("psi_O_k", [](PsiRBM& psi, const PauliString& basis) {
+        return psi_O_k(psi, basis).to_pytensor_1d();
+    });
+#endif
 #if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
     m.def("log_psi_s", [](PsiCNN& psi, const PauliString& basis) {
         return log_psi_s(psi, basis);
@@ -1641,6 +1745,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
+    m.def("psi_O_k_vector", [](PsiRBM& psi, ExactSummation_t<Spins>& ensemble) {
+        return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
 #if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
     m.def("psi_O_k_vector", [](PsiCNN& psi, ExactSummation_t<Spins>& ensemble) {
         return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
@@ -1673,6 +1782,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 #if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
     m.def("psi_O_k_vector", [](PsiDeep& psi, ExactSummation_t<PauliString>& ensemble) {
+        return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
+    m.def("psi_O_k_vector", [](PsiRBM& psi, ExactSummation_t<PauliString>& ensemble) {
         return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
@@ -1716,6 +1830,17 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
     m.def("log_psi_vector", [](PsiDeep& psi, MonteCarlo_tt<Spins>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
+    m.def("log_psi", [](PsiRBM& psi, MonteCarlo_tt<Spins>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiRBM& psi, MonteCarlo_tt<Spins>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiRBM& psi, MonteCarlo_tt<Spins>& ensemble) {
         return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
@@ -1796,6 +1921,17 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
+    m.def("log_psi", [](PsiRBM& psi, MonteCarlo_tt<PauliString>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiRBM& psi, MonteCarlo_tt<PauliString>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiRBM& psi, MonteCarlo_tt<PauliString>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
     m.def("log_psi", [](PsiCNN& psi, MonteCarlo_tt<PauliString>& ensemble) {
         return log_psi(psi, ensemble);
@@ -1870,6 +2006,17 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
     m.def("log_psi_vector", [](PsiDeep& psi, ExactSummation_t<Spins>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
+    m.def("log_psi", [](PsiRBM& psi, ExactSummation_t<Spins>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiRBM& psi, ExactSummation_t<Spins>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiRBM& psi, ExactSummation_t<Spins>& ensemble) {
         return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
@@ -1950,6 +2097,17 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
+    m.def("log_psi", [](PsiRBM& psi, ExactSummation_t<PauliString>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiRBM& psi, ExactSummation_t<PauliString>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiRBM& psi, ExactSummation_t<PauliString>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
     m.def("log_psi", [](PsiCNN& psi, ExactSummation_t<PauliString>& ensemble) {
         return log_psi(psi, ensemble);
@@ -2022,6 +2180,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
+    m.def("apply_operator", [](PsiRBM& psi, const Operator_t& op, MonteCarlo_tt<Spins>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
     m.def("apply_operator", [](PsiCNN& psi, const Operator_t& op, MonteCarlo_tt<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
@@ -2054,6 +2217,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
     m.def("apply_operator", [](PsiDeep& psi, const Operator_t& op, MonteCarlo_tt<PauliString>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
+    m.def("apply_operator", [](PsiRBM& psi, const Operator_t& op, MonteCarlo_tt<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
@@ -2092,6 +2260,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
+    m.def("apply_operator", [](PsiRBM& psi, const Operator_t& op, ExactSummation_t<Spins>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
     m.def("apply_operator", [](PsiCNN& psi, const Operator_t& op, ExactSummation_t<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
@@ -2124,6 +2297,11 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
     m.def("apply_operator", [](PsiDeep& psi, const Operator_t& op, ExactSummation_t<PauliString>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
+    m.def("apply_operator", [](PsiRBM& psi, const Operator_t& op, ExactSummation_t<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif

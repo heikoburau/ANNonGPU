@@ -51,6 +51,9 @@ double psi_norm(Psi_t& psi, Ensemble& exact_summation) {
 #if defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
 template double psi_norm(PsiDeep& psi, ExactSummation_t<Spins>&);
 #endif
+#if defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
+template double psi_norm(PsiRBM& psi, ExactSummation_t<Spins>&);
+#endif
 #if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
 template double psi_norm(PsiCNN& psi, ExactSummation_t<Spins>&);
 #endif
@@ -71,6 +74,9 @@ template double psi_norm(PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
 template double psi_norm(PsiDeep& psi, ExactSummation_t<PauliString>&);
+#endif
+#if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
+template double psi_norm(PsiRBM& psi, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
 template double psi_norm(PsiCNN& psi, ExactSummation_t<PauliString>&);

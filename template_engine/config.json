@@ -31,6 +31,10 @@
                 "code": "PsiDeep"
             },
             {
+                "flag": "ENABLE_PSI_RBM",
+                "code": "PsiRBM"
+            },
+            {
                 "flag": "ENABLE_PSI_CNN",
                 "code": "PsiCNN"
             },

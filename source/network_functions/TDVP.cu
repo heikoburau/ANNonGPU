@@ -14,7 +14,7 @@
 namespace ann_on_gpu {
 
 
-#define TILE_SIZE 64
+#define TILE_SIZE 128
 
 
 template<typename Psi_t, typename Ensemble>
@@ -237,16 +237,16 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, use_psi_re
         }
     };
 
-    if(psi.gpu) {
-        cuda_kernel<<<ensemble.get_num_steps(), TILE_SIZE>>>(
-            [=] __device__ () {fill_S_matrix(blockIdx.x);}
-        );
-    }
-    else {
-        for(auto i = 0u; i < ensemble.get_num_steps(); i++) {
-            fill_S_matrix(i);
-        }
-    }
+    // if(psi.gpu) {
+    //     cuda_kernel<<<ensemble.get_num_steps(), TILE_SIZE>>>(
+    //         [=] __device__ () {fill_S_matrix(blockIdx.x);}
+    //     );
+    // }
+    // else {
+    //     for(auto i = 0u; i < ensemble.get_num_steps(); i++) {
+    //         fill_S_matrix(i);
+    //     }
+    // }
 
     this->E_local.update_host();
     this->E2_local.update_host();
@@ -334,6 +334,9 @@ template void TDVP::eval(const Operator_t&, PsiClassicalANN<2u>&, ExactSummation
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
 template void TDVP::eval(const Operator_t&, PsiDeep&, MonteCarlo_tt<Spins>&, false_t);
 #endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
+template void TDVP::eval(const Operator_t&, PsiRBM&, MonteCarlo_tt<Spins>&, false_t);
+#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
 template void TDVP::eval(const Operator_t&, PsiCNN&, MonteCarlo_tt<Spins>&, false_t);
 #endif
@@ -354,6 +357,9 @@ template void TDVP::eval(const Operator_t&, PsiClassicalANN<2u>&, MonteCarlo_tt<
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
 template void TDVP::eval(const Operator_t&, PsiDeep&, MonteCarlo_tt<PauliString>&, false_t);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
+template void TDVP::eval(const Operator_t&, PsiRBM&, MonteCarlo_tt<PauliString>&, false_t);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
 template void TDVP::eval(const Operator_t&, PsiCNN&, MonteCarlo_tt<PauliString>&, false_t);
@@ -376,6 +382,9 @@ template void TDVP::eval(const Operator_t&, PsiClassicalANN<2u>&, MonteCarlo_tt<
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
 template void TDVP::eval(const Operator_t&, PsiDeep&, ExactSummation_t<Spins>&, false_t);
 #endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
+template void TDVP::eval(const Operator_t&, PsiRBM&, ExactSummation_t<Spins>&, false_t);
+#endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
 template void TDVP::eval(const Operator_t&, PsiCNN&, ExactSummation_t<Spins>&, false_t);
 #endif
@@ -396,6 +405,9 @@ template void TDVP::eval(const Operator_t&, PsiClassicalANN<2u>&, ExactSummation
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
 template void TDVP::eval(const Operator_t&, PsiDeep&, ExactSummation_t<PauliString>&, false_t);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
+template void TDVP::eval(const Operator_t&, PsiRBM&, ExactSummation_t<PauliString>&, false_t);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
 template void TDVP::eval(const Operator_t&, PsiCNN&, ExactSummation_t<PauliString>&, false_t);

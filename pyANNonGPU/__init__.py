@@ -10,6 +10,14 @@ except ImportError:
     pass
 
 try:
+    from .PsiRBM import PsiRBM
+
+    from .new_RBM import new_RBM
+
+except ImportError:
+    pass
+
+try:
     from .PsiCNN import PsiCNN
 
     from .new_convolutional_network import (

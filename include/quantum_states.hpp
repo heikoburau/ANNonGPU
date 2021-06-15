@@ -17,3 +17,6 @@
 #include "quantum_state/PsiClassical.hpp"
 #endif  // ENABLE_PSI_CLASSICAL
 
+#ifdef ENABLE_PSI_RBM
+#include "quantum_state/PsiRBM.hpp"
+#endif // ENABLE_PSI_RBM

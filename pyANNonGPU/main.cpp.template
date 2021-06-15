@@ -115,6 +115,46 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 
     #endif // ENABLE_PSI_DEEP
 
+    #ifdef ENABLE_PSI_RBM
+
+    py::class_<PsiRBM>(m, "PsiRBM")
+        .def(py::init<
+            const std_tensor<PsiRBM::dtype, 2u>&,
+            const std::complex<double>,
+            const std::complex<double>,
+            const bool
+        >())
+        .def("copy", &PsiRBM::copy)
+        .def_readwrite("num_sites", &PsiRBM::N)
+        .def_property(
+            "log_prefactor",
+            [](const PsiRBM& psi) {return cuda_complex::to_std(psi.log_prefactor);},
+            [](PsiRBM& psi, typename std_dtype<PsiRBM::dtype>::type value) {psi.log_prefactor = PsiRBM::dtype(value);}
+        )
+        .def_readonly("gpu", &PsiRBM::gpu)
+        .def_readonly("N", &PsiRBM::N)
+        .def_readonly("M", &PsiRBM::M)
+        .def_property_readonly("num_params", [](const PsiRBM& psi){return psi.W.size();})
+        .def_property(
+            "params",
+            [](const PsiRBM& psi) {return psi.get_params().to_pytensor_1d();},
+            [](PsiRBM& psi, const std_tensor<PsiRBM::dtype, 1u> new_params) { // reference is to pytensor leads to undefined behavior
+                psi.set_params(Array<PsiRBM::dtype>(new_params, false));
+            }
+        )
+        .def_property_readonly("symmetric", [](const PsiRBM& psi){return psi.is_symmetric();})
+        .def_property_readonly("W", [](const PsiRBM& psi){return psi.W.to_pytensor_1d();})
+        .def_readonly("final_weight", &PsiRBM::final_weight)
+        #ifdef ENABLE_EXACT_SUMMATION
+        //! begin template
+        .def("_vector", [](PsiRBM& psi, ExactSummation_t<Basis>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
+        .def("norm", [](PsiRBM& psi, ExactSummation_t<Basis>& exact_summation) {return psi_norm(psi, exact_summation);})
+        //! end template
+        #endif // ENABLE_EXACT_SUMMATION
+        ;
+
+    #endif // ENABLE_PSI_RBM
+
     #ifdef ENABLE_PSI_CNN
 
     py::class_<PsiCNN>(m, "PsiCNN")

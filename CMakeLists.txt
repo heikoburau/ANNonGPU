@@ -146,6 +146,11 @@ if (ENABLE_PSI_EXACT)
   target_compile_definitions(ANNonGPU PUBLIC ENABLE_PSI_EXACT)
 endif()
 
+option(ENABLE_PSI_RBM "enable PsiRBM" OFF)
+if (ENABLE_PSI_RBM)
+  target_compile_definitions(ANNonGPU PUBLIC ENABLE_PSI_RBM)
+endif()
+
 option(LEAN_AND_MEAN "compile a light version missing some heavy network functions" OFF)
 if (LEAN_AND_MEAN)
   target_compile_definitions(ANNonGPU PUBLIC LEAN_AND_MEAN)
