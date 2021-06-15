@@ -122,6 +122,36 @@
                 ],
                 "code": "PsiClassicalANN<2u>"
             }
+        ],
+        "FastPsi": [
+            {
+                "flag": "ENABLE_PSI_RBM",
+                "code": "PsiRBM"
+            },
+            {
+                "flag": "ENABLE_PSI_CLASSICAL",
+                "code": "PsiClassicalFP<1u>",
+                "name": "PsiClassicalFP_1"
+            },
+            {
+                "flag": "ENABLE_PSI_CLASSICAL",
+                "code": "PsiClassicalFP<2u>",
+                "name": "PsiClassicalFP_2"
+            },
+            {
+                "flag": [
+                    "ENABLE_PSI_CLASSICAL",
+                    "ENABLE_PSI_CLASSICAL_ANN"
+                ],
+                "code": "PsiClassicalANN<1u>"
+            },
+            {
+                "flag": [
+                    "ENABLE_PSI_CLASSICAL",
+                    "ENABLE_PSI_CLASSICAL_ANN"
+                ],
+                "code": "PsiClassicalANN<2u>"
+            }
         ]
     }
 }

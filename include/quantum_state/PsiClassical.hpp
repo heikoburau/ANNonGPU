@@ -74,14 +74,13 @@ struct PsiClassical_t {
             this->psi_ref.init_payload(payload.ref_payload, configuration, conf_idx);
         }
 
-        // MULTI(n, this->num_ops_H) {
-        //     this->H_local[n].fast_local_energy(
-        //         payload.local_energies[n],
-        //         configuration
-        //     );
-        // }
-
-        // SYNC; // might not be neccessary
+        MULTI(n, this->num_ops_H) {
+            this->H_local[n].fast_local_energy(
+                payload.local_energies[n],
+                configuration
+            );
+        }
+        SYNC; // might not be neccessary
     }
 
     template<typename result_dtype, typename Basis_t>
@@ -93,13 +92,8 @@ struct PsiClassical_t {
         SINGLE {
             result = this->log_prefactor;
         }
-
-        // this->init_payload(payload, configuration, 0u);
+        SYNC;
         MULTI(n, this->num_ops_H) {
-            this->H_local[n].fast_local_energy(
-                payload.local_energies[n],
-                configuration
-            );
             generic_atomicAdd(&result, this->params[n] * payload.local_energies[n]);
         }
         SYNC;
@@ -119,6 +113,13 @@ struct PsiClassical_t {
     HDINLINE void update_input_units(
         const Basis_t& old_vector, const Basis_t& new_vector, Payload& payload
     ) const {
+        MULTI(n, this->num_ops_H) {
+            this->H_local[n].fast_local_energy(
+                payload.local_energies[n],
+                new_vector
+            );
+        }
+
         if(order > 1u) {
             this->psi_ref.update_input_units(old_vector, new_vector, payload.ref_payload);
         }
