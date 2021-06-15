@@ -134,7 +134,7 @@ void TDVP::compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble
 
                     generic_atomicAdd(&O_k_ptr[k], weight * O_k);
                     generic_atomicAdd(&F_ptr[k], weight * local_energy * conj(O_k));
-                    generic_atomicAdd(&O_k_samples_ptr[index * num_params + k], O_k);
+                    O_k_samples_ptr[index * num_params + k] = O_k;
                 }
             );
         }
@@ -165,9 +165,9 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, use_psi_re
     this->O_k_ar.clear();
     this->S_matrix.clear();
     this->F_vector.clear();
-    this->O_k_samples->clear();
+    // this->O_k_samples->clear();
     // this->E_local_samples->clear();
-    this->total_weight.clear();
+    // this->total_weight.clear();
 
     this->compute_averages(op, psi, ensemble, use_psi_ref);
 
