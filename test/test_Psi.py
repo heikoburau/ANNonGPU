@@ -2,11 +2,11 @@ from pyANNonGPU import (
     # PsiDeep,
     # PsiCNN,
     Spins,
-    # activation_function,
+    activation_function,
     # deep_activation,
     psi_O_k,
     log_psi_s,
-    ExactSummationSpins
+    # ExactSummationSpins
 )
 
 from pytest import approx
@@ -27,7 +27,7 @@ def complex_noise(shape):
     return real_noise(shape) + 1j * real_noise(shape)
 
 
-def _test_psi_deep_s(psi_deep, ensemble, gpu):
+def test_psi_deep_s(psi_deep, ensemble, gpu):
     psi = psi_deep(gpu)
 
     use_spins = ensemble.__name__.endswith("Spins")
@@ -84,7 +84,8 @@ def _test_psi_deep_s(psi_deep, ensemble, gpu):
                         sum(
                             w[i, j] * activations[(j * delta + i) % n]
                             for i in range(w.shape[0])
-                        ) + b[j]
+                        ) + b[j],
+                        0
                     )
                     for j in range(len(b))
                 ]

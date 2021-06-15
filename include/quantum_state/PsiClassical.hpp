@@ -70,16 +70,18 @@ struct PsiClassical_t {
     template<typename Basis_t>
     HDINLINE
     void init_payload(Payload& payload, const Basis_t& configuration, const unsigned int conf_idx) const {
-        this->psi_ref.init_payload(payload.ref_payload, configuration, conf_idx);
-
-        MULTI(n, this->num_ops_H) {
-            this->H_local[n].fast_local_energy(
-                payload.local_energies[n],
-                configuration
-            );
+        if(order > 1u) {
+            this->psi_ref.init_payload(payload.ref_payload, configuration, conf_idx);
         }
 
-        SYNC; // might not be neccessary
+        // MULTI(n, this->num_ops_H) {
+        //     this->H_local[n].fast_local_energy(
+        //         payload.local_energies[n],
+        //         configuration
+        //     );
+        // }
+
+        // SYNC; // might not be neccessary
     }
 
     template<typename result_dtype, typename Basis_t>
@@ -92,11 +94,15 @@ struct PsiClassical_t {
             result = this->log_prefactor;
         }
 
-        this->init_payload(payload, configuration, 0u);
-
-        MULTI(k, this->num_ops_H) {
-            generic_atomicAdd(&result, this->params[k] * payload.local_energies[k]);
+        // this->init_payload(payload, configuration, 0u);
+        MULTI(n, this->num_ops_H) {
+            this->H_local[n].fast_local_energy(
+                payload.local_energies[n],
+                configuration
+            );
+            generic_atomicAdd(&result, this->params[n] * payload.local_energies[n]);
         }
+        SYNC;
 
         if(order > 1u) {
             this->psi_ref.log_psi_s(payload.log_psi_ref, configuration, payload.ref_payload);
@@ -113,7 +119,9 @@ struct PsiClassical_t {
     HDINLINE void update_input_units(
         const Basis_t& old_vector, const Basis_t& new_vector, Payload& payload
     ) const {
-
+        if(order > 1u) {
+            this->psi_ref.update_input_units(old_vector, new_vector, payload.ref_payload);
+        }
     }
 
     template<typename Basis_t, typename Function>

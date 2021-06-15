@@ -148,13 +148,9 @@ struct PsiDeepT {
     template<typename Basis_t>
     HDINLINE
     void init_payload(Payload& payload, const Basis_t& configuration, const unsigned int conf_idx) const {
-        // if(!symmetric) {
-        //     this->compute_angles(payload.angles, configuration);
-        // }
-    }
-
-    HDINLINE
-    void save_payload(Payload& payload) const {
+        if(!symmetric) {
+            this->compute_angles(payload.angles, configuration);
+        }
     }
 
     template<typename result_dtype>
@@ -219,7 +215,7 @@ struct PsiDeepT {
             //     result *= this->num_sites;
             // }
         }
-        this->compute_angles(payload.angles, configuration);
+        // this->compute_angles(payload.angles, configuration);
 
         // MULTI(i, this->N) {
         //     generic_atomicAdd(&result, result_dtype(configuration.network_unit_at(i)) * this->input_weights[i]);
@@ -228,14 +224,52 @@ struct PsiDeepT {
         this->forward_pass(result, payload.angles, payload.activations, nullptr);
     }
 
+#ifdef ENABLE_SPINS
+    template<typename Basis_t>
+    HDINLINE void update_input_units(
+        const Basis_t& old_vector, const Basis_t& new_vector, Payload& payload
+    ) const {
+        // CAUTION: This functions assumes that the first hidden layer is fully connected to the input units!
+
+        #include "cuda_kernel_defines.h"
+
+        if(symmetric) {
+            return;
+        }
+
+        // 'updated_units' must be shared
+        SHARED uint64_t     updated_units;
+        SHARED unsigned int unit_position;
+
+        SINGLE {
+            updated_units = old_vector.is_different(new_vector);
+            unit_position = first_bit_set(updated_units) - 1u;
+        }
+        SYNC;
+
+        while(updated_units) {
+            MULTI(j, this->layers[1].size) {
+                payload.angles[j] += (
+                    2.0 * new_vector[unit_position] * this->layers[1].weight(unit_position, j)
+                );
+            }
+            SYNC;
+            SINGLE {
+                updated_units &= ~(1lu << unit_position);
+                unit_position = first_bit_set(updated_units) - 1u;
+            }
+            SYNC;
+        }
+    }
+
+#else
 
     template<typename Basis_t>
     HDINLINE void update_input_units(
         const Basis_t& old_vector, const Basis_t& new_vector, Payload& payload
     ) const {
-        #include "cuda_kernel_defines.h"
-
     }
+#endif // ENABLE_SPINS
 
     template<typename Basis_t, typename Function>
     HDINLINE
