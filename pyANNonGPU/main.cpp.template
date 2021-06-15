@@ -143,7 +143,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             }
         )
         .def_property_readonly("symmetric", [](const PsiRBM& psi){return psi.is_symmetric();})
-        .def_property_readonly("W", [](const PsiRBM& psi){return psi.W.to_pytensor_1d();})
+        .def_property_readonly("W", [](const PsiRBM& psi){return psi.W.to_pytensor_2d({psi.N, psi.M});})
         .def_readonly("final_weight", &PsiRBM::final_weight)
         #ifdef ENABLE_EXACT_SUMMATION
         //! begin template

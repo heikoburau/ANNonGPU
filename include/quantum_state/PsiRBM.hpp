@@ -156,6 +156,12 @@ struct PsiRBM_t {
         }
     }
 
+    template<typename Basis_t>
+    HDINLINE
+    dtype get_O_k(const unsigned int k, const Basis_t& configuration, const Payload& payload) const {
+        return this->final_weight * my_tanh(payload.angles[k % this->M], 0) * configuration[k / this->M];
+    }
+
 #else
 
     template<typename Basis_t>
@@ -173,11 +179,11 @@ struct PsiRBM_t {
         dtype REGISTER(activation, this->max_width);
 
         MULTI(j, this->M) {
-            REGISTER(activation, j) = my_tanh(payload.angles[j], 0);
+            REGISTER(activation, j) = this->final_weight * my_tanh(payload.angles[j], 0);
 
             for(auto i = 0u; i < this->N; i++) {
                 function(
-                    j * this->M + i,
+                    i * this->M + j,
                     REGISTER(activation, j) * configuration[i]
                 );
             }
@@ -219,8 +225,9 @@ struct PsiRBM_t : public kernel::PsiRBM_t<dtype, symmetric> {
         W(other.W), gpu(other.gpu)
     {
         this->N = other.N;
-        this->num_sites = this->N;
         this->M = other.M;
+        this->num_sites = this->N;
+        this->num_params = this->N * this->M;
 
         this->final_weight = other.final_weight;
         this->log_prefactor = other.log_prefactor;
@@ -240,8 +247,9 @@ struct PsiRBM_t : public kernel::PsiRBM_t<dtype, symmetric> {
     {
 
         this->N = W.shape()[0];
-        this->num_sites = this->N;
         this->M = W.shape()[1];
+        this->num_sites = this->N;
+        this->num_params = this->N * this->M;
 
         this->final_weight = complex_t(final_weight);
         this->log_prefactor = complex_t(log_prefactor);

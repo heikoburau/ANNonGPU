@@ -87,7 +87,7 @@ void TDVP::compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble
     auto O_k_samples_ptr = this->O_k_samples->data();
     // auto E_local_samples_ptr = this->E_local_samples->data();
     auto weight_samples_ptr = this->weight_samples->data();
-    auto total_weight_ptr = this->total_weight.data();
+    // auto total_weight_ptr = this->total_weight.data();
 
     ensemble.foreach(
         psi,
@@ -110,8 +110,6 @@ void TDVP::compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble
 
                 weight_samples_ptr[index] = weight;
                 // E_local_samples_ptr[index] = local_energy;
-
-                // printf("%f, %f\n", local_energy.real(), local_energy.imag());
             }
 
             psi_kernel.init_payload(payload, configuration, index);
@@ -119,13 +117,6 @@ void TDVP::compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble
                 configuration,
                 payload,
                 [&](const unsigned int k, const complex_t& O_k) {
-
-                    // #ifdef __CUDA_ARCH__
-                    // if(blockIdx.x == 0 && threadIdx.x == 0) {
-                        // printf("%d, %f, %f\n", k, O_k.real(), O_k.imag());
-                    // }
-                    // #endif
-
                     generic_atomicAdd(&O_k_ptr[k], weight * O_k);
                     generic_atomicAdd(&F_ptr[k], weight * local_energy * conj(O_k));
                     O_k_samples_ptr[index * num_params + k] = O_k;
@@ -172,16 +163,12 @@ void TDVP::compute_averages_fast(const Operator_t& op, Psi_t& psi, Ensemble& ens
                     generic_atomicAdd(&O_k_ptr[k], weight * O_k);
                     generic_atomicAdd(&F_ptr[k], weight * local_energy * conj(O_k));
 
-                    psi_kernel.foreach_O_k(
-                        configuration,
-                        payload,
-                        [&](const unsigned int k_prime, const complex_t& O_k_prime) {
-                            generic_atomicAdd(
-                                &S_ptr[k * num_params + k_prime],
-                                weight * conj(O_k) * O_k_prime
-                            );
-                        }
-                    );
+                    for(auto k_prime = 0u; k_prime < num_params; k_prime++) {
+                        generic_atomicAdd(
+                            &S_ptr[k * num_params + k_prime],
+                            weight * conj(O_k) * psi_kernel.get_O_k(k_prime, configuration, payload)
+                        );
+                    }
                 }
             );
         }
@@ -284,16 +271,16 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, use_psi_re
         }
     };
 
-    // if(psi.gpu) {
-    //     cuda_kernel<<<ensemble.get_num_steps(), TILE_SIZE>>>(
-    //         [=] __device__ () {fill_S_matrix(blockIdx.x);}
-    //     );
-    // }
-    // else {
-    //     for(auto i = 0u; i < ensemble.get_num_steps(); i++) {
-    //         fill_S_matrix(i);
-    //     }
-    // }
+    if(psi.gpu) {
+        cuda_kernel<<<ensemble.get_num_steps(), TILE_SIZE>>>(
+            [=] __device__ () {fill_S_matrix(blockIdx.x);}
+        );
+    }
+    else {
+        for(auto i = 0u; i < ensemble.get_num_steps(); i++) {
+            fill_S_matrix(i);
+        }
+    }
 
     this->E_local.update_host();
     this->E2_local.update_host();
