@@ -352,10 +352,6 @@ template void TDVP::eval(const Operator_t&, ClPsi&, Ensemble<Basis>&, true_t);
 template void TDVP::eval(const Operator_t&, AllPsi&, Ensemble<Basis>&, false_t);
 //! end template
 
-//! begin template
-template void TDVP::eval_fast(const Operator_t&, FastPsi&, Ensemble<Basis>&);
-//! end template
-
 } // namespace ann_on_gpu
 
 

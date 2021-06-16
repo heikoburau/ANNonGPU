@@ -1605,66 +1605,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval", &TDVP::eval_py<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
 #endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
-        .def("eval_fast", &TDVP::eval_fast_py<PsiRBM, MonteCarlo_tt<Spins>>)
-#endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval_fast", &TDVP::eval_fast_py<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
-#endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval_fast", &TDVP::eval_fast_py<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
-#endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval_fast", &TDVP::eval_fast_py<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
-#endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval_fast", &TDVP::eval_fast_py<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
-#endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
-        .def("eval_fast", &TDVP::eval_fast_py<PsiRBM, MonteCarlo_tt<PauliString>>)
-#endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval_fast", &TDVP::eval_fast_py<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
-#endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval_fast", &TDVP::eval_fast_py<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
-#endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval_fast", &TDVP::eval_fast_py<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
-#endif
-#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval_fast", &TDVP::eval_fast_py<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
-        .def("eval_fast", &TDVP::eval_fast_py<PsiRBM, ExactSummation_t<Spins>>)
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval_fast", &TDVP::eval_fast_py<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval_fast", &TDVP::eval_fast_py<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval_fast", &TDVP::eval_fast_py<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval_fast", &TDVP::eval_fast_py<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
-        .def("eval_fast", &TDVP::eval_fast_py<PsiRBM, ExactSummation_t<PauliString>>)
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval_fast", &TDVP::eval_fast_py<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-        .def("eval_fast", &TDVP::eval_fast_py<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval_fast", &TDVP::eval_fast_py<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
-#endif
-#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-        .def("eval_fast", &TDVP::eval_fast_py<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
-#endif
         ;
 
 #endif // LEAN_AND_MEAN

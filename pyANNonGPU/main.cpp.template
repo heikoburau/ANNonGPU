@@ -482,9 +482,6 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         //! begin template
         .def("eval", &TDVP::eval_py<AllPsi, Ensemble<Basis>>)
         //! end template
-        //! begin template
-        .def("eval_fast", &TDVP::eval_fast_py<FastPsi, Ensemble<Basis>>)
-        //! end template
         ;
 
 #endif // LEAN_AND_MEAN
