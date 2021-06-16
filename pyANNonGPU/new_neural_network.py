@@ -32,7 +32,6 @@ def new_deep_neural_network(
     gpu=False,
     noise_modulation="auto",
     final_weights=10,
-    random_couplings=False
 ):
     dim = len(N) if isinstance(N, (list, tuple)) else 1
 
@@ -40,16 +39,15 @@ def new_deep_neural_network(
     M_linear = M if dim == 1 else [m[0] * m[1] for m in M]
     C_linear = C if dim == 1 else [c[0] * c[1] for c in C]
 
-    if not random_couplings:
-        for n, m, c in zip([N] + M[:-1], M, C):
-            if dim == 1:
-                assert (m * c) % n == 0
-                assert c <= n
-            elif dim == 2:
-                assert (m[0] * c[0]) % n[0] == 0
-                assert (m[1] * c[1]) % n[1] == 0
-                assert c[0] <= n[0]
-                assert c[1] <= n[1]
+    for n, m, c in zip([N] + M[:-1], M, C):
+        if dim == 1:
+            assert (m * c) % n == 0
+            assert c <= n
+        elif dim == 2:
+            assert (m[0] * c[0]) % n[0] == 0
+            assert (m[1] * c[1]) % n[1] == 0
+            assert c[0] <= n[0]
+            assert c[1] <= n[1]
 
     if isinstance(a, (float, int, complex)):
         a = a * np.ones(N_linear)
@@ -89,21 +87,15 @@ def new_deep_neural_network(
     connections = []
     for n, m, c in zip([N] + M[:-1], M, C):
         if dim == 1:
-            if random_couplings:
-                connections.append(np.array([
-                    np.random.choice(range(n), c, replace=False)
-                    for j in range(m)
-                ]).T)
-            else:
-                delta_j = delta_func(n, m, c)
+            delta_j = delta_func(n, m, c)
 
-                connections.append(np.array([
-                    [
-                        (j * delta_j + i) % n
-                        for j in range(m)
-                    ]
-                    for i in range(c)
-                ]))
+            connections.append(np.array([
+                [
+                    (j * delta_j + i) % n
+                    for j in range(m)
+                ]
+                for i in range(c)
+            ]))
         elif dim == 2:
             range2D = lambda area: product(range(area[0]), range(area[1]))
             linear_idx = lambda row, col: row * n[0] + col
