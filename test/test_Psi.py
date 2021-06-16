@@ -77,15 +77,13 @@ def test_psi_deep_s(psi_deep, ensemble, gpu):
                 else:
                     delta = w.shape[0]
 
-                fun = activation_function if layer == 0 else deep_activation
-
                 activations = [
-                    fun(
+                    activation_function(
                         sum(
                             w[i, j] * activations[(j * delta + i) % n]
                             for i in range(w.shape[0])
                         ) + b[j],
-                        0
+                        layer
                     )
                     for j in range(len(b))
                 ]
@@ -94,7 +92,7 @@ def test_psi_deep_s(psi_deep, ensemble, gpu):
 
         psi_s_ref = cmath.exp(log_psi_s_ref / (psi.num_sites if psi.symmetric else 1))
 
-        assert psi_vector[conf_idx] == approx(psi_s_ref)
+        assert psi_vector[conf_idx] == approx(psi_s_ref, 1e-4)
 
 
 def _test_psi_classical_s(psi_classical, gpu):
