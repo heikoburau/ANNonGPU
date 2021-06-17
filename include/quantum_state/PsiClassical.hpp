@@ -38,7 +38,6 @@ namespace PsiClassicalPayload {
 template<typename PsiRefPayload>
 struct Payload_t {
     complex_t       log_psi_ref;
-    complex_t       local_energies[200];
 
     PsiRefPayload   ref_payload;
 };
@@ -73,13 +72,6 @@ struct PsiClassical_t {
         if(order > 1u) {
             this->psi_ref.init_payload(payload.ref_payload, configuration, conf_idx);
         }
-
-        MULTI(n, this->num_ops_H) {
-            this->H_local[n].fast_local_energy(
-                payload.local_energies[n],
-                configuration
-            );
-        }
         SYNC; // might not be neccessary
     }
 
@@ -93,8 +85,11 @@ struct PsiClassical_t {
             result = this->log_prefactor;
         }
         SYNC;
-        MULTI(n, this->num_ops_H) {
-            generic_atomicAdd(&result, this->params[n] * payload.local_energies[n]);
+        LOOP(n, this->num_ops_H) {
+            generic_atomicAdd(
+                &result,
+                this->params[n] * this->H_local[n].fast_local_energy(configuration)
+            );
         }
         SYNC;
 
@@ -113,13 +108,6 @@ struct PsiClassical_t {
     HDINLINE void update_input_units(
         const Basis_t& old_vector, const Basis_t& new_vector, Payload& payload
     ) const {
-        MULTI(n, this->num_ops_H) {
-            this->H_local[n].fast_local_energy(
-                payload.local_energies[n],
-                new_vector
-            );
-        }
-
         if(order > 1u) {
             this->psi_ref.update_input_units(old_vector, new_vector, payload.ref_payload);
         }
@@ -130,8 +118,11 @@ struct PsiClassical_t {
     void foreach_O_k(const Basis_t& configuration, Payload& payload, Function function) const {
         #include "cuda_kernel_defines.h"
 
-        MULTI(k, this->num_ops_H) {
-            function(k, payload.local_energies[k]);
+        LOOP(n, this->num_ops_H) {
+            function(
+                n,
+                this->H_local[n].fast_local_energy(configuration)
+            );
         }
 
         if(order > 1u) {
@@ -159,7 +150,7 @@ struct PsiClassical_t {
 
     HDINLINE
     unsigned int get_width() const {
-        return max(this->num_ops_H, this->psi_ref.get_width());
+        return min(512u, max(this->num_ops_H, this->psi_ref.get_width()));
     }
 
     HDINLINE unsigned int get_num_input_units() const {

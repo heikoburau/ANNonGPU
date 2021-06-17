@@ -118,15 +118,16 @@ struct Operator {
 
     template<typename Basis_t>
     HDINLINE
-    void fast_local_energy(
-        complex_t& result,
+    complex_t fast_local_energy(
         const Basis_t& configuration
     ) const {
-        result = complex_t(0.0);
+        complex_t result(0.0);
 
         for(auto n = 0u; n < this->num_strings; n++) {
             result += this->coefficients[n] * this->pauli_strings[n].apply(configuration).coefficient;
         }
+
+        return result;
     }
 
     template<typename Basis_t>
