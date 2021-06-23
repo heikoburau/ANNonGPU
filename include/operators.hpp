@@ -7,7 +7,7 @@
 #include "operator/SuperOperator.hpp"
 
 namespace ann_on_gpu {
-    using Operator_t = SuperOperator;
+    using Operator = SuperOperator;
 } // namespace ann_on_gpu
 
 #else
@@ -15,7 +15,7 @@ namespace ann_on_gpu {
 #include "operator/Operator.hpp"
 
 namespace ann_on_gpu {
-    using Operator_t = Operator;
+    using Operator = Operator;
 } // namespace ann_on_gpu
 
 

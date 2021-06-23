@@ -6,62 +6,96 @@
 
 namespace ann_on_gpu {
 
-using quantum_expression::PauliExpression;
+using quantum_expression::QuantumExpression;
 using quantum_expression::FastPauliString;
+using quantum_expression::FermionString;
 
+#ifdef ENABLE_SPINS
 
-Operator::Operator(
-    const PauliExpression& expr,
+template<>
+template<typename expr_t>
+StandartOperator<PauliString>::StandartOperator(
+    const expr_t& expr,
     const bool gpu
-) : gpu(gpu), coefficients_ar(expr.size(), gpu), pauli_strings_ar(expr.size(), gpu) {
+) : gpu(gpu), coefficients(expr.size(), gpu), quantum_strings(expr.size(), gpu) {
 
     auto i = 0u;
     for(const auto& term : expr) {
-        this->coefficients_ar[i] = term.second;
-        this->pauli_strings_ar[i] = PauliString(term.first.a, term.first.b);
+        this->coefficients[i] = term.second;
+        this->quantum_strings[i] = PauliString(term.first.a, term.first.b);
 
         i++;
     }
 
-    this->coefficients_ar.update_device();
-    this->pauli_strings_ar.update_device();
+    this->coefficients.update_device();
+    this->quantum_strings.update_device();
 
-    this->coefficients = this->coefficients_ar.data();
-    this->pauli_strings = this->pauli_strings_ar.data();
-    this->num_strings = expr.size();
+    this->kernel().num_strings = expr.size();
+    this->kernel().coefficients = this->coefficients.data();
+    this->kernel().quantum_strings = this->quantum_strings.data();
 }
 
-PauliExpression Operator::to_expr() const {
-    PauliExpression result;
+#endif // ENABLE_SPINS
 
-    for(auto i = 0u; i < this->coefficients_ar.size(); i++) {
-        const auto coefficient = this->coefficients_ar[i];
-        const auto pauli_string = this->pauli_strings_ar[i];
 
-        result += PauliExpression(
-            FastPauliString(pauli_string.a, pauli_string.b),
-            coefficient.to_std()
-        );
+#ifdef ENABLE_FERMIONS
+
+template<>
+template<typename expr_t>
+StandartOperator<Fermions>::StandartOperator(
+    const expr_t& expr,
+    const bool gpu
+) : gpu(gpu), coefficients(expr.size(), gpu), quantum_strings(expr.size(), gpu) {
+
+    auto i = 0u;
+    for(const auto& term : expr) {
+        this->coefficients[i] = term.second;
+        this->quantum_strings[i] = FermionicString(term.first);
+
+        i++;
     }
 
-    return result;
+    this->coefficients.update_device();
+    this->quantum_strings.update_device();
+
+    this->kernel().num_strings = expr.size();
+    this->kernel().coefficients = this->coefficients.data();
+    this->kernel().quantum_strings = this->quantum_strings.data();
 }
 
-vector<PauliExpression> Operator::to_expr_list() const {
-    vector<PauliExpression> result;
+#endif  // ENABLE_FERMIONS
 
-    for(auto i = 0u; i < this->coefficients_ar.size(); i++) {
-        const auto coefficient = this->coefficients_ar[i];
-        const auto pauli_string = this->pauli_strings_ar[i];
+// PauliExpression Operator::to_expr() const {
+//     PauliExpression result;
 
-        result.push_back(PauliExpression(
-            FastPauliString(pauli_string.a, pauli_string.b),
-            coefficient.to_std()
-        ));
-    }
+//     for(auto i = 0u; i < this->coefficients_ar.size(); i++) {
+//         const auto coefficient = this->coefficients_ar[i];
+//         const auto pauli_string = this->pauli_strings_ar[i];
 
-    return result;
-}
+//         result += PauliExpression(
+//             FastPauliString(pauli_string.a, pauli_string.b),
+//             coefficient.to_std()
+//         );
+//     }
+
+//     return result;
+// }
+
+// vector<PauliExpression> Operator::to_expr_list() const {
+//     vector<PauliExpression> result;
+
+//     for(auto i = 0u; i < this->coefficients_ar.size(); i++) {
+//         const auto coefficient = this->coefficients_ar[i];
+//         const auto pauli_string = this->pauli_strings_ar[i];
+
+//         result.push_back(PauliExpression(
+//             FastPauliString(pauli_string.a, pauli_string.b),
+//             coefficient.to_std()
+//         ));
+//     }
+
+//     return result;
+// }
 
 
 } // namespace ann_on_gpu

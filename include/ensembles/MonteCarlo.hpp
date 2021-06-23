@@ -283,4 +283,24 @@ inline MonteCarloPaulis make_MonteCarloPaulis(
 #endif // ENABLE_PAULIS
 
 
+#ifdef ENABLE_FERMIONS
+using MonteCarloSpins = MonteCarlo_tt<Fermions>;
+
+#ifndef __CUDACC__
+inline MonteCarloFermions make_MonteCarloFermions(
+    const unsigned int  num_samples,
+    const unsigned int  num_sweeps,
+    const unsigned int  num_thermalization_sweeps,
+    const unsigned int  num_markov_chains,
+    const bool          gpu
+) {
+    return MonteCarloFermions(
+        num_samples, num_sweeps, num_thermalization_sweeps, num_markov_chains, Update_Policy<Fermions>(), gpu
+    );
+}
+#endif // __CUDACC__
+
+#endif // ENABLE_FERMIONS
+
+
 } // namespace ann_on_gpu

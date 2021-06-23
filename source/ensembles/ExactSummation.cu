@@ -54,6 +54,10 @@ template struct ExactSummation_t<Spins>;
 template struct ExactSummation_t<PauliString>;
 #endif // ENABLE_PAULIS
 
+#ifdef ENABLE_FERMIONS
+template struct ExactSummation_t<Fermions>;
+#endif // ENABLE_FERMIONS
+
 } // namespace ann_on_gpu
 
 

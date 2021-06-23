@@ -259,7 +259,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<PsiClassicalFP<1u>>(m, "PsiClassicalFP_1")
         .def(py::init<
             const unsigned int,
-            const vector<Operator_t>&,
+            const vector<Operator>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalFP<1u>::PsiRef&,
             const std::complex<double>,
@@ -333,7 +333,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<PsiClassicalFP<2u>>(m, "PsiClassicalFP_2")
         .def(py::init<
             const unsigned int,
-            const vector<Operator_t>&,
+            const vector<Operator>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalFP<2u>::PsiRef&,
             const std::complex<double>,
@@ -407,7 +407,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<PsiClassicalANN<1u>>(m, "PsiClassicalANN_1")
         .def(py::init<
             const unsigned int,
-            const vector<Operator_t>&,
+            const vector<Operator>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalANN<1u>::PsiRef&,
             const std::complex<double>,
@@ -481,7 +481,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<PsiClassicalANN<2u>>(m, "PsiClassicalANN_2")
         .def(py::init<
             const unsigned int,
-            const vector<Operator_t>&,
+            const vector<Operator>&,
             const complex_tensor<1u>&,
             const typename PsiClassicalANN<2u>::PsiRef&,
             const std::complex<double>,
@@ -589,13 +589,19 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 
 #else
 
+
     py::class_<Operator>(m, "Operator")
         .def(py::init<
+            #ifdef ENABLE_SPINS
             const quantum_expression::PauliExpression&,
+            #endif
+            #ifdef ENABLE_FERMIONS
+            const quantum_expression::FermionExpression&,
+            #endif
             const bool
         >())
-        .def_property_readonly("expr", &Operator::to_expr)
-        .def_property_readonly("expr_list", &Operator::to_expr_list)
+        // .def_property_readonly("expr", &Operator::to_expr)
+        // .def_property_readonly("expr_list", &Operator::to_expr_list)
         .def_readonly("num_strings", &Operator::num_strings);
 
 #endif // USE_SUPER_OPERATOR
@@ -2176,162 +2182,162 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
-    m.def("apply_operator", [](PsiDeep& psi, const Operator_t& op, MonteCarlo_tt<Spins>& ensemble){
+    m.def("apply_operator", [](PsiDeep& psi, const Operator& op, MonteCarlo_tt<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
-    m.def("apply_operator", [](PsiRBM& psi, const Operator_t& op, MonteCarlo_tt<Spins>& ensemble){
+    m.def("apply_operator", [](PsiRBM& psi, const Operator& op, MonteCarlo_tt<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
-    m.def("apply_operator", [](PsiCNN& psi, const Operator_t& op, MonteCarlo_tt<Spins>& ensemble){
+    m.def("apply_operator", [](PsiCNN& psi, const Operator& op, MonteCarlo_tt<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-    m.def("apply_operator", [](PsiFullyPolarized& psi, const Operator_t& op, MonteCarlo_tt<Spins>& ensemble){
+    m.def("apply_operator", [](PsiFullyPolarized& psi, const Operator& op, MonteCarlo_tt<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-    m.def("apply_operator", [](PsiClassicalFP<1u>& psi, const Operator_t& op, MonteCarlo_tt<Spins>& ensemble){
+    m.def("apply_operator", [](PsiClassicalFP<1u>& psi, const Operator& op, MonteCarlo_tt<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-    m.def("apply_operator", [](PsiClassicalFP<2u>& psi, const Operator_t& op, MonteCarlo_tt<Spins>& ensemble){
+    m.def("apply_operator", [](PsiClassicalFP<2u>& psi, const Operator& op, MonteCarlo_tt<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-    m.def("apply_operator", [](PsiClassicalANN<1u>& psi, const Operator_t& op, MonteCarlo_tt<Spins>& ensemble){
+    m.def("apply_operator", [](PsiClassicalANN<1u>& psi, const Operator& op, MonteCarlo_tt<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-    m.def("apply_operator", [](PsiClassicalANN<2u>& psi, const Operator_t& op, MonteCarlo_tt<Spins>& ensemble){
+    m.def("apply_operator", [](PsiClassicalANN<2u>& psi, const Operator& op, MonteCarlo_tt<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
-    m.def("apply_operator", [](PsiDeep& psi, const Operator_t& op, MonteCarlo_tt<PauliString>& ensemble){
+    m.def("apply_operator", [](PsiDeep& psi, const Operator& op, MonteCarlo_tt<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
-    m.def("apply_operator", [](PsiRBM& psi, const Operator_t& op, MonteCarlo_tt<PauliString>& ensemble){
+    m.def("apply_operator", [](PsiRBM& psi, const Operator& op, MonteCarlo_tt<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
-    m.def("apply_operator", [](PsiCNN& psi, const Operator_t& op, MonteCarlo_tt<PauliString>& ensemble){
+    m.def("apply_operator", [](PsiCNN& psi, const Operator& op, MonteCarlo_tt<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-    m.def("apply_operator", [](PsiFullyPolarized& psi, const Operator_t& op, MonteCarlo_tt<PauliString>& ensemble){
+    m.def("apply_operator", [](PsiFullyPolarized& psi, const Operator& op, MonteCarlo_tt<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-    m.def("apply_operator", [](PsiClassicalFP<1u>& psi, const Operator_t& op, MonteCarlo_tt<PauliString>& ensemble){
+    m.def("apply_operator", [](PsiClassicalFP<1u>& psi, const Operator& op, MonteCarlo_tt<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-    m.def("apply_operator", [](PsiClassicalFP<2u>& psi, const Operator_t& op, MonteCarlo_tt<PauliString>& ensemble){
+    m.def("apply_operator", [](PsiClassicalFP<2u>& psi, const Operator& op, MonteCarlo_tt<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-    m.def("apply_operator", [](PsiClassicalANN<1u>& psi, const Operator_t& op, MonteCarlo_tt<PauliString>& ensemble){
+    m.def("apply_operator", [](PsiClassicalANN<1u>& psi, const Operator& op, MonteCarlo_tt<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-    m.def("apply_operator", [](PsiClassicalANN<2u>& psi, const Operator_t& op, MonteCarlo_tt<PauliString>& ensemble){
+    m.def("apply_operator", [](PsiClassicalANN<2u>& psi, const Operator& op, MonteCarlo_tt<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
-    m.def("apply_operator", [](PsiDeep& psi, const Operator_t& op, ExactSummation_t<Spins>& ensemble){
+    m.def("apply_operator", [](PsiDeep& psi, const Operator& op, ExactSummation_t<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
-    m.def("apply_operator", [](PsiRBM& psi, const Operator_t& op, ExactSummation_t<Spins>& ensemble){
+    m.def("apply_operator", [](PsiRBM& psi, const Operator& op, ExactSummation_t<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
-    m.def("apply_operator", [](PsiCNN& psi, const Operator_t& op, ExactSummation_t<Spins>& ensemble){
+    m.def("apply_operator", [](PsiCNN& psi, const Operator& op, ExactSummation_t<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-    m.def("apply_operator", [](PsiFullyPolarized& psi, const Operator_t& op, ExactSummation_t<Spins>& ensemble){
+    m.def("apply_operator", [](PsiFullyPolarized& psi, const Operator& op, ExactSummation_t<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-    m.def("apply_operator", [](PsiClassicalFP<1u>& psi, const Operator_t& op, ExactSummation_t<Spins>& ensemble){
+    m.def("apply_operator", [](PsiClassicalFP<1u>& psi, const Operator& op, ExactSummation_t<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-    m.def("apply_operator", [](PsiClassicalFP<2u>& psi, const Operator_t& op, ExactSummation_t<Spins>& ensemble){
+    m.def("apply_operator", [](PsiClassicalFP<2u>& psi, const Operator& op, ExactSummation_t<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-    m.def("apply_operator", [](PsiClassicalANN<1u>& psi, const Operator_t& op, ExactSummation_t<Spins>& ensemble){
+    m.def("apply_operator", [](PsiClassicalANN<1u>& psi, const Operator& op, ExactSummation_t<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-    m.def("apply_operator", [](PsiClassicalANN<2u>& psi, const Operator_t& op, ExactSummation_t<Spins>& ensemble){
+    m.def("apply_operator", [](PsiClassicalANN<2u>& psi, const Operator& op, ExactSummation_t<Spins>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
-    m.def("apply_operator", [](PsiDeep& psi, const Operator_t& op, ExactSummation_t<PauliString>& ensemble){
+    m.def("apply_operator", [](PsiDeep& psi, const Operator& op, ExactSummation_t<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
-    m.def("apply_operator", [](PsiRBM& psi, const Operator_t& op, ExactSummation_t<PauliString>& ensemble){
+    m.def("apply_operator", [](PsiRBM& psi, const Operator& op, ExactSummation_t<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
-    m.def("apply_operator", [](PsiCNN& psi, const Operator_t& op, ExactSummation_t<PauliString>& ensemble){
+    m.def("apply_operator", [](PsiCNN& psi, const Operator& op, ExactSummation_t<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-    m.def("apply_operator", [](PsiFullyPolarized& psi, const Operator_t& op, ExactSummation_t<PauliString>& ensemble){
+    m.def("apply_operator", [](PsiFullyPolarized& psi, const Operator& op, ExactSummation_t<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-    m.def("apply_operator", [](PsiClassicalFP<1u>& psi, const Operator_t& op, ExactSummation_t<PauliString>& ensemble){
+    m.def("apply_operator", [](PsiClassicalFP<1u>& psi, const Operator& op, ExactSummation_t<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-    m.def("apply_operator", [](PsiClassicalFP<2u>& psi, const Operator_t& op, ExactSummation_t<PauliString>& ensemble){
+    m.def("apply_operator", [](PsiClassicalFP<2u>& psi, const Operator& op, ExactSummation_t<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-    m.def("apply_operator", [](PsiClassicalANN<1u>& psi, const Operator_t& op, ExactSummation_t<PauliString>& ensemble){
+    m.def("apply_operator", [](PsiClassicalANN<1u>& psi, const Operator& op, ExactSummation_t<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-    m.def("apply_operator", [](PsiClassicalANN<2u>& psi, const Operator_t& op, ExactSummation_t<PauliString>& ensemble){
+    m.def("apply_operator", [](PsiClassicalANN<2u>& psi, const Operator& op, ExactSummation_t<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif

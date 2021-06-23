@@ -1,6 +1,8 @@
 #include "operators.hpp"
 #include "basis/Spins.h"
+#include "basis/Fermions.hpp"
 #include "basis/PauliString.hpp"
+#include "basis/FermionicString.hpp"
 #include "operator/SparseMatrix.hpp"
 #include "Array.hpp"
 #include <algorithm>
@@ -128,8 +130,10 @@ template class Array<double>;
 template class Array<complex_t>;
 template class Array<cuda_complex::complex<float>>;
 template class Array<Spins>;
+template class Array<Fermions>;
 template class Array<PauliString>;
+template class Array<FermionicString>;
 template class Array<SparseMatrix>;
-template class Array<typename Operator_t::Kernel>;
+template class Array<typename Operator::Kernel>;
 
 } // namespace ann_on_gpu

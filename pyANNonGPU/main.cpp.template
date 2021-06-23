@@ -237,7 +237,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     py::class_<ClPsi>(m, "ClPsi{name}")
         .def(py::init<
             const unsigned int,
-            const vector<Operator_t>&,
+            const vector<Operator>&,
             const complex_tensor<1u>&,
             const typename ClPsi::PsiRef&,
             const std::complex<double>,
@@ -345,13 +345,19 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 
 #else
 
+
     py::class_<Operator>(m, "Operator")
         .def(py::init<
+            #ifdef ENABLE_SPINS
             const quantum_expression::PauliExpression&,
+            #endif
+            #ifdef ENABLE_FERMIONS
+            const quantum_expression::FermionExpression&,
+            #endif
             const bool
         >())
-        .def_property_readonly("expr", &Operator::to_expr)
-        .def_property_readonly("expr_list", &Operator::to_expr_list)
+        // .def_property_readonly("expr", &Operator::to_expr)
+        // .def_property_readonly("expr_list", &Operator::to_expr_list)
         .def_readonly("num_strings", &Operator::num_strings);
 
 #endif // USE_SUPER_OPERATOR
@@ -517,7 +523,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
     //! end template
 
     //! begin template
-    m.def("apply_operator", [](AllPsi& psi, const Operator_t& op, Ensemble<Basis>& ensemble){
+    m.def("apply_operator", [](AllPsi& psi, const Operator& op, Ensemble<Basis>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
     //! end template

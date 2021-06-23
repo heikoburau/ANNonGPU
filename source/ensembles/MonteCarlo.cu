@@ -75,6 +75,13 @@ template struct MonteCarlo_t<PauliString, Init_Policy<PauliString>, Update_Polic
 #endif // ENABLE_PAULIS
 
 
+#ifdef ENABLE_FERMIONS
+
+template struct MonteCarlo_t<Fermions, Init_Policy<Fermions>, Update_Policy<Fermions>>;
+
+#endif // ENABLE_FERMIONS
+
+
 } // namespace ann_on_gpu
 
 

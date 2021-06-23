@@ -24,7 +24,7 @@ ExpectationValue::ExpectationValue(const bool gpu)
 
 template<typename Psi_t, typename Ensemble>
 complex<double> ExpectationValue::operator()(
-    const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble
+    const Operator& operator_, Psi_t& psi, Ensemble& ensemble
 ) {
     this->A_local.clear();
     auto A_local_ptr = this->A_local.data();
@@ -56,7 +56,7 @@ complex<double> ExpectationValue::operator()(
 }
 
 template<typename Psi_t, typename Ensemble>
-complex<double> ExpectationValue::exp_sigma_z(const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble) {
+complex<double> ExpectationValue::exp_sigma_z(const Operator& operator_, Psi_t& psi, Ensemble& ensemble) {
     this->A_local.clear();
     auto A_local_ptr = this->A_local.data();
     auto psi_kernel = psi.kernel();
@@ -88,7 +88,7 @@ complex<double> ExpectationValue::exp_sigma_z(const Operator_t& operator_, Psi_t
 
 template<typename Psi_t, typename Ensemble>
 Array<complex_t> ExpectationValue::operator()(
-    const vector<Operator_t>& operator_array, Psi_t& psi, Ensemble& ensemble
+    const vector<Operator>& operator_array, Psi_t& psi, Ensemble& ensemble
 ) {
     Array<complex_t> result(operator_array.size(), psi.gpu);
     result.clear();
@@ -96,7 +96,7 @@ Array<complex_t> ExpectationValue::operator()(
 
     auto psi_kernel = psi.kernel();
 
-    Array<typename Operator_t::Kernel> operator_kernel_array(operator_array.size(), psi.gpu);
+    Array<typename Operator::Kernel> operator_kernel_array(operator_array.size(), psi.gpu);
     for(auto i = 0u; i < operator_array.size(); i++) {
         operator_kernel_array[i] = operator_array[i].kernel();
     }
@@ -135,7 +135,7 @@ Array<complex_t> ExpectationValue::operator()(
 
 template<typename Psi_t, typename PsiSampling_t, typename Ensemble>
 complex<double> ExpectationValue::operator()(
-    const Operator_t& operator_, Psi_t& psi, PsiSampling_t& psi_sampling, Ensemble& ensemble
+    const Operator& operator_, Psi_t& psi, PsiSampling_t& psi_sampling, Ensemble& ensemble
 ) {
     this->A_local.clear();
     this->prob_ratio.clear();
@@ -180,7 +180,7 @@ complex<double> ExpectationValue::operator()(
 
 template<typename Psi_t, typename Ensemble>
 pair<double, complex<double>> ExpectationValue::fluctuation(
-    const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble
+    const Operator& operator_, Psi_t& psi, Ensemble& ensemble
 ) {
 
     this->A_local.clear();
@@ -224,7 +224,7 @@ pair<double, complex<double>> ExpectationValue::fluctuation(
 
 template<typename Psi_t, typename Ensemble>
 pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(
-    const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble
+    const Operator& operator_, Psi_t& psi, Ensemble& ensemble
 ) {
     Array<complex_t> result(psi.num_params, psi.gpu);
     Array<complex_t> O_k_list(psi.num_params, psi.gpu);
@@ -283,7 +283,7 @@ pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(
 
 template<typename Psi_t, typename Ensemble>
 pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(
-    const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble
+    const Operator& operator_, Psi_t& psi, Ensemble& ensemble
 ) {
     Array<complex_t> result(psi.num_params, psi.gpu);
     Array<double> result2(psi.num_params, psi.gpu);
@@ -343,356 +343,356 @@ pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(
 }
 
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiDeep& psi, MonteCarlo_tt<Spins>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiDeep& psi, MonteCarlo_tt<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiDeep&, MonteCarlo_tt<Spins>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiDeep& psi, MonteCarlo_tt<Spins>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiDeep& psi, MonteCarlo_tt<Spins>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiDeep& psi, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiDeep& psi, MonteCarlo_tt<Spins>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiDeep& psi, MonteCarlo_tt<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiDeep&, MonteCarlo_tt<Spins>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiDeep& psi, MonteCarlo_tt<Spins>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiDeep& psi, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiDeep& psi, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiRBM& psi, MonteCarlo_tt<Spins>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiRBM& psi, MonteCarlo_tt<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiRBM&, MonteCarlo_tt<Spins>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiRBM& psi, MonteCarlo_tt<Spins>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiRBM& psi, MonteCarlo_tt<Spins>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiRBM& psi, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiRBM& psi, MonteCarlo_tt<Spins>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiRBM& psi, MonteCarlo_tt<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiRBM&, MonteCarlo_tt<Spins>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiRBM& psi, MonteCarlo_tt<Spins>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiRBM& psi, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiRBM& psi, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiCNN& psi, MonteCarlo_tt<Spins>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiCNN& psi, MonteCarlo_tt<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiCNN&, MonteCarlo_tt<Spins>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiCNN& psi, MonteCarlo_tt<Spins>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiCNN& psi, MonteCarlo_tt<Spins>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiCNN& psi, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiCNN& psi, MonteCarlo_tt<Spins>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiCNN& psi, MonteCarlo_tt<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiCNN&, MonteCarlo_tt<Spins>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiCNN& psi, MonteCarlo_tt<Spins>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiCNN& psi, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiCNN& psi, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiFullyPolarized& psi, MonteCarlo_tt<Spins>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiFullyPolarized& psi, MonteCarlo_tt<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiFullyPolarized&, MonteCarlo_tt<Spins>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiFullyPolarized& psi, MonteCarlo_tt<Spins>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiFullyPolarized& psi, MonteCarlo_tt<Spins>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiFullyPolarized& psi, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiFullyPolarized& psi, MonteCarlo_tt<Spins>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiFullyPolarized& psi, MonteCarlo_tt<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiFullyPolarized&, MonteCarlo_tt<Spins>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiFullyPolarized& psi, MonteCarlo_tt<Spins>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiFullyPolarized& psi, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiFullyPolarized& psi, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<Spins>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiClassicalFP<1u>&, MonteCarlo_tt<Spins>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<Spins>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<Spins>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<Spins>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalFP<1u>&, MonteCarlo_tt<Spins>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<Spins>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<Spins>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiClassicalFP<2u>&, MonteCarlo_tt<Spins>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<Spins>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<Spins>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<Spins>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalFP<2u>&, MonteCarlo_tt<Spins>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<Spins>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<Spins>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiClassicalANN<1u>&, MonteCarlo_tt<Spins>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<Spins>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<Spins>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<Spins>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalANN<1u>&, MonteCarlo_tt<Spins>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<Spins>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiClassicalANN<2u>&, MonteCarlo_tt<Spins>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalANN<2u>&, MonteCarlo_tt<Spins>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiDeep& psi, MonteCarlo_tt<PauliString>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiDeep& psi, MonteCarlo_tt<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiDeep&, MonteCarlo_tt<PauliString>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiDeep& psi, MonteCarlo_tt<PauliString>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiDeep& psi, MonteCarlo_tt<PauliString>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiDeep& psi, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiDeep& psi, MonteCarlo_tt<PauliString>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiDeep& psi, MonteCarlo_tt<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiDeep&, MonteCarlo_tt<PauliString>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiDeep& psi, MonteCarlo_tt<PauliString>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiDeep& psi, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiDeep& psi, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiRBM& psi, MonteCarlo_tt<PauliString>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiRBM& psi, MonteCarlo_tt<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiRBM&, MonteCarlo_tt<PauliString>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiRBM& psi, MonteCarlo_tt<PauliString>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiRBM& psi, MonteCarlo_tt<PauliString>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiRBM& psi, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiRBM& psi, MonteCarlo_tt<PauliString>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiRBM& psi, MonteCarlo_tt<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiRBM&, MonteCarlo_tt<PauliString>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiRBM& psi, MonteCarlo_tt<PauliString>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiRBM& psi, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiRBM& psi, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiCNN& psi, MonteCarlo_tt<PauliString>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiCNN& psi, MonteCarlo_tt<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiCNN&, MonteCarlo_tt<PauliString>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiCNN& psi, MonteCarlo_tt<PauliString>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiCNN& psi, MonteCarlo_tt<PauliString>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiCNN& psi, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiCNN& psi, MonteCarlo_tt<PauliString>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiCNN& psi, MonteCarlo_tt<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiCNN&, MonteCarlo_tt<PauliString>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiCNN& psi, MonteCarlo_tt<PauliString>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiCNN& psi, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiCNN& psi, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiFullyPolarized&, MonteCarlo_tt<PauliString>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiFullyPolarized&, MonteCarlo_tt<PauliString>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiFullyPolarized& psi, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<PauliString>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiClassicalFP<1u>&, MonteCarlo_tt<PauliString>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<PauliString>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<PauliString>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<PauliString>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalFP<1u>&, MonteCarlo_tt<PauliString>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<PauliString>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiClassicalFP<1u>& psi, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<PauliString>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiClassicalFP<2u>&, MonteCarlo_tt<PauliString>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<PauliString>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<PauliString>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<PauliString>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalFP<2u>&, MonteCarlo_tt<PauliString>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<PauliString>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiClassicalFP<2u>& psi, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<PauliString>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiClassicalANN<1u>&, MonteCarlo_tt<PauliString>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<PauliString>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<PauliString>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<PauliString>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalANN<1u>&, MonteCarlo_tt<PauliString>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<PauliString>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiClassicalANN<1u>& psi, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<PauliString>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiClassicalANN<2u>&, MonteCarlo_tt<PauliString>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<PauliString>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<PauliString>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<PauliString>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalANN<2u>&, MonteCarlo_tt<PauliString>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<PauliString>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiClassicalANN<2u>& psi, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiDeep& psi, ExactSummation_t<Spins>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiDeep& psi, ExactSummation_t<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiDeep&, ExactSummation_t<Spins>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiDeep& psi, ExactSummation_t<Spins>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiDeep& psi, ExactSummation_t<Spins>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiDeep& psi, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiDeep& psi, ExactSummation_t<Spins>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiDeep& psi, ExactSummation_t<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiDeep&, ExactSummation_t<Spins>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiDeep& psi, ExactSummation_t<Spins>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiDeep& psi, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiDeep& psi, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiRBM& psi, ExactSummation_t<Spins>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiRBM& psi, ExactSummation_t<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiRBM&, ExactSummation_t<Spins>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiRBM& psi, ExactSummation_t<Spins>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiRBM& psi, ExactSummation_t<Spins>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiRBM& psi, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiRBM& psi, ExactSummation_t<Spins>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiRBM& psi, ExactSummation_t<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiRBM&, ExactSummation_t<Spins>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiRBM& psi, ExactSummation_t<Spins>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiRBM& psi, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiRBM& psi, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiCNN& psi, ExactSummation_t<Spins>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiCNN& psi, ExactSummation_t<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiCNN&, ExactSummation_t<Spins>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiCNN& psi, ExactSummation_t<Spins>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiCNN& psi, ExactSummation_t<Spins>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiCNN& psi, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiCNN& psi, ExactSummation_t<Spins>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiCNN& psi, ExactSummation_t<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiCNN&, ExactSummation_t<Spins>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiCNN& psi, ExactSummation_t<Spins>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiCNN& psi, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiCNN& psi, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiFullyPolarized& psi, ExactSummation_t<Spins>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiFullyPolarized& psi, ExactSummation_t<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiFullyPolarized&, ExactSummation_t<Spins>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiFullyPolarized& psi, ExactSummation_t<Spins>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiFullyPolarized& psi, ExactSummation_t<Spins>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiFullyPolarized& psi, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiFullyPolarized& psi, ExactSummation_t<Spins>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiFullyPolarized& psi, ExactSummation_t<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiFullyPolarized&, ExactSummation_t<Spins>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiFullyPolarized& psi, ExactSummation_t<Spins>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiFullyPolarized& psi, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiFullyPolarized& psi, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiClassicalFP<1u>&, ExactSummation_t<Spins>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalFP<1u>&, ExactSummation_t<Spins>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiClassicalFP<1u>& psi, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiClassicalFP<2u>&, ExactSummation_t<Spins>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalFP<2u>&, ExactSummation_t<Spins>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiClassicalFP<2u>& psi, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiClassicalANN<1u>&, ExactSummation_t<Spins>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalANN<1u>&, ExactSummation_t<Spins>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiClassicalANN<1u>& psi, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiClassicalANN<2u>&, ExactSummation_t<Spins>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalANN<2u>&, ExactSummation_t<Spins>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiDeep& psi, ExactSummation_t<PauliString>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiDeep& psi, ExactSummation_t<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiDeep&, ExactSummation_t<PauliString>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiDeep& psi, ExactSummation_t<PauliString>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiDeep& psi, ExactSummation_t<PauliString>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiDeep& psi, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiDeep& psi, ExactSummation_t<PauliString>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiDeep& psi, ExactSummation_t<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiDeep&, ExactSummation_t<PauliString>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiDeep& psi, ExactSummation_t<PauliString>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiDeep& psi, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiDeep& psi, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiRBM& psi, ExactSummation_t<PauliString>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiRBM& psi, ExactSummation_t<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiRBM&, ExactSummation_t<PauliString>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiRBM& psi, ExactSummation_t<PauliString>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiRBM& psi, ExactSummation_t<PauliString>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiRBM& psi, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiRBM& psi, ExactSummation_t<PauliString>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiRBM& psi, ExactSummation_t<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiRBM&, ExactSummation_t<PauliString>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiRBM& psi, ExactSummation_t<PauliString>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiRBM& psi, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiRBM& psi, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiCNN& psi, ExactSummation_t<PauliString>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiCNN& psi, ExactSummation_t<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiCNN&, ExactSummation_t<PauliString>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiCNN& psi, ExactSummation_t<PauliString>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiCNN& psi, ExactSummation_t<PauliString>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiCNN& psi, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiCNN& psi, ExactSummation_t<PauliString>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiCNN& psi, ExactSummation_t<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiCNN&, ExactSummation_t<PauliString>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiCNN& psi, ExactSummation_t<PauliString>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiCNN& psi, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiCNN& psi, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiFullyPolarized& psi, ExactSummation_t<PauliString>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiFullyPolarized& psi, ExactSummation_t<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiFullyPolarized&, ExactSummation_t<PauliString>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiFullyPolarized& psi, ExactSummation_t<PauliString>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiFullyPolarized& psi, ExactSummation_t<PauliString>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiFullyPolarized& psi, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiFullyPolarized& psi, ExactSummation_t<PauliString>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiFullyPolarized& psi, ExactSummation_t<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiFullyPolarized&, ExactSummation_t<PauliString>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiFullyPolarized& psi, ExactSummation_t<PauliString>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiFullyPolarized& psi, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiFullyPolarized& psi, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiClassicalFP<1u>&, ExactSummation_t<PauliString>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalFP<1u>&, ExactSummation_t<PauliString>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiClassicalFP<1u>& psi, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiClassicalFP<2u>&, ExactSummation_t<PauliString>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalFP<2u>&, ExactSummation_t<PauliString>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiClassicalFP<2u>& psi, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiClassicalANN<1u>&, ExactSummation_t<PauliString>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalANN<1u>&, ExactSummation_t<PauliString>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiClassicalANN<1u>& psi, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, PsiClassicalANN<2u>&, ExactSummation_t<PauliString>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, PsiClassicalANN<2u>&, ExactSummation_t<PauliString>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, PsiClassicalANN<2u>& psi, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<1u>& psi, PsiDeep&, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<1u>& psi, PsiDeep&, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<2u>& psi, PsiDeep&, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<2u>& psi, PsiDeep&, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<1u>& psi, PsiDeep&, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<1u>& psi, PsiDeep&, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<2u>& psi, PsiDeep&, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<2u>& psi, PsiDeep&, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<1u>& psi, PsiCNN&, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<1u>& psi, PsiCNN&, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<2u>& psi, PsiCNN&, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<2u>& psi, PsiCNN&, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<1u>& psi, PsiCNN&, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<1u>& psi, PsiCNN&, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<2u>& psi, PsiCNN&, MonteCarlo_tt<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<2u>& psi, PsiCNN&, MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<1u>& psi, PsiDeep&, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<1u>& psi, PsiDeep&, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<2u>& psi, PsiDeep&, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<2u>& psi, PsiDeep&, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<1u>& psi, PsiDeep&, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<1u>& psi, PsiDeep&, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<2u>& psi, PsiDeep&, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<2u>& psi, PsiDeep&, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<1u>& psi, PsiCNN&, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<1u>& psi, PsiCNN&, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<2u>& psi, PsiCNN&, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<2u>& psi, PsiCNN&, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<1u>& psi, PsiCNN&, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<1u>& psi, PsiCNN&, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<2u>& psi, PsiCNN&, MonteCarlo_tt<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<2u>& psi, PsiCNN&, MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<1u>& psi, PsiDeep&, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<1u>& psi, PsiDeep&, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<2u>& psi, PsiDeep&, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<2u>& psi, PsiDeep&, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<1u>& psi, PsiDeep&, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<1u>& psi, PsiDeep&, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<2u>& psi, PsiDeep&, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<2u>& psi, PsiDeep&, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<1u>& psi, PsiCNN&, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<1u>& psi, PsiCNN&, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<2u>& psi, PsiCNN&, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<2u>& psi, PsiCNN&, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<1u>& psi, PsiCNN&, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<1u>& psi, PsiCNN&, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<2u>& psi, PsiCNN&, ExactSummation_t<Spins>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<2u>& psi, PsiCNN&, ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<1u>& psi, PsiDeep&, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<1u>& psi, PsiDeep&, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<2u>& psi, PsiDeep&, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<2u>& psi, PsiDeep&, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<1u>& psi, PsiDeep&, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<1u>& psi, PsiDeep&, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<2u>& psi, PsiDeep&, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<2u>& psi, PsiDeep&, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<1u>& psi, PsiCNN&, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<1u>& psi, PsiCNN&, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalFP<2u>& psi, PsiCNN&, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalFP<2u>& psi, PsiCNN&, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<1u>& psi, PsiCNN&, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<1u>& psi, PsiCNN&, ExactSummation_t<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
-template complex<double> ExpectationValue::operator()(const Operator_t&, PsiClassicalANN<2u>& psi, PsiCNN&, ExactSummation_t<PauliString>&);
+template complex<double> ExpectationValue::operator()(const Operator&, PsiClassicalANN<2u>& psi, PsiCNN&, ExactSummation_t<PauliString>&);
 #endif
 
 } // namespace ann_on_gpu

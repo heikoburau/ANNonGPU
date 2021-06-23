@@ -43,19 +43,19 @@ struct TDVP {
     {}
 
     template<typename Psi_t, typename Ensemble, typename use_psi_ref>
-    void eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, use_psi_ref);
+    void eval(const Operator& op, Psi_t& psi, Ensemble& ensemble, use_psi_ref);
 
     template<typename Psi_t, typename Ensemble>
-    void eval_fast(const Operator_t& op, Psi_t& psi, Ensemble& ensemble);
+    void eval_fast(const Operator& op, Psi_t& psi, Ensemble& ensemble);
 
     template<typename Psi_t, typename Ensemble>
-    void compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, true_t);
+    void compute_averages(const Operator& op, Psi_t& psi, Ensemble& ensemble, true_t);
 
     template<typename Psi_t, typename Ensemble>
-    void compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, false_t);
+    void compute_averages(const Operator& op, Psi_t& psi, Ensemble& ensemble, false_t);
 
     template<typename Psi_t, typename Ensemble>
-    void compute_averages_fast(const Operator_t& op, Psi_t& psi, Ensemble& ensemble);
+    void compute_averages_fast(const Operator& op, Psi_t& psi, Ensemble& ensemble);
 
     inline double var_H() const {
         return this->E2_local.front() - abs2(E_local.front());
@@ -64,17 +64,17 @@ struct TDVP {
     #ifdef __PYTHONCC__
 
     template<typename Psi_t, typename Ensemble>
-    inline void eval_py(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
+    inline void eval_py(const Operator& op, Psi_t& psi, Ensemble& ensemble) {
         return this->eval(op, psi, ensemble, false_t());
     }
 
     template<typename Psi_t, typename Ensemble>
-    inline void eval_with_psi_ref_py(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
+    inline void eval_with_psi_ref_py(const Operator& op, Psi_t& psi, Ensemble& ensemble) {
         return this->eval(op, psi, ensemble, true_t());
     }
 
     template<typename Psi_t, typename Ensemble>
-    inline void eval_fast_py(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
+    inline void eval_fast_py(const Operator& op, Psi_t& psi, Ensemble& ensemble) {
         return this->eval_fast(op, psi, ensemble);
     }
 

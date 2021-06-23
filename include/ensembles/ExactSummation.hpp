@@ -125,5 +125,9 @@ using ExactSummationSpins = ExactSummation_t<Spins>;
 using ExactSummationPaulis = ExactSummation_t<PauliString>;
 #endif  // ENABLE_PAULIS
 
+#ifdef ENABLE_FERMIONS
+using ExactSummationSpins = ExactSummation_t<Fermions>;
+#endif  // ENABLE_FERMIONS
+
 
 } // namespace ann_on_gpu

@@ -18,7 +18,7 @@ ExpectationValue::ExpectationValue(const bool gpu)
 
 template<typename Psi_t, typename Ensemble>
 complex<double> ExpectationValue::operator()(
-    const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble
+    const Operator& operator_, Psi_t& psi, Ensemble& ensemble
 ) {
     this->A_local.clear();
     auto A_local_ptr = this->A_local.data();
@@ -50,7 +50,7 @@ complex<double> ExpectationValue::operator()(
 }
 
 template<typename Psi_t, typename Ensemble>
-complex<double> ExpectationValue::exp_sigma_z(const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble) {
+complex<double> ExpectationValue::exp_sigma_z(const Operator& operator_, Psi_t& psi, Ensemble& ensemble) {
     this->A_local.clear();
     auto A_local_ptr = this->A_local.data();
     auto psi_kernel = psi.kernel();
@@ -82,7 +82,7 @@ complex<double> ExpectationValue::exp_sigma_z(const Operator_t& operator_, Psi_t
 
 template<typename Psi_t, typename Ensemble>
 Array<complex_t> ExpectationValue::operator()(
-    const vector<Operator_t>& operator_array, Psi_t& psi, Ensemble& ensemble
+    const vector<Operator>& operator_array, Psi_t& psi, Ensemble& ensemble
 ) {
     Array<complex_t> result(operator_array.size(), psi.gpu);
     result.clear();
@@ -90,7 +90,7 @@ Array<complex_t> ExpectationValue::operator()(
 
     auto psi_kernel = psi.kernel();
 
-    Array<typename Operator_t::Kernel> operator_kernel_array(operator_array.size(), psi.gpu);
+    Array<typename Operator::Kernel> operator_kernel_array(operator_array.size(), psi.gpu);
     for(auto i = 0u; i < operator_array.size(); i++) {
         operator_kernel_array[i] = operator_array[i].kernel();
     }
@@ -129,7 +129,7 @@ Array<complex_t> ExpectationValue::operator()(
 
 template<typename Psi_t, typename PsiSampling_t, typename Ensemble>
 complex<double> ExpectationValue::operator()(
-    const Operator_t& operator_, Psi_t& psi, PsiSampling_t& psi_sampling, Ensemble& ensemble
+    const Operator& operator_, Psi_t& psi, PsiSampling_t& psi_sampling, Ensemble& ensemble
 ) {
     this->A_local.clear();
     this->prob_ratio.clear();
@@ -174,7 +174,7 @@ complex<double> ExpectationValue::operator()(
 
 template<typename Psi_t, typename Ensemble>
 pair<double, complex<double>> ExpectationValue::fluctuation(
-    const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble
+    const Operator& operator_, Psi_t& psi, Ensemble& ensemble
 ) {
 
     this->A_local.clear();
@@ -218,7 +218,7 @@ pair<double, complex<double>> ExpectationValue::fluctuation(
 
 template<typename Psi_t, typename Ensemble>
 pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(
-    const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble
+    const Operator& operator_, Psi_t& psi, Ensemble& ensemble
 ) {
     Array<complex_t> result(psi.num_params, psi.gpu);
     Array<complex_t> O_k_list(psi.num_params, psi.gpu);
@@ -277,7 +277,7 @@ pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(
 
 template<typename Psi_t, typename Ensemble>
 pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(
-    const Operator_t& operator_, Psi_t& psi, Ensemble& ensemble
+    const Operator& operator_, Psi_t& psi, Ensemble& ensemble
 ) {
     Array<complex_t> result(psi.num_params, psi.gpu);
     Array<double> result2(psi.num_params, psi.gpu);
@@ -337,15 +337,15 @@ pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(
 }
 
 //! begin template
-template complex<double> ExpectationValue::operator()(const Operator_t&, AllPsi& psi, Ensemble<Basis>&);
-template Array<complex_t> ExpectationValue::operator()(const vector<Operator_t>&, AllPsi& psi, Ensemble<Basis>&);
-template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator_t&, AllPsi&, Ensemble<Basis>&);
-template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator_t&, AllPsi& psi, Ensemble<Basis>&);
-template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator_t&, AllPsi& psi, Ensemble<Basis>&);
-template complex<double> ExpectationValue::exp_sigma_z(const Operator_t&, AllPsi& psi, Ensemble<Basis>&);
+template complex<double> ExpectationValue::operator()(const Operator&, AllPsi& psi, Ensemble<Basis>&);
+template Array<complex_t> ExpectationValue::operator()(const vector<Operator>&, AllPsi& psi, Ensemble<Basis>&);
+template pair<double, complex<double>> ExpectationValue::fluctuation(const Operator&, AllPsi&, Ensemble<Basis>&);
+template pair<Array<complex_t>, complex<double>> ExpectationValue::gradient(const Operator&, AllPsi& psi, Ensemble<Basis>&);
+template pair<Array<complex_t>, Array<double>> ExpectationValue::gradient_with_noise(const Operator&, AllPsi& psi, Ensemble<Basis>&);
+template complex<double> ExpectationValue::exp_sigma_z(const Operator&, AllPsi& psi, Ensemble<Basis>&);
 //! end template
 //! begin template
-template complex<double> ExpectationValue::operator()(const Operator_t&, ClPsi& psi, FFPsi&, Ensemble<Basis>&);
+template complex<double> ExpectationValue::operator()(const Operator&, ClPsi& psi, FFPsi&, Ensemble<Basis>&);
 //! end template
 
 } // namespace ann_on_gpu

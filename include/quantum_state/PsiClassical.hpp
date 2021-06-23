@@ -169,8 +169,8 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
     using real_dtype = typename cuda_complex::get_real_type<dtype>::type;
     using Operator = Operator_t;
 
-    vector<Operator_t>        H_local;
-    Array<typename Operator_t::Kernel>        H_local_kernel;
+    vector<Operator>        H_local;
+    Array<typename Operator::Kernel>        H_local_kernel;
     Array<dtype>    params;
     PsiRef          psi_ref;
     bool            gpu;
@@ -205,7 +205,7 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
 
     inline PsiClassical_t(
         const unsigned int num_sites,
-        const vector<Operator_t>& H_local,
+        const vector<Operator>& H_local,
         const xt::pytensor<typename std_dtype<dtype>::type, 1u>& params,
         const PsiRef& psi_ref,
         const std::complex<double> log_prefactor,
@@ -241,18 +241,18 @@ struct PsiClassical_t : public kernel::PsiClassical_t<dtype, typename Operator_t
 #ifdef PSI_CLASSICAL_SYMMETRIC
 
 template<unsigned int order>
-using PsiClassicalFP = PsiClassical_t<complex_t, Operator_t, order, true, PsiFullyPolarized>;
+using PsiClassicalFP = PsiClassical_t<complex_t, Operator, order, true, PsiFullyPolarized>;
 
 template<unsigned int order>
-using PsiClassicalANN = PsiClassical_t<complex_t, Operator_t, order, true, PsiRBM>;
+using PsiClassicalANN = PsiClassical_t<complex_t, Operator, order, true, PsiRBM>;
 
 #else
 
 template<unsigned int order>
-using PsiClassicalFP = PsiClassical_t<complex_t, Operator_t, order, false, PsiFullyPolarized>;
+using PsiClassicalFP = PsiClassical_t<complex_t, Operator, order, false, PsiFullyPolarized>;
 
 template<unsigned int order>
-using PsiClassicalANN = PsiClassical_t<complex_t, Operator_t, order, false, PsiRBM>;
+using PsiClassicalANN = PsiClassical_t<complex_t, Operator, order, false, PsiRBM>;
 
 #endif // PSI_CLASSICAL_SYMMETRIC
 

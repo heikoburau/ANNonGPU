@@ -111,6 +111,11 @@ if (ENABLE_PAULIS)
   target_compile_definitions(ANNonGPU PUBLIC ENABLE_PAULIS)
 endif()
 
+option(ENABLE_FERMIONS "enable Fermions" OFF)
+if (ENABLE_FERMIONS)
+  target_compile_definitions(ANNonGPU PUBLIC ENABLE_FERMIONS)
+endif()
+
 option(ENABLE_MONTE_CARLO "enable monte-carlo" ON)
 if (ENABLE_MONTE_CARLO)
   target_compile_definitions(ANNonGPU PUBLIC ENABLE_MONTE_CARLO)

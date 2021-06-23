@@ -15,7 +15,7 @@ namespace kernel {
 
 template<bool compute_gradient, typename Psi_t, typename Psi_t_prime, typename Ensemble>
 void kernel::HilbertSpaceDistance::compute_averages(
-    Psi_t& psi, Psi_t_prime& psi_prime, const Operator_t& operator_,
+    Psi_t& psi, Psi_t_prime& psi_prime, const Operator& operator_,
     const bool is_unitary, Ensemble& ensemble
 ) const {
     const auto this_ = *this;
@@ -117,7 +117,7 @@ void HilbertSpaceDistance::clear() {
 
 template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
 double HilbertSpaceDistance::distance(
-    Psi_t& psi, Psi_t_prime& psi_prime, const Operator_t& operator_, const bool is_unitary,
+    Psi_t& psi, Psi_t_prime& psi_prime, const Operator& operator_, const bool is_unitary,
     Ensemble& ensemble
 ) {
     this->clear();
@@ -136,7 +136,7 @@ double HilbertSpaceDistance::distance(
 
 template<typename Psi_t, typename Psi_t_prime, typename Ensemble>
 double HilbertSpaceDistance::gradient(
-    complex<double>* result, Psi_t& psi, Psi_t_prime& psi_prime, const Operator_t& operator_,
+    complex<double>* result, Psi_t& psi, Psi_t_prime& psi_prime, const Operator& operator_,
     const bool is_unitary, Ensemble& ensemble, const float nu
 ) {
     // return the gradient of 'distance' if nu = 1
@@ -169,8 +169,8 @@ double HilbertSpaceDistance::gradient(
 
 
 //! begin template
-template double HilbertSpaceDistance::distance(FFPsi& psi, FFPsi& psi_prime, const Operator_t& operator_, const bool is_unitary, Ensemble<Basis>& ensemble);
-template double HilbertSpaceDistance::gradient(complex<double>* result, FFPsi& psi, FFPsi& psi_prime, const Operator_t& operator_, const bool is_unitary, Ensemble<Basis>& ensemble, const float nu);
+template double HilbertSpaceDistance::distance(FFPsi& psi, FFPsi& psi_prime, const Operator& operator_, const bool is_unitary, Ensemble<Basis>& ensemble);
+template double HilbertSpaceDistance::gradient(complex<double>* result, FFPsi& psi, FFPsi& psi_prime, const Operator& operator_, const bool is_unitary, Ensemble<Basis>& ensemble, const float nu);
 //! end template
 
 

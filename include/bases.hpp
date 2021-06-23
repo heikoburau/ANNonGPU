@@ -9,3 +9,8 @@
 #ifdef ENABLE_PAULIS
 #include "basis/PauliString.hpp"
 #endif
+
+
+#ifdef ENABLE_FERMIONS
+#include "basis/Fermions.hpp"
+#endif

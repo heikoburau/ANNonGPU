@@ -1,6 +1,7 @@
 #pragma once
 
-#include "basis/PauliString.hpp"
+#include "operator/MatrixElement.hpp"
+#include "bases.hpp"
 #include "Array.hpp"
 #include "types.h"
 
@@ -22,10 +23,13 @@ namespace ann_on_gpu {
 
 namespace kernel {
 
-struct Operator {
-    complex_t*      coefficients;
-    PauliString*    pauli_strings;
-    unsigned int    num_strings;
+template<typename QuantumString_t>
+struct StandartOperator {
+    using QuantumString = QuantumString_t;
+
+    complex_t*        coefficients;
+    QuantumString*    quantum_strings;
+    unsigned int      num_strings;
 
 #ifdef __CUDACC__
 
@@ -48,7 +52,7 @@ struct Operator {
         SHARED MatrixElement<Basis_t> matrix_element;
 
         SINGLE {
-            matrix_element = this->pauli_strings[n].apply(configuration);
+            matrix_element = this->quantum_strings[n].apply(configuration);
             matrix_element.coefficient *= this->coefficients[n];
         }
         SYNC;
@@ -124,7 +128,7 @@ struct Operator {
         complex_t result(0.0);
 
         for(auto n = 0u; n < this->num_strings; n++) {
-            result += this->coefficients[n] * this->pauli_strings[n].apply(configuration).coefficient;
+            result += this->coefficients[n] * this->quantum_strings[n].apply(configuration).coefficient;
         }
 
         return result;
@@ -144,7 +148,7 @@ struct Operator {
         LOOP(n, this->num_strings) {
             generic_atomicAdd(
                 &result,
-                this->coefficients[n] * this->pauli_strings[n].apply(configuration).coefficient
+                this->coefficients[n] * this->quantum_strings[n].apply(configuration).coefficient
             );
         }
         SYNC;
@@ -153,11 +157,11 @@ struct Operator {
 
 #endif // __CUDACC__
 
-    inline Operator& kernel() {
+    inline StandartOperator& kernel() {
         return *this;
     }
 
-    inline const Operator& kernel() const {
+    inline const StandartOperator& kernel() const {
         return *this;
     }
 
@@ -166,31 +170,45 @@ struct Operator {
 } // namespace kernel
 
 
-struct Operator : public kernel::Operator {
-    bool                gpu;
-    Array<complex_t>    coefficients_ar;
-    Array<PauliString>  pauli_strings_ar;
+template<typename QuantumString_t>
+struct StandartOperator : public kernel::StandartOperator<QuantumString_t> {
+    using QuantumString = QuantumString_t;
 
-    using Kernel = kernel::Operator;
+    bool                  gpu;
+    Array<complex_t>      coefficients;
+    Array<QuantumString>  quantum_strings;
 
-    Operator(
-        const ::quantum_expression::PauliExpression& expr,
+    using Kernel = kernel::StandartOperator<QuantumString_t>;
+
+    template<typename expr_t>
+    StandartOperator(
+        const expr_t& expr,
         const bool gpu
     );
 
-    inline Operator(const Operator& other)
+    inline StandartOperator(const StandartOperator& other)
     :
     gpu(other.gpu),
-    coefficients_ar(other.coefficients_ar),
-    pauli_strings_ar(other.pauli_strings_ar)
+    coefficients(other.coefficients),
+    quantum_strings(other.quantum_strings)
     {
-        this->kernel().num_strings = this->coefficients_ar.size();
-        this->kernel().coefficients = this->coefficients_ar.data();
-        this->kernel().pauli_strings = this->pauli_strings_ar.data();
+        this->kernel().num_strings = this->coefficients.size();
+        this->kernel().coefficients = this->coefficients.data();
+        this->kernel().quantum_strings = this->quantum_strings.data();
     }
 
-    ::quantum_expression::PauliExpression to_expr() const;
-    vector<::quantum_expression::PauliExpression> to_expr_list() const;
+    // ::quantum_expression::PauliExpression to_expr() const;
+    // vector<::quantum_expression::PauliExpression> to_expr_list() const;
 };
+
+
+#ifdef ENABLE_SPINS
+using Operator = StandartOperator<PauliString>;
+#endif
+
+#ifdef ENABLE_FERMIONS
+using Operator = StandartOperator<Fermions>;
+#endif
+
 
 } // namespace ann_on_gpu

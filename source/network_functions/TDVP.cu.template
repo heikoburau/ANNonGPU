@@ -12,7 +12,7 @@ namespace ann_on_gpu {
 
 
 template<typename Psi_t, typename Ensemble>
-void TDVP::compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, true_t) {
+void TDVP::compute_averages(const Operator& op, Psi_t& psi, Ensemble& ensemble, true_t) {
     auto num_params = this->num_params;
     auto op_kernel = op.kernel();
     auto psi_kernel = psi.kernel();
@@ -75,7 +75,7 @@ void TDVP::compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble
 
 
 template<typename Psi_t, typename Ensemble>
-void TDVP::compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, false_t) {
+void TDVP::compute_averages(const Operator& op, Psi_t& psi, Ensemble& ensemble, false_t) {
     auto num_params = this->F_vector.size();
     auto op_kernel = op.kernel();
     auto psi_kernel = psi.kernel();
@@ -127,7 +127,7 @@ void TDVP::compute_averages(const Operator_t& op, Psi_t& psi, Ensemble& ensemble
 }
 
 template<typename Psi_t, typename Ensemble>
-void TDVP::compute_averages_fast(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
+void TDVP::compute_averages_fast(const Operator& op, Psi_t& psi, Ensemble& ensemble) {
     auto num_params = this->F_vector.size();
     auto op_kernel = op.kernel();
     auto psi_kernel = psi.kernel();
@@ -177,7 +177,7 @@ void TDVP::compute_averages_fast(const Operator_t& op, Psi_t& psi, Ensemble& ens
 
 
 template<typename Psi_t, typename Ensemble, typename use_psi_ref_t>
-void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, use_psi_ref_t use_psi_ref) {
+void TDVP::eval(const Operator& op, Psi_t& psi, Ensemble& ensemble, use_psi_ref_t use_psi_ref) {
     if(!this->O_k_samples || this->O_k_samples->size() != ensemble.get_num_steps() * psi.num_params) {
         this->O_k_samples = unique_ptr<Array<complex_t>>(
             new Array<complex_t>(ensemble.get_num_steps() * psi.num_params, psi.gpu)
@@ -318,7 +318,7 @@ void TDVP::eval(const Operator_t& op, Psi_t& psi, Ensemble& ensemble, use_psi_re
 
 
 template<typename Psi_t, typename Ensemble>
-void TDVP::eval_fast(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
+void TDVP::eval_fast(const Operator& op, Psi_t& psi, Ensemble& ensemble) {
     this->E_local.clear();
     this->E2_local.clear();
     this->O_k_ar.clear();
@@ -345,11 +345,11 @@ void TDVP::eval_fast(const Operator_t& op, Psi_t& psi, Ensemble& ensemble) {
 }
 
 //! begin template
-template void TDVP::eval(const Operator_t&, ClPsi&, Ensemble<Basis>&, true_t);
+template void TDVP::eval(const Operator&, ClPsi&, Ensemble<Basis>&, true_t);
 //! end template
 
 //! begin template
-template void TDVP::eval(const Operator_t&, AllPsi&, Ensemble<Basis>&, false_t);
+template void TDVP::eval(const Operator&, AllPsi&, Ensemble<Basis>&, false_t);
 //! end template
 
 } // namespace ann_on_gpu
