@@ -2,7 +2,7 @@
 #include "basis/Spins.h"
 #include "basis/Fermions.hpp"
 #include "basis/PauliString.hpp"
-#include "basis/FermionicString.hpp"
+#include "basis/FermiString.hpp"
 #include "operator/SparseMatrix.hpp"
 #include "Array.hpp"
 #include <algorithm>
@@ -132,7 +132,7 @@ template class Array<cuda_complex::complex<float>>;
 template class Array<Spins>;
 template class Array<Fermions>;
 template class Array<PauliString>;
-template class Array<FermionicString>;
+template class Array<FermiString>;
 template class Array<SparseMatrix>;
 template class Array<typename Operator::Kernel>;
 

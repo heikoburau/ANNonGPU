@@ -50,7 +50,7 @@ StandartOperator<Fermions>::StandartOperator(
     auto i = 0u;
     for(const auto& term : expr) {
         this->coefficients[i] = term.second;
-        this->quantum_strings[i] = FermionicString(term.first);
+        this->quantum_strings[i] = FermiString(term.first);
 
         i++;
     }

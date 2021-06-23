@@ -18,7 +18,7 @@ namespace ann_on_gpu {
 using ::quantum_expression::FermionString;
 
 
-struct FermionicString {
+struct FermiString {
     using dtype = uint64_t;
 
 
@@ -33,12 +33,12 @@ struct FermionicString {
 
     dtype bit_count_mask;
 
-    FermionicString() = default;
-    HDINLINE FermionicString(const dtype& a, const dtype& b, const dtype& bit_count_mask):
+    FermiString() = default;
+    HDINLINE FermiString(const dtype& a, const dtype& b, const dtype& bit_count_mask):
         a(a), b(b), bit_count_mask(bit_count_mask) {};
 
 #ifndef __CUDACC__
-    FermionicString(const FermionString& expr) : a(0lu), b(0lu), bit_count_mask(0lu) {
+    FermiString(const FermionString& expr) : a(0lu), b(0lu), bit_count_mask(0lu) {
         for(auto symbol_it = expr.rbegin(); symbol_it != expr.rend(); symbol_it++) {
             const auto symbol = *symbol_it;
 
@@ -84,15 +84,15 @@ struct FermionicString {
         return *this;
     }
 
-    HDINLINE bool operator==(const FermionicString& other) const {
+    HDINLINE bool operator==(const FermiString& other) const {
         return (this->a == other.a) && (this->b == other.b);
     }
 
-    HDINLINE bool operator!=(const FermionicString& other) const {
+    HDINLINE bool operator!=(const FermiString& other) const {
         return (this->a != other.a) || (this->b != other.b);
     }
 
-    HDINLINE bool operator<(const FermionicString& other) const {
+    HDINLINE bool operator<(const FermiString& other) const {
         if(this->a == other.a) {
             return this->b < other.b;
         }
@@ -121,7 +121,7 @@ struct FermionicString {
         return this->b;
     }
 
-    HDINLINE dtype is_different(const FermionicString& other) const {
+    HDINLINE dtype is_different(const FermiString& other) const {
         return (this->a ^ other.a) | (this->b ^ other.b);
     }
 
