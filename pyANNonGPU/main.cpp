@@ -116,6 +116,10 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("_vector", [](PsiDeep& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiDeep& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
 #endif
+#if defined(ENABLE_FERMIONS)
+        .def("_vector", [](PsiDeep& psi, ExactSummation_t<Fermions>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
+        .def("norm", [](PsiDeep& psi, ExactSummation_t<Fermions>& exact_summation) {return psi_norm(psi, exact_summation);})
+#endif
 #if defined(ENABLE_PAULIS)
         .def("_vector", [](PsiDeep& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiDeep& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
@@ -159,6 +163,10 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #if defined(ENABLE_SPINS)
         .def("_vector", [](PsiRBM& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiRBM& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
+#endif
+#if defined(ENABLE_FERMIONS)
+        .def("_vector", [](PsiRBM& psi, ExactSummation_t<Fermions>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
+        .def("norm", [](PsiRBM& psi, ExactSummation_t<Fermions>& exact_summation) {return psi_norm(psi, exact_summation);})
 #endif
 #if defined(ENABLE_PAULIS)
         .def("_vector", [](PsiRBM& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
@@ -208,6 +216,10 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("_vector", [](PsiCNN& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiCNN& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
 #endif
+#if defined(ENABLE_FERMIONS)
+        .def("_vector", [](PsiCNN& psi, ExactSummation_t<Fermions>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
+        .def("norm", [](PsiCNN& psi, ExactSummation_t<Fermions>& exact_summation) {return psi_norm(psi, exact_summation);})
+#endif
 #if defined(ENABLE_PAULIS)
         .def("_vector", [](PsiCNN& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
         .def("norm", [](PsiCNN& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_norm(psi, exact_summation);})
@@ -247,6 +259,10 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #if defined(ENABLE_SPINS)
     //     .def("vector", [](PsiDeepSigned& psi, ExactSummation_t<Spins>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
     //     .def("norm", [](PsiDeepSigned& psi, ExactSummation_t<Spins>& exact_summation) {return psi_norm(psi, exact_summation);})
+#endif
+#if defined(ENABLE_FERMIONS)
+    //     .def("vector", [](PsiDeepSigned& psi, ExactSummation_t<Fermions>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
+    //     .def("norm", [](PsiDeepSigned& psi, ExactSummation_t<Fermions>& exact_summation) {return psi_norm(psi, exact_summation);})
 #endif
 #if defined(ENABLE_PAULIS)
     //     .def("vector", [](PsiDeepSigned& psi, ExactSummation_t<PauliString>& exact_summation) {return psi_vector(psi, exact_summation).to_pytensor_1d();})
@@ -666,6 +682,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         // .def("set_total_z_symmetry", &ExactSummationPaulis::set_total_z_symmetry)
         .def_property_readonly("num_steps", &ExactSummationPaulis::get_num_steps);
 #endif // ENABLE_PAULIS
+#ifdef ENABLE_FERMIONS
+    py::class_<ExactSummationFermions>(m, "ExactSummationFermions")
+        .def(py::init<unsigned int, bool>())
+        .def_property_readonly("gpu", [](const ExactSummationFermions& ensemble) {return ensemble.gpu;})
+        // .def("set_total_z_symmetry", &ExactSummationFermions::set_total_z_symmetry)
+        .def_property_readonly("num_steps", &ExactSummationFermions::get_num_steps);
+#endif // ENABLE_FERMIONS
 #endif // ENABLE_EXACT_SUMMATION
 
 
@@ -736,6 +759,70 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
         .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Fermions>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<Fermions>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, MonteCarlo_tt<Fermions>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, MonteCarlo_tt<Fermions>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, MonteCarlo_tt<Fermions>>)
+        .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiDeep, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_RBM)
+        .def("__call__", &ExpectationValue::__call__<PsiRBM, MonteCarlo_tt<Fermions>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiRBM, MonteCarlo_tt<Fermions>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiRBM, MonteCarlo_tt<Fermions>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiRBM, MonteCarlo_tt<Fermions>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiRBM, MonteCarlo_tt<Fermions>>)
+        .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiRBM, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<Fermions>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, MonteCarlo_tt<Fermions>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, MonteCarlo_tt<Fermions>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, MonteCarlo_tt<Fermions>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, MonteCarlo_tt<Fermions>>)
+        .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiCNN, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Fermions>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, MonteCarlo_tt<Fermions>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, MonteCarlo_tt<Fermions>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, MonteCarlo_tt<Fermions>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, MonteCarlo_tt<Fermions>>)
+        .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiFullyPolarized, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<Fermions>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, MonteCarlo_tt<Fermions>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, MonteCarlo_tt<Fermions>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, MonteCarlo_tt<Fermions>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, MonteCarlo_tt<Fermions>>)
+        .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiClassicalFP<1u>, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<Fermions>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, MonteCarlo_tt<Fermions>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, MonteCarlo_tt<Fermions>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, MonteCarlo_tt<Fermions>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, MonteCarlo_tt<Fermions>>)
+        .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiClassicalFP<2u>, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<Fermions>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, MonteCarlo_tt<Fermions>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, MonteCarlo_tt<Fermions>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, MonteCarlo_tt<Fermions>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, MonteCarlo_tt<Fermions>>)
+        .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiClassicalANN<1u>, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<Fermions>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, MonteCarlo_tt<Fermions>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, MonteCarlo_tt<Fermions>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, MonteCarlo_tt<Fermions>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, MonteCarlo_tt<Fermions>>)
+        .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiClassicalANN<2u>, MonteCarlo_tt<Fermions>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiDeep, MonteCarlo_tt<PauliString>>)
@@ -865,6 +952,70 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
         .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
 #endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Fermions>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<Fermions>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiDeep, ExactSummation_t<Fermions>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiDeep, ExactSummation_t<Fermions>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiDeep, ExactSummation_t<Fermions>>)
+        .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiDeep, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_RBM)
+        .def("__call__", &ExpectationValue::__call__<PsiRBM, ExactSummation_t<Fermions>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiRBM, ExactSummation_t<Fermions>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiRBM, ExactSummation_t<Fermions>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiRBM, ExactSummation_t<Fermions>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiRBM, ExactSummation_t<Fermions>>)
+        .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiRBM, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<Fermions>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiCNN, ExactSummation_t<Fermions>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiCNN, ExactSummation_t<Fermions>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiCNN, ExactSummation_t<Fermions>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiCNN, ExactSummation_t<Fermions>>)
+        .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiCNN, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Fermions>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiFullyPolarized, ExactSummation_t<Fermions>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiFullyPolarized, ExactSummation_t<Fermions>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiFullyPolarized, ExactSummation_t<Fermions>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiFullyPolarized, ExactSummation_t<Fermions>>)
+        .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiFullyPolarized, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<Fermions>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<1u>, ExactSummation_t<Fermions>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<1u>, ExactSummation_t<Fermions>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<1u>, ExactSummation_t<Fermions>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<1u>, ExactSummation_t<Fermions>>)
+        .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiClassicalFP<1u>, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<Fermions>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalFP<2u>, ExactSummation_t<Fermions>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalFP<2u>, ExactSummation_t<Fermions>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalFP<2u>, ExactSummation_t<Fermions>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalFP<2u>, ExactSummation_t<Fermions>>)
+        .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiClassicalFP<2u>, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<Fermions>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<1u>, ExactSummation_t<Fermions>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<1u>, ExactSummation_t<Fermions>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<1u>, ExactSummation_t<Fermions>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<1u>, ExactSummation_t<Fermions>>)
+        .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiClassicalANN<1u>, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<Fermions>>)
+        .def("__call__array", &ExpectationValue::__call__<PsiClassicalANN<2u>, ExactSummation_t<Fermions>>)
+        .def("fluctuation", &ExpectationValue::fluctuation<PsiClassicalANN<2u>, ExactSummation_t<Fermions>>)
+        .def("gradient", &ExpectationValue::gradient_py<PsiClassicalANN<2u>, ExactSummation_t<Fermions>>)
+        .def("gradient_with_noise", &ExpectationValue::gradient<PsiClassicalANN<2u>, ExactSummation_t<Fermions>>)
+        .def("exp_sigma_z", &ExpectationValue::exp_sigma_z<PsiClassicalANN<2u>, ExactSummation_t<Fermions>>)
+#endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
         .def("__call__array", &ExpectationValue::__call__<PsiDeep, ExactSummation_t<PauliString>>)
@@ -953,6 +1104,30 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
 #endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<Fermions>>)
+#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<PauliString>>)
 #endif
@@ -1001,6 +1176,30 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<Spins>>)
 #endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &ExpectationValue::__call__<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<Fermions>>)
+#endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &ExpectationValue::__call__<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<PauliString>>)
 #endif
@@ -1038,6 +1237,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("__call__", &HilbertSpaceDistance::distance<PsiCNN, PsiCNN, MonteCarlo_tt<Spins>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
         .def("gradient", &HilbertSpaceDistance::gradient_py<PsiCNN, PsiCNN, MonteCarlo_tt<Spins>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
 #endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, MonteCarlo_tt<Fermions>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
+        .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, MonteCarlo_tt<Fermions>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &HilbertSpaceDistance::distance<PsiCNN, PsiCNN, MonteCarlo_tt<Fermions>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
+        .def("gradient", &HilbertSpaceDistance::gradient_py<PsiCNN, PsiCNN, MonteCarlo_tt<Fermions>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
+#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, MonteCarlo_tt<PauliString>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
         .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, MonteCarlo_tt<PauliString>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
@@ -1053,6 +1260,14 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
         .def("__call__", &HilbertSpaceDistance::distance<PsiCNN, PsiCNN, ExactSummation_t<Spins>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
         .def("gradient", &HilbertSpaceDistance::gradient_py<PsiCNN, PsiCNN, ExactSummation_t<Spins>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+        .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, ExactSummation_t<Fermions>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
+        .def("gradient", &HilbertSpaceDistance::gradient_py<PsiDeep, PsiDeep, ExactSummation_t<Fermions>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+        .def("__call__", &HilbertSpaceDistance::distance<PsiCNN, PsiCNN, ExactSummation_t<Fermions>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
+        .def("gradient", &HilbertSpaceDistance::gradient_py<PsiCNN, PsiCNN, ExactSummation_t<Fermions>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a, "nu"_a)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
         .def("__call__", &HilbertSpaceDistance::distance<PsiDeep, PsiDeep, ExactSummation_t<PauliString>>, "psi"_a, "psi_prime"_a, "operator_"_a, "is_unitary"_a, "spin_ensemble"_a)
@@ -1155,6 +1370,102 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<Spins>>)
         .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<2u>& psi, PsiCNN& psi_prime, MonteCarlo_tt<Spins>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<Fermions>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiDeep, MonteCarlo_tt<Fermions>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<1u>& psi, PsiDeep& psi_prime, MonteCarlo_tt<Fermions>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<Fermions>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<2u>, PsiDeep, MonteCarlo_tt<Fermions>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<2u>& psi, PsiDeep& psi_prime, MonteCarlo_tt<Fermions>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<Fermions>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<1u>, PsiDeep, MonteCarlo_tt<Fermions>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<1u>& psi, PsiDeep& psi_prime, MonteCarlo_tt<Fermions>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<Fermions>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiDeep, MonteCarlo_tt<Fermions>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<2u>& psi, PsiDeep& psi_prime, MonteCarlo_tt<Fermions>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<Fermions>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiCNN, MonteCarlo_tt<Fermions>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<1u>& psi, PsiCNN& psi_prime, MonteCarlo_tt<Fermions>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<Fermions>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<2u>, PsiCNN, MonteCarlo_tt<Fermions>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<2u>& psi, PsiCNN& psi_prime, MonteCarlo_tt<Fermions>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<Fermions>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<1u>, PsiCNN, MonteCarlo_tt<Fermions>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<1u>& psi, PsiCNN& psi_prime, MonteCarlo_tt<Fermions>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<Fermions>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiCNN, MonteCarlo_tt<Fermions>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<2u>& psi, PsiCNN& psi_prime, MonteCarlo_tt<Fermions>& ensemble, const double nu, double threshold){
             const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
             return make_tuple(
                 get<0>(result).to_pytensor_1d(),
@@ -1355,6 +1666,102 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             );
         })
 #endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<Fermions>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<Fermions>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<1u>& psi, PsiDeep& psi_prime, ExactSummation_t<Fermions>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<Fermions>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<2u>, PsiDeep, ExactSummation_t<Fermions>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<2u>& psi, PsiDeep& psi_prime, ExactSummation_t<Fermions>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<Fermions>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<1u>, PsiDeep, ExactSummation_t<Fermions>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<1u>& psi, PsiDeep& psi_prime, ExactSummation_t<Fermions>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<Fermions>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiDeep, ExactSummation_t<Fermions>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<2u>& psi, PsiDeep& psi_prime, ExactSummation_t<Fermions>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<Fermions>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiCNN, ExactSummation_t<Fermions>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<1u>& psi, PsiCNN& psi_prime, ExactSummation_t<Fermions>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<Fermions>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<2u>, PsiCNN, ExactSummation_t<Fermions>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalFP<2u>& psi, PsiCNN& psi_prime, ExactSummation_t<Fermions>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<Fermions>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<1u>, PsiCNN, ExactSummation_t<Fermions>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<1u>& psi, PsiCNN& psi_prime, ExactSummation_t<Fermions>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("__call__", &KullbackLeibler::value<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<Fermions>>)
+        .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalANN<2u>, PsiCNN, ExactSummation_t<Fermions>>)
+        .def("gradient_with_noise", [](KullbackLeibler& kl, PsiClassicalANN<2u>& psi, PsiCNN& psi_prime, ExactSummation_t<Fermions>& ensemble, const double nu, double threshold){
+            const auto result = kl.gradient_with_noise(psi, psi_prime, ensemble, nu, threshold);
+            return make_tuple(
+                get<0>(result).to_pytensor_1d(),
+                get<1>(result).to_pytensor_1d(),
+                get<2>(result)
+            );
+        })
+#endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP) && defined(ENABLE_PSI_CLASSICAL)
         .def("__call__", &KullbackLeibler::value<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<PauliString>>)
         .def("gradient", &KullbackLeibler::gradient_py<PsiClassicalFP<1u>, PsiDeep, ExactSummation_t<PauliString>>)
@@ -1479,6 +1886,18 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref_py<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
 #endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref_py<PsiClassicalFP<1u>, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref_py<PsiClassicalFP<2u>, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref_py<PsiClassicalANN<1u>, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref_py<PsiClassicalANN<2u>, MonteCarlo_tt<Fermions>>)
+#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref_py<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
 #endif
@@ -1502,6 +1921,18 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref_py<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref_py<PsiClassicalFP<1u>, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref_py<PsiClassicalFP<2u>, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref_py<PsiClassicalANN<1u>, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref_py<PsiClassicalANN<2u>, ExactSummation_t<Fermions>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval_with_psi_ref", &TDVP::eval_with_psi_ref_py<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
@@ -1538,6 +1969,30 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval", &TDVP::eval_py<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+        .def("eval", &TDVP::eval_py<PsiDeep, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_RBM)
+        .def("eval", &TDVP::eval_py<PsiRBM, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+        .def("eval", &TDVP::eval_py<PsiCNN, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("eval", &TDVP::eval_py<PsiFullyPolarized, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("eval", &TDVP::eval_py<PsiClassicalFP<1u>, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("eval", &TDVP::eval_py<PsiClassicalFP<2u>, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("eval", &TDVP::eval_py<PsiClassicalANN<1u>, MonteCarlo_tt<Fermions>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("eval", &TDVP::eval_py<PsiClassicalANN<2u>, MonteCarlo_tt<Fermions>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
         .def("eval", &TDVP::eval_py<PsiDeep, MonteCarlo_tt<PauliString>>)
@@ -1586,6 +2041,30 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval", &TDVP::eval_py<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+        .def("eval", &TDVP::eval_py<PsiDeep, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_RBM)
+        .def("eval", &TDVP::eval_py<PsiRBM, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+        .def("eval", &TDVP::eval_py<PsiCNN, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("eval", &TDVP::eval_py<PsiFullyPolarized, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("eval", &TDVP::eval_py<PsiClassicalFP<1u>, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+        .def("eval", &TDVP::eval_py<PsiClassicalFP<2u>, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("eval", &TDVP::eval_py<PsiClassicalANN<1u>, ExactSummation_t<Fermions>>)
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+        .def("eval", &TDVP::eval_py<PsiClassicalANN<2u>, ExactSummation_t<Fermions>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
         .def("eval", &TDVP::eval_py<PsiDeep, ExactSummation_t<PauliString>>)
@@ -1677,6 +2156,70 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return log_psi_s(psi, basis);
     });
     m.def("psi_O_k", [](PsiClassicalANN<2u>& psi, const Spins& basis) {
+        return psi_O_k(psi, basis).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+    m.def("log_psi_s", [](PsiDeep& psi, const Fermions& basis) {
+        return log_psi_s(psi, basis);
+    });
+    m.def("psi_O_k", [](PsiDeep& psi, const Fermions& basis) {
+        return psi_O_k(psi, basis).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_RBM)
+    m.def("log_psi_s", [](PsiRBM& psi, const Fermions& basis) {
+        return log_psi_s(psi, basis);
+    });
+    m.def("psi_O_k", [](PsiRBM& psi, const Fermions& basis) {
+        return psi_O_k(psi, basis).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+    m.def("log_psi_s", [](PsiCNN& psi, const Fermions& basis) {
+        return log_psi_s(psi, basis);
+    });
+    m.def("psi_O_k", [](PsiCNN& psi, const Fermions& basis) {
+        return psi_O_k(psi, basis).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+    m.def("log_psi_s", [](PsiFullyPolarized& psi, const Fermions& basis) {
+        return log_psi_s(psi, basis);
+    });
+    m.def("psi_O_k", [](PsiFullyPolarized& psi, const Fermions& basis) {
+        return psi_O_k(psi, basis).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+    m.def("log_psi_s", [](PsiClassicalFP<1u>& psi, const Fermions& basis) {
+        return log_psi_s(psi, basis);
+    });
+    m.def("psi_O_k", [](PsiClassicalFP<1u>& psi, const Fermions& basis) {
+        return psi_O_k(psi, basis).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+    m.def("log_psi_s", [](PsiClassicalFP<2u>& psi, const Fermions& basis) {
+        return log_psi_s(psi, basis);
+    });
+    m.def("psi_O_k", [](PsiClassicalFP<2u>& psi, const Fermions& basis) {
+        return psi_O_k(psi, basis).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+    m.def("log_psi_s", [](PsiClassicalANN<1u>& psi, const Fermions& basis) {
+        return log_psi_s(psi, basis);
+    });
+    m.def("psi_O_k", [](PsiClassicalANN<1u>& psi, const Fermions& basis) {
+        return psi_O_k(psi, basis).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+    m.def("log_psi_s", [](PsiClassicalANN<2u>& psi, const Fermions& basis) {
+        return log_psi_s(psi, basis);
+    });
+    m.def("psi_O_k", [](PsiClassicalANN<2u>& psi, const Fermions& basis) {
         return psi_O_k(psi, basis).to_pytensor_1d();
     });
 #endif
@@ -1783,6 +2326,46 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 #if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
     m.def("psi_O_k_vector", [](PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& ensemble) {
+        return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+    m.def("psi_O_k_vector", [](PsiDeep& psi, ExactSummation_t<Fermions>& ensemble) {
+        return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_RBM)
+    m.def("psi_O_k_vector", [](PsiRBM& psi, ExactSummation_t<Fermions>& ensemble) {
+        return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+    m.def("psi_O_k_vector", [](PsiCNN& psi, ExactSummation_t<Fermions>& ensemble) {
+        return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+    m.def("psi_O_k_vector", [](PsiFullyPolarized& psi, ExactSummation_t<Fermions>& ensemble) {
+        return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+    m.def("psi_O_k_vector", [](PsiClassicalFP<1u>& psi, ExactSummation_t<Fermions>& ensemble) {
+        return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+    m.def("psi_O_k_vector", [](PsiClassicalFP<2u>& psi, ExactSummation_t<Fermions>& ensemble) {
+        return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+    m.def("psi_O_k_vector", [](PsiClassicalANN<1u>& psi, ExactSummation_t<Fermions>& ensemble) {
+        return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+    m.def("psi_O_k_vector", [](PsiClassicalANN<2u>& psi, ExactSummation_t<Fermions>& ensemble) {
         return psi_O_k_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
@@ -1913,6 +2496,94 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return psi_vector(psi, ensemble).to_pytensor_1d();
     });
     m.def("log_psi_vector", [](PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+    m.def("log_psi", [](PsiDeep& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiDeep& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiDeep& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_RBM)
+    m.def("log_psi", [](PsiRBM& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiRBM& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiRBM& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+    m.def("log_psi", [](PsiCNN& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiCNN& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiCNN& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+    m.def("log_psi", [](PsiFullyPolarized& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiFullyPolarized& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiFullyPolarized& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+    m.def("log_psi", [](PsiClassicalFP<1u>& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiClassicalFP<1u>& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiClassicalFP<1u>& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+    m.def("log_psi", [](PsiClassicalFP<2u>& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiClassicalFP<2u>& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiClassicalFP<2u>& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+    m.def("log_psi", [](PsiClassicalANN<1u>& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiClassicalANN<1u>& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiClassicalANN<1u>& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+    m.def("log_psi", [](PsiClassicalANN<2u>& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiClassicalANN<2u>& psi, MonteCarlo_tt<Fermions>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiClassicalANN<2u>& psi, MonteCarlo_tt<Fermions>& ensemble) {
         return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
@@ -2092,6 +2763,94 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return log_psi_vector(psi, ensemble).to_pytensor_1d();
     });
 #endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+    m.def("log_psi", [](PsiDeep& psi, ExactSummation_t<Fermions>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiDeep& psi, ExactSummation_t<Fermions>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiDeep& psi, ExactSummation_t<Fermions>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_RBM)
+    m.def("log_psi", [](PsiRBM& psi, ExactSummation_t<Fermions>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiRBM& psi, ExactSummation_t<Fermions>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiRBM& psi, ExactSummation_t<Fermions>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+    m.def("log_psi", [](PsiCNN& psi, ExactSummation_t<Fermions>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiCNN& psi, ExactSummation_t<Fermions>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiCNN& psi, ExactSummation_t<Fermions>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+    m.def("log_psi", [](PsiFullyPolarized& psi, ExactSummation_t<Fermions>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiFullyPolarized& psi, ExactSummation_t<Fermions>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiFullyPolarized& psi, ExactSummation_t<Fermions>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+    m.def("log_psi", [](PsiClassicalFP<1u>& psi, ExactSummation_t<Fermions>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiClassicalFP<1u>& psi, ExactSummation_t<Fermions>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiClassicalFP<1u>& psi, ExactSummation_t<Fermions>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+    m.def("log_psi", [](PsiClassicalFP<2u>& psi, ExactSummation_t<Fermions>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiClassicalFP<2u>& psi, ExactSummation_t<Fermions>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiClassicalFP<2u>& psi, ExactSummation_t<Fermions>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+    m.def("log_psi", [](PsiClassicalANN<1u>& psi, ExactSummation_t<Fermions>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiClassicalANN<1u>& psi, ExactSummation_t<Fermions>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiClassicalANN<1u>& psi, ExactSummation_t<Fermions>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+    m.def("log_psi", [](PsiClassicalANN<2u>& psi, ExactSummation_t<Fermions>& ensemble) {
+        return log_psi(psi, ensemble);
+    });
+    m.def("psi_vector", [](PsiClassicalANN<2u>& psi, ExactSummation_t<Fermions>& ensemble) {
+        return psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+    m.def("log_psi_vector", [](PsiClassicalANN<2u>& psi, ExactSummation_t<Fermions>& ensemble) {
+        return log_psi_vector(psi, ensemble).to_pytensor_1d();
+    });
+#endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
     m.def("log_psi", [](PsiDeep& psi, ExactSummation_t<PauliString>& ensemble) {
         return log_psi(psi, ensemble);
@@ -2221,6 +2980,46 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+    m.def("apply_operator", [](PsiDeep& psi, const Operator& op, MonteCarlo_tt<Fermions>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_RBM)
+    m.def("apply_operator", [](PsiRBM& psi, const Operator& op, MonteCarlo_tt<Fermions>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+    m.def("apply_operator", [](PsiCNN& psi, const Operator& op, MonteCarlo_tt<Fermions>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+    m.def("apply_operator", [](PsiFullyPolarized& psi, const Operator& op, MonteCarlo_tt<Fermions>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+    m.def("apply_operator", [](PsiClassicalFP<1u>& psi, const Operator& op, MonteCarlo_tt<Fermions>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+    m.def("apply_operator", [](PsiClassicalFP<2u>& psi, const Operator& op, MonteCarlo_tt<Fermions>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+    m.def("apply_operator", [](PsiClassicalANN<1u>& psi, const Operator& op, MonteCarlo_tt<Fermions>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+    m.def("apply_operator", [](PsiClassicalANN<2u>& psi, const Operator& op, MonteCarlo_tt<Fermions>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
     m.def("apply_operator", [](PsiDeep& psi, const Operator& op, MonteCarlo_tt<PauliString>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
@@ -2298,6 +3097,46 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
     m.def("apply_operator", [](PsiClassicalANN<2u>& psi, const Operator& op, ExactSummation_t<Spins>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+    m.def("apply_operator", [](PsiDeep& psi, const Operator& op, ExactSummation_t<Fermions>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_RBM)
+    m.def("apply_operator", [](PsiRBM& psi, const Operator& op, ExactSummation_t<Fermions>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+    m.def("apply_operator", [](PsiCNN& psi, const Operator& op, ExactSummation_t<Fermions>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+    m.def("apply_operator", [](PsiFullyPolarized& psi, const Operator& op, ExactSummation_t<Fermions>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+    m.def("apply_operator", [](PsiClassicalFP<1u>& psi, const Operator& op, ExactSummation_t<Fermions>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+    m.def("apply_operator", [](PsiClassicalFP<2u>& psi, const Operator& op, ExactSummation_t<Fermions>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+    m.def("apply_operator", [](PsiClassicalANN<1u>& psi, const Operator& op, ExactSummation_t<Fermions>& ensemble){
+        return apply_operator(psi, op, ensemble).to_pytensor_1d();
+    });
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+    m.def("apply_operator", [](PsiClassicalANN<2u>& psi, const Operator& op, ExactSummation_t<Fermions>& ensemble){
         return apply_operator(psi, op, ensemble).to_pytensor_1d();
     });
 #endif

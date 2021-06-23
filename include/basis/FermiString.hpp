@@ -1,5 +1,6 @@
 #pragma once
 
+#include "bases.hpp"
 #include "operator/MatrixElement.hpp"
 #include "Spins.h"
 #include "types.h"

@@ -207,7 +207,7 @@ using Operator = StandartOperator<PauliString>;
 #endif
 
 #ifdef ENABLE_FERMIONS
-using Operator = StandartOperator<Fermions>;
+using Operator = StandartOperator<FermiString>;
 #endif
 
 

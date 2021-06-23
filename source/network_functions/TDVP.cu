@@ -362,6 +362,18 @@ template void TDVP::eval(const Operator&, PsiClassicalANN<1u>&, MonteCarlo_tt<Sp
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template void TDVP::eval(const Operator&, PsiClassicalANN<2u>&, MonteCarlo_tt<Spins>&, true_t);
 #endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template void TDVP::eval(const Operator&, PsiClassicalFP<1u>&, MonteCarlo_tt<Fermions>&, true_t);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template void TDVP::eval(const Operator&, PsiClassicalFP<2u>&, MonteCarlo_tt<Fermions>&, true_t);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+template void TDVP::eval(const Operator&, PsiClassicalANN<1u>&, MonteCarlo_tt<Fermions>&, true_t);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+template void TDVP::eval(const Operator&, PsiClassicalANN<2u>&, MonteCarlo_tt<Fermions>&, true_t);
+#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template void TDVP::eval(const Operator&, PsiClassicalFP<1u>&, MonteCarlo_tt<PauliString>&, true_t);
 #endif
@@ -385,6 +397,18 @@ template void TDVP::eval(const Operator&, PsiClassicalANN<1u>&, ExactSummation_t
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template void TDVP::eval(const Operator&, PsiClassicalANN<2u>&, ExactSummation_t<Spins>&, true_t);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template void TDVP::eval(const Operator&, PsiClassicalFP<1u>&, ExactSummation_t<Fermions>&, true_t);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template void TDVP::eval(const Operator&, PsiClassicalFP<2u>&, ExactSummation_t<Fermions>&, true_t);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+template void TDVP::eval(const Operator&, PsiClassicalANN<1u>&, ExactSummation_t<Fermions>&, true_t);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+template void TDVP::eval(const Operator&, PsiClassicalANN<2u>&, ExactSummation_t<Fermions>&, true_t);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
 template void TDVP::eval(const Operator&, PsiClassicalFP<1u>&, ExactSummation_t<PauliString>&, true_t);
@@ -422,6 +446,30 @@ template void TDVP::eval(const Operator&, PsiClassicalANN<1u>&, MonteCarlo_tt<Sp
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template void TDVP::eval(const Operator&, PsiClassicalANN<2u>&, MonteCarlo_tt<Spins>&, false_t);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+template void TDVP::eval(const Operator&, PsiDeep&, MonteCarlo_tt<Fermions>&, false_t);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_RBM)
+template void TDVP::eval(const Operator&, PsiRBM&, MonteCarlo_tt<Fermions>&, false_t);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+template void TDVP::eval(const Operator&, PsiCNN&, MonteCarlo_tt<Fermions>&, false_t);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template void TDVP::eval(const Operator&, PsiFullyPolarized&, MonteCarlo_tt<Fermions>&, false_t);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template void TDVP::eval(const Operator&, PsiClassicalFP<1u>&, MonteCarlo_tt<Fermions>&, false_t);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template void TDVP::eval(const Operator&, PsiClassicalFP<2u>&, MonteCarlo_tt<Fermions>&, false_t);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+template void TDVP::eval(const Operator&, PsiClassicalANN<1u>&, MonteCarlo_tt<Fermions>&, false_t);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+template void TDVP::eval(const Operator&, PsiClassicalANN<2u>&, MonteCarlo_tt<Fermions>&, false_t);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
 template void TDVP::eval(const Operator&, PsiDeep&, MonteCarlo_tt<PauliString>&, false_t);
@@ -470,6 +518,30 @@ template void TDVP::eval(const Operator&, PsiClassicalANN<1u>&, ExactSummation_t
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template void TDVP::eval(const Operator&, PsiClassicalANN<2u>&, ExactSummation_t<Spins>&, false_t);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+template void TDVP::eval(const Operator&, PsiDeep&, ExactSummation_t<Fermions>&, false_t);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_RBM)
+template void TDVP::eval(const Operator&, PsiRBM&, ExactSummation_t<Fermions>&, false_t);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+template void TDVP::eval(const Operator&, PsiCNN&, ExactSummation_t<Fermions>&, false_t);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template void TDVP::eval(const Operator&, PsiFullyPolarized&, ExactSummation_t<Fermions>&, false_t);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template void TDVP::eval(const Operator&, PsiClassicalFP<1u>&, ExactSummation_t<Fermions>&, false_t);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template void TDVP::eval(const Operator&, PsiClassicalFP<2u>&, ExactSummation_t<Fermions>&, false_t);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+template void TDVP::eval(const Operator&, PsiClassicalANN<1u>&, ExactSummation_t<Fermions>&, false_t);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+template void TDVP::eval(const Operator&, PsiClassicalANN<2u>&, ExactSummation_t<Fermions>&, false_t);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
 template void TDVP::eval(const Operator&, PsiDeep&, ExactSummation_t<PauliString>&, false_t);

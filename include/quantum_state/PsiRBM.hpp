@@ -118,7 +118,7 @@ struct PsiRBM_t {
         this->forward_pass(result, payload.angles);
     }
 
-#ifdef ENABLE_SPINS
+#if defined(ENABLE_SPINS) || defined(ENABLE_FERMIONS)
     template<typename Basis_t>
     HDINLINE void update_input_units(
         const Basis_t& old_vector, const Basis_t& new_vector, Payload& payload
@@ -156,20 +156,7 @@ struct PsiRBM_t {
         }
     }
 
-    template<typename Basis_t>
-    HDINLINE
-    dtype get_O_k(const unsigned int k, const Basis_t& configuration, const Payload& payload) const {
-        return this->final_weight * my_tanh(payload.angles[k % this->M], 0) * configuration[k / this->M];
-    }
-
-#else
-
-    template<typename Basis_t>
-    HDINLINE void update_input_units(
-        const Basis_t& old_vector, const Basis_t& new_vector, Payload& payload
-    ) const {
-    }
-#endif // ENABLE_SPINS
+#endif
 
     template<typename Basis_t, typename Function>
     HDINLINE

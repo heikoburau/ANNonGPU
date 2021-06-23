@@ -1,5 +1,7 @@
 #define PY_ARRAY_UNIQUE_SYMBOL my_uniqe_array_api_Operator_cpp
 
+#include "basis/PauliString.hpp"
+#include "basis/FermiString.hpp"
 #include "operator/Operator.hpp"
 #include <algorithm>
 
@@ -41,9 +43,9 @@ StandartOperator<PauliString>::StandartOperator(
 #ifdef ENABLE_FERMIONS
 
 template<>
-template<typename expr_t>
-StandartOperator<Fermions>::StandartOperator(
-    const expr_t& expr,
+template<>
+StandartOperator<FermiString>::StandartOperator(
+    const QuantumExpression<FermionString>& expr,
     const bool gpu
 ) : gpu(gpu), coefficients(expr.size(), gpu), quantum_strings(expr.size(), gpu) {
 

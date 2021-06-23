@@ -21,6 +21,10 @@
                 "code": "Spins"
             },
             {
+                "flag": "ENABLE_FERMIONS",
+                "code": "Fermions"
+            },
+            {
                 "flag": "ENABLE_PAULIS",
                 "code": "PauliString"
             }

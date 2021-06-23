@@ -126,7 +126,7 @@ using ExactSummationPaulis = ExactSummation_t<PauliString>;
 #endif  // ENABLE_PAULIS
 
 #ifdef ENABLE_FERMIONS
-using ExactSummationSpins = ExactSummation_t<Fermions>;
+using ExactSummationFermions = ExactSummation_t<Fermions>;
 #endif  // ENABLE_FERMIONS
 
 

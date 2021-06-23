@@ -43,6 +43,10 @@ struct Fermions {
     HDINLINE bool operator!=(const Fermions& other) const {
         return this->configuration != other.configuration;
     }
+
+    HDINLINE dtype is_different(const Fermions& other) const {
+        return this->configuration ^ other.configuration;
+    }
 };
 
 }  // namespace ann_on_gpu

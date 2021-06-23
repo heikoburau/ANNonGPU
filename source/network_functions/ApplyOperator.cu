@@ -74,6 +74,30 @@ template Array<complex_t> apply_operator(PsiClassicalANN<1u>&, const Operator&, 
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template Array<complex_t> apply_operator(PsiClassicalANN<2u>&, const Operator&, MonteCarlo_tt<Spins>&);
 #endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+template Array<complex_t> apply_operator(PsiDeep&, const Operator&, MonteCarlo_tt<Fermions>&);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_RBM)
+template Array<complex_t> apply_operator(PsiRBM&, const Operator&, MonteCarlo_tt<Fermions>&);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+template Array<complex_t> apply_operator(PsiCNN&, const Operator&, MonteCarlo_tt<Fermions>&);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template Array<complex_t> apply_operator(PsiFullyPolarized&, const Operator&, MonteCarlo_tt<Fermions>&);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template Array<complex_t> apply_operator(PsiClassicalFP<1u>&, const Operator&, MonteCarlo_tt<Fermions>&);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template Array<complex_t> apply_operator(PsiClassicalFP<2u>&, const Operator&, MonteCarlo_tt<Fermions>&);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+template Array<complex_t> apply_operator(PsiClassicalANN<1u>&, const Operator&, MonteCarlo_tt<Fermions>&);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+template Array<complex_t> apply_operator(PsiClassicalANN<2u>&, const Operator&, MonteCarlo_tt<Fermions>&);
+#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
 template Array<complex_t> apply_operator(PsiDeep&, const Operator&, MonteCarlo_tt<PauliString>&);
 #endif
@@ -121,6 +145,30 @@ template Array<complex_t> apply_operator(PsiClassicalANN<1u>&, const Operator&, 
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template Array<complex_t> apply_operator(PsiClassicalANN<2u>&, const Operator&, ExactSummation_t<Spins>&);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+template Array<complex_t> apply_operator(PsiDeep&, const Operator&, ExactSummation_t<Fermions>&);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_RBM)
+template Array<complex_t> apply_operator(PsiRBM&, const Operator&, ExactSummation_t<Fermions>&);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+template Array<complex_t> apply_operator(PsiCNN&, const Operator&, ExactSummation_t<Fermions>&);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template Array<complex_t> apply_operator(PsiFullyPolarized&, const Operator&, ExactSummation_t<Fermions>&);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template Array<complex_t> apply_operator(PsiClassicalFP<1u>&, const Operator&, ExactSummation_t<Fermions>&);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template Array<complex_t> apply_operator(PsiClassicalFP<2u>&, const Operator&, ExactSummation_t<Fermions>&);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+template Array<complex_t> apply_operator(PsiClassicalANN<1u>&, const Operator&, ExactSummation_t<Fermions>&);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+template Array<complex_t> apply_operator(PsiClassicalANN<2u>&, const Operator&, ExactSummation_t<Fermions>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
 template Array<complex_t> apply_operator(PsiDeep&, const Operator&, ExactSummation_t<PauliString>&);

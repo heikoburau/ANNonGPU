@@ -422,6 +422,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         // .def("set_total_z_symmetry", &ExactSummationPaulis::set_total_z_symmetry)
         .def_property_readonly("num_steps", &ExactSummationPaulis::get_num_steps);
 #endif // ENABLE_PAULIS
+#ifdef ENABLE_FERMIONS
+    py::class_<ExactSummationFermions>(m, "ExactSummationFermions")
+        .def(py::init<unsigned int, bool>())
+        .def_property_readonly("gpu", [](const ExactSummationFermions& ensemble) {return ensemble.gpu;})
+        // .def("set_total_z_symmetry", &ExactSummationFermions::set_total_z_symmetry)
+        .def_property_readonly("num_steps", &ExactSummationFermions::get_num_steps);
+#endif // ENABLE_FERMIONS
 #endif // ENABLE_EXACT_SUMMATION
 
 

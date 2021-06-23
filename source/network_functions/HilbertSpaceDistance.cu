@@ -182,6 +182,14 @@ template double HilbertSpaceDistance::gradient(complex<double>* result, PsiDeep&
 template double HilbertSpaceDistance::distance(PsiCNN& psi, PsiCNN& psi_prime, const Operator& operator_, const bool is_unitary, MonteCarlo_tt<Spins>& ensemble);
 template double HilbertSpaceDistance::gradient(complex<double>* result, PsiCNN& psi, PsiCNN& psi_prime, const Operator& operator_, const bool is_unitary, MonteCarlo_tt<Spins>& ensemble, const float nu);
 #endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+template double HilbertSpaceDistance::distance(PsiDeep& psi, PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, MonteCarlo_tt<Fermions>& ensemble);
+template double HilbertSpaceDistance::gradient(complex<double>* result, PsiDeep& psi, PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, MonteCarlo_tt<Fermions>& ensemble, const float nu);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+template double HilbertSpaceDistance::distance(PsiCNN& psi, PsiCNN& psi_prime, const Operator& operator_, const bool is_unitary, MonteCarlo_tt<Fermions>& ensemble);
+template double HilbertSpaceDistance::gradient(complex<double>* result, PsiCNN& psi, PsiCNN& psi_prime, const Operator& operator_, const bool is_unitary, MonteCarlo_tt<Fermions>& ensemble, const float nu);
+#endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
 template double HilbertSpaceDistance::distance(PsiDeep& psi, PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, MonteCarlo_tt<PauliString>& ensemble);
 template double HilbertSpaceDistance::gradient(complex<double>* result, PsiDeep& psi, PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, MonteCarlo_tt<PauliString>& ensemble, const float nu);
@@ -197,6 +205,14 @@ template double HilbertSpaceDistance::gradient(complex<double>* result, PsiDeep&
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
 template double HilbertSpaceDistance::distance(PsiCNN& psi, PsiCNN& psi_prime, const Operator& operator_, const bool is_unitary, ExactSummation_t<Spins>& ensemble);
 template double HilbertSpaceDistance::gradient(complex<double>* result, PsiCNN& psi, PsiCNN& psi_prime, const Operator& operator_, const bool is_unitary, ExactSummation_t<Spins>& ensemble, const float nu);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+template double HilbertSpaceDistance::distance(PsiDeep& psi, PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, ExactSummation_t<Fermions>& ensemble);
+template double HilbertSpaceDistance::gradient(complex<double>* result, PsiDeep& psi, PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, ExactSummation_t<Fermions>& ensemble, const float nu);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+template double HilbertSpaceDistance::distance(PsiCNN& psi, PsiCNN& psi_prime, const Operator& operator_, const bool is_unitary, ExactSummation_t<Fermions>& ensemble);
+template double HilbertSpaceDistance::gradient(complex<double>* result, PsiCNN& psi, PsiCNN& psi_prime, const Operator& operator_, const bool is_unitary, ExactSummation_t<Fermions>& ensemble, const float nu);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
 template double HilbertSpaceDistance::distance(PsiDeep& psi, PsiDeep& psi_prime, const Operator& operator_, const bool is_unitary, ExactSummation_t<PauliString>& ensemble);

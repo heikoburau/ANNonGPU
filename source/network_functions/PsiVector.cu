@@ -163,6 +163,30 @@ template typename std_dtype<typename PsiClassicalANN<1u>::dtype>::type log_psi_s
 #if defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
 template typename std_dtype<typename PsiClassicalANN<2u>::dtype>::type log_psi_s(PsiClassicalANN<2u>&, const Spins&);
 #endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+template typename std_dtype<typename PsiDeep::dtype>::type log_psi_s(PsiDeep&, const Fermions&);
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_RBM)
+template typename std_dtype<typename PsiRBM::dtype>::type log_psi_s(PsiRBM&, const Fermions&);
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+template typename std_dtype<typename PsiCNN::dtype>::type log_psi_s(PsiCNN&, const Fermions&);
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template typename std_dtype<typename PsiFullyPolarized::dtype>::type log_psi_s(PsiFullyPolarized&, const Fermions&);
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template typename std_dtype<typename PsiClassicalFP<1u>::dtype>::type log_psi_s(PsiClassicalFP<1u>&, const Fermions&);
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template typename std_dtype<typename PsiClassicalFP<2u>::dtype>::type log_psi_s(PsiClassicalFP<2u>&, const Fermions&);
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+template typename std_dtype<typename PsiClassicalANN<1u>::dtype>::type log_psi_s(PsiClassicalANN<1u>&, const Fermions&);
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+template typename std_dtype<typename PsiClassicalANN<2u>::dtype>::type log_psi_s(PsiClassicalANN<2u>&, const Fermions&);
+#endif
 #if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
 template typename std_dtype<typename PsiDeep::dtype>::type log_psi_s(PsiDeep&, const PauliString&);
 #endif
@@ -227,6 +251,46 @@ template Array<complex_t> psi_vector(PsiClassicalANN<1u>& psi, MonteCarlo_tt<Spi
 template typename std_dtype<typename PsiClassicalANN<2u>::dtype>::type log_psi(PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>& ensemble);
 template Array<complex_t> log_psi_vector(PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>& ensemble);
 template Array<complex_t> psi_vector(PsiClassicalANN<2u>& psi, MonteCarlo_tt<Spins>& ensemble);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+template typename std_dtype<typename PsiDeep::dtype>::type log_psi(PsiDeep& psi, MonteCarlo_tt<Fermions>& ensemble);
+template Array<complex_t> log_psi_vector(PsiDeep& psi, MonteCarlo_tt<Fermions>& ensemble);
+template Array<complex_t> psi_vector(PsiDeep& psi, MonteCarlo_tt<Fermions>& ensemble);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_RBM)
+template typename std_dtype<typename PsiRBM::dtype>::type log_psi(PsiRBM& psi, MonteCarlo_tt<Fermions>& ensemble);
+template Array<complex_t> log_psi_vector(PsiRBM& psi, MonteCarlo_tt<Fermions>& ensemble);
+template Array<complex_t> psi_vector(PsiRBM& psi, MonteCarlo_tt<Fermions>& ensemble);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+template typename std_dtype<typename PsiCNN::dtype>::type log_psi(PsiCNN& psi, MonteCarlo_tt<Fermions>& ensemble);
+template Array<complex_t> log_psi_vector(PsiCNN& psi, MonteCarlo_tt<Fermions>& ensemble);
+template Array<complex_t> psi_vector(PsiCNN& psi, MonteCarlo_tt<Fermions>& ensemble);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template typename std_dtype<typename PsiFullyPolarized::dtype>::type log_psi(PsiFullyPolarized& psi, MonteCarlo_tt<Fermions>& ensemble);
+template Array<complex_t> log_psi_vector(PsiFullyPolarized& psi, MonteCarlo_tt<Fermions>& ensemble);
+template Array<complex_t> psi_vector(PsiFullyPolarized& psi, MonteCarlo_tt<Fermions>& ensemble);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template typename std_dtype<typename PsiClassicalFP<1u>::dtype>::type log_psi(PsiClassicalFP<1u>& psi, MonteCarlo_tt<Fermions>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalFP<1u>& psi, MonteCarlo_tt<Fermions>& ensemble);
+template Array<complex_t> psi_vector(PsiClassicalFP<1u>& psi, MonteCarlo_tt<Fermions>& ensemble);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template typename std_dtype<typename PsiClassicalFP<2u>::dtype>::type log_psi(PsiClassicalFP<2u>& psi, MonteCarlo_tt<Fermions>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalFP<2u>& psi, MonteCarlo_tt<Fermions>& ensemble);
+template Array<complex_t> psi_vector(PsiClassicalFP<2u>& psi, MonteCarlo_tt<Fermions>& ensemble);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+template typename std_dtype<typename PsiClassicalANN<1u>::dtype>::type log_psi(PsiClassicalANN<1u>& psi, MonteCarlo_tt<Fermions>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalANN<1u>& psi, MonteCarlo_tt<Fermions>& ensemble);
+template Array<complex_t> psi_vector(PsiClassicalANN<1u>& psi, MonteCarlo_tt<Fermions>& ensemble);
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+template typename std_dtype<typename PsiClassicalANN<2u>::dtype>::type log_psi(PsiClassicalANN<2u>& psi, MonteCarlo_tt<Fermions>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalANN<2u>& psi, MonteCarlo_tt<Fermions>& ensemble);
+template Array<complex_t> psi_vector(PsiClassicalANN<2u>& psi, MonteCarlo_tt<Fermions>& ensemble);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
 template typename std_dtype<typename PsiDeep::dtype>::type log_psi(PsiDeep& psi, MonteCarlo_tt<PauliString>& ensemble);
@@ -307,6 +371,46 @@ template Array<complex_t> psi_vector(PsiClassicalANN<1u>& psi, ExactSummation_t<
 template typename std_dtype<typename PsiClassicalANN<2u>::dtype>::type log_psi(PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& ensemble);
 template Array<complex_t> log_psi_vector(PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& ensemble);
 template Array<complex_t> psi_vector(PsiClassicalANN<2u>& psi, ExactSummation_t<Spins>& ensemble);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+template typename std_dtype<typename PsiDeep::dtype>::type log_psi(PsiDeep& psi, ExactSummation_t<Fermions>& ensemble);
+template Array<complex_t> log_psi_vector(PsiDeep& psi, ExactSummation_t<Fermions>& ensemble);
+template Array<complex_t> psi_vector(PsiDeep& psi, ExactSummation_t<Fermions>& ensemble);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_RBM)
+template typename std_dtype<typename PsiRBM::dtype>::type log_psi(PsiRBM& psi, ExactSummation_t<Fermions>& ensemble);
+template Array<complex_t> log_psi_vector(PsiRBM& psi, ExactSummation_t<Fermions>& ensemble);
+template Array<complex_t> psi_vector(PsiRBM& psi, ExactSummation_t<Fermions>& ensemble);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+template typename std_dtype<typename PsiCNN::dtype>::type log_psi(PsiCNN& psi, ExactSummation_t<Fermions>& ensemble);
+template Array<complex_t> log_psi_vector(PsiCNN& psi, ExactSummation_t<Fermions>& ensemble);
+template Array<complex_t> psi_vector(PsiCNN& psi, ExactSummation_t<Fermions>& ensemble);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template typename std_dtype<typename PsiFullyPolarized::dtype>::type log_psi(PsiFullyPolarized& psi, ExactSummation_t<Fermions>& ensemble);
+template Array<complex_t> log_psi_vector(PsiFullyPolarized& psi, ExactSummation_t<Fermions>& ensemble);
+template Array<complex_t> psi_vector(PsiFullyPolarized& psi, ExactSummation_t<Fermions>& ensemble);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template typename std_dtype<typename PsiClassicalFP<1u>::dtype>::type log_psi(PsiClassicalFP<1u>& psi, ExactSummation_t<Fermions>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalFP<1u>& psi, ExactSummation_t<Fermions>& ensemble);
+template Array<complex_t> psi_vector(PsiClassicalFP<1u>& psi, ExactSummation_t<Fermions>& ensemble);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+template typename std_dtype<typename PsiClassicalFP<2u>::dtype>::type log_psi(PsiClassicalFP<2u>& psi, ExactSummation_t<Fermions>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalFP<2u>& psi, ExactSummation_t<Fermions>& ensemble);
+template Array<complex_t> psi_vector(PsiClassicalFP<2u>& psi, ExactSummation_t<Fermions>& ensemble);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+template typename std_dtype<typename PsiClassicalANN<1u>::dtype>::type log_psi(PsiClassicalANN<1u>& psi, ExactSummation_t<Fermions>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalANN<1u>& psi, ExactSummation_t<Fermions>& ensemble);
+template Array<complex_t> psi_vector(PsiClassicalANN<1u>& psi, ExactSummation_t<Fermions>& ensemble);
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+template typename std_dtype<typename PsiClassicalANN<2u>::dtype>::type log_psi(PsiClassicalANN<2u>& psi, ExactSummation_t<Fermions>& ensemble);
+template Array<complex_t> log_psi_vector(PsiClassicalANN<2u>& psi, ExactSummation_t<Fermions>& ensemble);
+template Array<complex_t> psi_vector(PsiClassicalANN<2u>& psi, ExactSummation_t<Fermions>& ensemble);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
 template typename std_dtype<typename PsiDeep::dtype>::type log_psi(PsiDeep& psi, ExactSummation_t<PauliString>& ensemble);

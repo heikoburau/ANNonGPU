@@ -120,6 +120,46 @@ template Array<complex_t> psi_O_k(PsiClassicalANN<1u>&, const Spins&);
 template Array<complex_t> psi_O_k_vector(PsiClassicalANN<2u>&, ExactSummation_t<Spins>&);
 template Array<complex_t> psi_O_k(PsiClassicalANN<2u>&, const Spins&);
 #endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
+
+template Array<complex_t> psi_O_k_vector(PsiDeep&, ExactSummation_t<Fermions>&);
+template Array<complex_t> psi_O_k(PsiDeep&, const Fermions&);
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_RBM)
+
+template Array<complex_t> psi_O_k_vector(PsiRBM&, ExactSummation_t<Fermions>&);
+template Array<complex_t> psi_O_k(PsiRBM&, const Fermions&);
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
+
+template Array<complex_t> psi_O_k_vector(PsiCNN&, ExactSummation_t<Fermions>&);
+template Array<complex_t> psi_O_k(PsiCNN&, const Fermions&);
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+
+template Array<complex_t> psi_O_k_vector(PsiFullyPolarized&, ExactSummation_t<Fermions>&);
+template Array<complex_t> psi_O_k(PsiFullyPolarized&, const Fermions&);
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+
+template Array<complex_t> psi_O_k_vector(PsiClassicalFP<1u>&, ExactSummation_t<Fermions>&);
+template Array<complex_t> psi_O_k(PsiClassicalFP<1u>&, const Fermions&);
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
+
+template Array<complex_t> psi_O_k_vector(PsiClassicalFP<2u>&, ExactSummation_t<Fermions>&);
+template Array<complex_t> psi_O_k(PsiClassicalFP<2u>&, const Fermions&);
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+
+template Array<complex_t> psi_O_k_vector(PsiClassicalANN<1u>&, ExactSummation_t<Fermions>&);
+template Array<complex_t> psi_O_k(PsiClassicalANN<1u>&, const Fermions&);
+#endif
+#if defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
+
+template Array<complex_t> psi_O_k_vector(PsiClassicalANN<2u>&, ExactSummation_t<Fermions>&);
+template Array<complex_t> psi_O_k(PsiClassicalANN<2u>&, const Fermions&);
+#endif
 #if defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
 
 template Array<complex_t> psi_O_k_vector(PsiDeep&, ExactSummation_t<PauliString>&);
