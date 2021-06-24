@@ -29,6 +29,7 @@ except ImportError:
 from .new_classical_network import *
 from .PsiClassical import *
 
+from .PsiFullyPolarized import PsiFullyPolarized
 try:
     from .PsiFullyPolarized import PsiFullyPolarized
 except ImportError:

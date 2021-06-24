@@ -7,7 +7,7 @@ def new_classical_network(
     num_sites,
     order,
     H_local,
-    symmetric=True,
+    symmetric=False,
     distance="max",
     params=0,
     psi_ref="fully polarized",
