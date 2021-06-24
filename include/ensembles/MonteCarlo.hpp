@@ -284,7 +284,7 @@ inline MonteCarloPaulis make_MonteCarloPaulis(
 
 
 #ifdef ENABLE_FERMIONS
-using MonteCarloSpins = MonteCarlo_tt<Fermions>;
+using MonteCarloFermions = MonteCarlo_tt<Fermions>;
 
 #ifndef __CUDACC__
 inline MonteCarloFermions make_MonteCarloFermions(

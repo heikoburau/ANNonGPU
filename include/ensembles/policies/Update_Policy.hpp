@@ -58,6 +58,26 @@ struct Update_Policy<PauliString> {
 
 #endif // ENABLE_PAULIS
 
+#ifdef ENABLE_FERMIONS
+
+template<>
+struct Update_Policy<Fermions> {
+    template<typename Psi_t>
+    HDINLINE void operator()(Fermions& next_fermions, const Fermions& fermions, const Psi_t& psi, void* rng_state) const {
+        #include "cuda_kernel_defines.h"
+
+        SINGLE {
+            next_fermions = fermions.switch_at(random_uint32(rng_state) % psi.num_sites);
+        }
+    }
+
+    Update_Policy& kernel() {
+        return *this;
+    }
+};
+
+#endif // ENABLE_FERMIONS
+
 }  // namespace kernel
 
 
@@ -83,6 +103,16 @@ struct Update_Policy<PauliString> : public kernel::Update_Policy<PauliString> {
 };
 
 #endif // ENABLE_PAULIS
+
+
+#ifdef ENABLE_FERMIONS
+
+template<>
+struct Update_Policy<Fermions> : public kernel::Update_Policy<Fermions> {
+    using kernel_t = kernel::Update_Policy<Fermions>;
+};
+
+#endif // ENABLE_FERMIONS
 
 
 }  // namespace ann_on_gpu

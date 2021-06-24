@@ -43,5 +43,21 @@ struct Init_Policy<PauliString> {
 
 #endif // ENABLE_PAULIS
 
+#ifdef ENABLE_FERMIONS
+
+template<>
+struct Init_Policy<Fermions> {
+    template<typename Psi_t>
+    static HDINLINE void call(Fermions& result, const Psi_t& psi, void* rng_state) {
+        #include "cuda_kernel_defines.h"
+
+        SINGLE {
+            result.set_randomly(rng_state, psi.num_sites);
+        }
+    }
+};
+
+#endif // ENABLE_FERMIONS
+
 
 }  // namespace ann_on_gpu

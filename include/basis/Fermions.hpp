@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "random.h"
 #include <builtin_types.h>
 #include <cstdint>
 
@@ -25,9 +26,9 @@ struct Fermions {
     }
 
     HDINLINE double operator[](const unsigned int position) const {
-        return 2.0 * static_cast<double>(
+        return static_cast<double>(
             static_cast<bool>(this->configuration & (1lu << position))
-        ) - 1.0;
+        );
     }
 
     HDINLINE double network_unit_at(const unsigned int idx) const {
@@ -46,6 +47,16 @@ struct Fermions {
 
     HDINLINE dtype is_different(const Fermions& other) const {
         return this->configuration ^ other.configuration;
+    }
+
+    HDINLINE void set_randomly(void* random_state, const unsigned int num_fermions) {
+        this->configuration = random_uint64(random_state) & ((1lu << num_fermions) - 1lu);
+    }
+
+    HDINLINE Fermions switch_at(const unsigned int idx) const {
+        Fermions result = *this;
+        result.configuration ^= 1lu << idx;
+        return result;
     }
 };
 

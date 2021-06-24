@@ -118,7 +118,6 @@ struct PsiRBM_t {
         this->forward_pass(result, payload.angles);
     }
 
-#if defined(ENABLE_SPINS) || defined(ENABLE_FERMIONS)
     template<typename Basis_t>
     HDINLINE void update_input_units(
         const Basis_t& old_vector, const Basis_t& new_vector, Payload& payload
@@ -144,8 +143,9 @@ struct PsiRBM_t {
         while(updated_units) {
             MULTI(j, this->M) {
                 payload.angles[j] += (
-                    2.0 * new_vector[unit_position] * this->W[unit_position * this->M + j]
-                );
+                    new_vector[unit_position] -
+                    old_vector[unit_position]
+                ) * this->W[unit_position * this->M + j];
             }
             SYNC;
             SINGLE {
@@ -155,8 +155,6 @@ struct PsiRBM_t {
             SYNC;
         }
     }
-
-#endif
 
     template<typename Basis_t, typename Function>
     HDINLINE

@@ -664,6 +664,17 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             return float(mc.acceptances_ar.front()) / float(mc.acceptances_ar.front() + mc.rejections_ar.front());
         });
 #endif // ENABLE_PAULIS
+#ifdef ENABLE_FERMIONS
+    py::class_<MonteCarloFermions>(m, "MonteCarloFermions")
+        .def(py::init(&make_MonteCarloFermions))
+        .def(py::init<MonteCarloFermions&>())
+        // .def("set_total_z_symmetry", &MonteCarloFermions::set_total_z_symmetry)
+        .def_property_readonly("gpu", [](const MonteCarloFermions& ensemble) {return ensemble.gpu;})
+        .def_property_readonly("num_steps", &MonteCarloFermions::get_num_steps)
+        .def_property_readonly("acceptance_rate", [](const MonteCarloFermions& mc){
+            return float(mc.acceptances_ar.front()) / float(mc.acceptances_ar.front() + mc.rejections_ar.front());
+        });
+#endif // ENABLE_FERMIONS
 #endif // ENABLE_MONTE_CARLO
 
 
