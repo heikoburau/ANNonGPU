@@ -21,6 +21,13 @@ def noise_vector(shape, real=True):
         return complex_noise(shape)
 
 
+def prod(x_list):
+    r = 1
+    for x in x_list:
+        r *= x
+    return r
+
+
 def new_deep_neural_network(
     num_sites,
     N,
@@ -35,19 +42,18 @@ def new_deep_neural_network(
 ):
     dim = len(N) if isinstance(N, (list, tuple)) else 1
 
-    N_linear = N if dim == 1 else N[0] * N[1]
-    M_linear = M if dim == 1 else [m[0] * m[1] for m in M]
-    C_linear = C if dim == 1 else [c[0] * c[1] for c in C]
+    N_linear = N if dim == 1 else prod(N)
+    M_linear = M if dim == 1 else [prod(m) for m in M]
+    C_linear = C if dim == 1 else [prod(c) for c in C]
 
     for n, m, c in zip([N] + M[:-1], M, C):
         if dim == 1:
             assert (m * c) % n == 0
             assert c <= n
-        elif dim == 2:
-            assert (m[0] * c[0]) % n[0] == 0
-            assert (m[1] * c[1]) % n[1] == 0
-            assert c[0] <= n[0]
-            assert c[1] <= n[1]
+        else:
+            for d in range(dim):
+                assert (m[d] * c[d]) % n[d] == 0
+                assert c[d] <= n[d]
 
     if isinstance(a, (float, int, complex)):
         a = a * np.ones(N_linear)
@@ -96,22 +102,22 @@ def new_deep_neural_network(
                 ]
                 for i in range(c)
             ]))
-        elif dim == 2:
-            range2D = lambda area: product(range(area[0]), range(area[1]))
-            linear_idx = lambda row, col: row * n[0] + col
+        else:
+            if dim == 2:
+                linear_idx = lambda row, col: row * n[1] + col
+            elif dim == 3:
+                linear_idx = lambda page, row, col: page * n[1] * n[2] + row * n[2] + col
 
-            delta_j1 = delta_func(n[0], m[0], c[0])
-            delta_j2 = delta_func(n[1], m[1], c[1])
+            deltas = [delta_func(n_, m_, c_) for n_, m_, c_ in zip(n, m, c)]
 
             connections.append(np.array([
                 [
                     linear_idx(
-                        (j1 * delta_j1 + i1) % n[0],
-                        (j2 * delta_j2 + i2) % n[1]
+                        *[(j * delta + i) % n_ for j, delta, i, n_ in zip(j_ids, deltas, i_ids, n)]
                     )
-                    for j1, j2 in range2D(m)
+                    for j_ids in np.ndindex(*m)
                 ]
-                for i1, i2 in range2D(c)
+                for i_ids in np.ndindex(*c)
             ]))
 
     if isinstance(final_weights, (float, int)):
