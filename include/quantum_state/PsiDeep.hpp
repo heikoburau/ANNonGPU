@@ -220,65 +220,64 @@ struct PsiDeepT {
         #include "cuda_kernel_defines.h"
         // CAUTION: 'result' has to be a shared variable.
 
-        SHARED Basis_t shifted_configuration;
+        // SHARED Basis_t shifted_configuration;
 
         SINGLE {
             result = result_dtype(this->log_prefactor);
 
-            if(symmetric) {
-                shifted_configuration = configuration;
-                result *= this->num_sites;
-            }
+            // if(symmetric) {
+            //     shifted_configuration = configuration;
+            //     result *= this->num_sites;
+            // }
         }
         SYNC;
 
-        if(symmetric) {
-            SHARED_MEM_LOOP_BEGIN(n, this->num_sites) {
+        // if(symmetric) {
+        //     SHARED_MEM_LOOP_BEGIN(n, this->num_sites) {
 
-                // MULTI(i, this->N) {
-                //     generic_atomicAdd(&result, result_dtype(shifted_configuration.network_unit_at(i)) * this->input_weights[i]);
-                // }
+        //         // MULTI(i, this->N) {
+        //         //     generic_atomicAdd(&result, result_dtype(shifted_configuration.network_unit_at(i)) * this->input_weights[i]);
+        //         // }
 
-                this->compute_angles(payload.activations, shifted_configuration);
-                this->forward_pass(result, payload.activations, payload.activations, nullptr);
+        //         this->compute_angles(payload.activations, shifted_configuration);
+        //         this->forward_pass(result, payload.activations, payload.activations, nullptr);
 
-                SINGLE {
-                    shifted_configuration = shifted_configuration.roll(
-                        1,
-                        this->num_sites
-                    );
-                }
+        //         SINGLE {
+        //             shifted_configuration = shifted_configuration.roll(
+        //                 1,
+        //                 this->num_sites
+        //             );
+        //         }
 
-                SHARED_MEM_LOOP_END(n);
-            }
-            SINGLE {
-                result *= 1.0 / this->num_sites;
-            }
-            SYNC; // might be not neccessary
-        }
-        else {
+        //         SHARED_MEM_LOOP_END(n);
+        //     }
+        //     SINGLE {
+        //         result *= 1.0 / this->num_sites;
+        //     }
+        //     SYNC; // might be not neccessary
+        // }
+        // else {
             // MULTI(i, this->N) {
             //     generic_atomicAdd(&result, result_dtype(configuration.network_unit_at(i)) * this->input_weights[i]);
             // }
 
             this->forward_pass(result, payload.angles, payload.activations, nullptr);
-        }
+        // }
     }
 
-#ifdef ENABLE_SPINS
+    template<typename Basis_t>
     HDINLINE void update_angles(
-        dtype* angles, const unsigned int pos, const Spins&, const Spins& new_spins
+        dtype* angles, const unsigned int pos, const Basis_t& old_conf, const Basis_t& new_conf
     ) const {
         // caution: this implementation has to be consistent with `Spins::network_unit_at()`
         #include "cuda_kernel_defines.h"
 
         MULTI(j, this->layers[0].rhs_connectivity) {
             angles[this->layers[0].rhs_connection(pos, j)] += (
-                real_dtype(2.0) * new_spins[pos] * this->layers[0].rhs_weight(pos, j)
+                (new_conf[pos] - old_conf[pos]) * this->layers[0].rhs_weight(pos, j)
             );
         }
     }
-#endif  // ENABLE_SPINS
 
 #ifdef ENABLE_PAULIS
     HDINLINE void update_angles(
