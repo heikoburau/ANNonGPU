@@ -1,10 +1,10 @@
 from . import _pyANNonGPU
 from .json_numpy import NumpyEncoder, NumpyDecoder
-from QuantumExpression import PauliExpression
+from QuantumExpression import PauliExpression, FermionExpression
 import json
 
 
-def vCN_to_json(self):
+def vCN_to_json(self, ansatz):
     psi_ref = self.psi_ref
     if hasattr(psi_ref, "to_json"):
         psi_ref = psi_ref.to_json()
@@ -13,7 +13,7 @@ def vCN_to_json(self):
         type="PsiClassical",
         num_sites=self.num_sites,
         order=self.order,
-        H_local=[h.expr.to_json() for h in self.H_local],
+        ansatz=[a.to_json() for a in ansatz],
         params=self.params[:len(self.H_local)],
         psi_ref=psi_ref,
         log_prefactor_re=self.log_prefactor.real,
@@ -41,8 +41,8 @@ def vCN_from_json(json_obj, gpu):
         psi_ref = _pyANNonGPU.PsiDeep.from_json(obj["psi_ref"], gpu)
 
     H_local = [
-        _pyANNonGPU.Operator(PauliExpression.from_json(h), gpu)
-        for h in obj["H_local"]
+        _pyANNonGPU.Operator(FermionExpression.from_json(h), gpu)
+        for h in obj["ansatz"]
     ]
 
     log_prefactor = obj["log_prefactor_re"] + 1j * obj["log_prefactor_im"]
