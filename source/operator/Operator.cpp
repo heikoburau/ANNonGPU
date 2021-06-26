@@ -8,16 +8,17 @@
 
 namespace ann_on_gpu {
 
-using quantum_expression::QuantumExpression;
+using quantum_expression::PauliExpression;
+using quantum_expression::FermionExpression;
 using quantum_expression::FastPauliString;
 using quantum_expression::FermionString;
 
 #ifdef ENABLE_SPINS
 
 template<>
-template<typename expr_t>
+template<>
 StandartOperator<PauliString>::StandartOperator(
-    const expr_t& expr,
+    const PauliExpression& expr,
     const bool gpu
 ) : gpu(gpu), coefficients(expr.size(), gpu), quantum_strings(expr.size(), gpu) {
 
@@ -45,7 +46,7 @@ StandartOperator<PauliString>::StandartOperator(
 template<>
 template<>
 StandartOperator<FermiString>::StandartOperator(
-    const QuantumExpression<FermionString>& expr,
+    const FermionExpression& expr,
     const bool gpu
 ) : gpu(gpu), coefficients(expr.size(), gpu), quantum_strings(expr.size(), gpu) {
 
