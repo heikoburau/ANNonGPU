@@ -415,7 +415,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def(py::init<bool>())
         //! begin template
         .def("__call__", &ExpectationValue::__call__<AllPsi, Ensemble<Basis>>)
-        .def("__call__array", &ExpectationValue::__call__<AllPsi, Ensemble<Basis>>)
+        .def("__call__", &ExpectationValue::__call__array<AllPsi, Ensemble<Basis>>)
         .def("fluctuation", &ExpectationValue::fluctuation<AllPsi, Ensemble<Basis>>)
         .def("gradient", &ExpectationValue::gradient_py<AllPsi, Ensemble<Basis>>)
         .def("gradient_with_noise", &ExpectationValue::gradient<AllPsi, Ensemble<Basis>>)
