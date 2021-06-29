@@ -1,6 +1,7 @@
 #pragma once
 
 #include "psi_functions.hpp"
+#include "detail/Convolve.hpp"
 
 #include "bases.hpp"
 #include "Array.hpp"
@@ -8,6 +9,7 @@
 #include "cuda_complex.hpp"
 
 #include <vector>
+#include <array>
 #include <list>
 #include <complex>
 #include <memory>
@@ -26,9 +28,9 @@ using namespace cuda_complex;
 #endif
 
 
-
-template<typename dtype_t>
+template<unsigned int dim_t, typename dtype_t>
 struct PsiCNN_t {
+    static constexpr auto dim = dim_t;
     using dtype = dtype_t;
     using real_dtype = typename cuda_complex::get_real_type<dtype>::type;
 
@@ -58,14 +60,15 @@ struct PsiCNN_t {
     struct Layer {
         unsigned int  num_channels;
         unsigned int  num_channel_links;
-        unsigned int  connectivity;
+        unsigned int  connectivity[dim];
+        unsigned int  connectivity_vol;
 
         Channel       channels[max_channels_per_layer];
         ChannelLink   channel_links[max_channel_links_per_layer];
     };
 
-    unsigned int   num_sites;
     unsigned int   N;
+    unsigned int   extent[dim];
     unsigned int   num_params;
 
     dtype          log_prefactor;
@@ -111,20 +114,16 @@ struct PsiCNN_t {
                 SHARED_MEM_LOOP_BEGIN(c_i, layer_idx > 0u ? this->layers[layer_idx - 1u].num_channels : 1u) {
                     const auto& channel_link = layer.channel_links[c_i * layer.num_channels + c_j];
 
-                    MULTI(i, layer.connectivity) {
+                    MULTI(i, layer.connectivity_vol) {
                         payload.weights[i] = channel_link.weights[i];
                     }
                     SYNC;
 
                     MULTI(j, this->N) {
-                        for(auto i = 0u; i < layer.connectivity; i++) {
-                            REGISTER(activation, j) += (
-                                payload.weights[i] *
-                                payload.input_activations[
-                                    c_i * this->N + (j - layer.connectivity / 2u + i + this->N) % this->N
-                                ]
-                            );
-                        }
+                        REGISTER(activation, j) += detail::Convolve<dim>()(
+                            j, this->extent, layer.connectivity,
+                            payload.weights, payload.input_activations
+                        );
                     }
 
                     SHARED_MEM_LOOP_END(c_i);
@@ -160,30 +159,13 @@ struct PsiCNN_t {
         #include "cuda_kernel_defines.h"
         // CAUTION: 'result' has to be a shared variable.
 
-        SHARED Basis_t shifted_configuration;
-
         SINGLE {
-            result = result_dtype(this->num_sites) * result_dtype(this->log_prefactor);
-            shifted_configuration = configuration;
+            result = result_dtype(this->log_prefactor);
         }
         SYNC;
 
-        SHARED_MEM_LOOP_BEGIN(n, this->num_sites) {
-            this->forward_pass(result, shifted_configuration, payload, false);
-
-            SINGLE {
-                shifted_configuration = shifted_configuration.roll(
-                    1,
-                    this->num_sites
-                );
-            }
-
-            SHARED_MEM_LOOP_END(n);
-        }
-        SINGLE {
-            result *= 1.0 / this->num_sites;
-        }
-        SYNC; // might be not neccessary
+        this->forward_pass(result, configuration, payload, false);
+        SYNC;
     }
 
     template<typename Basis_t>
@@ -235,39 +217,40 @@ struct PsiCNN_t {
                 SHARED_MEM_LOOP_BEGIN(c_j, layer.num_channels) {
                     const auto& channel_link = layer.channel_links[c_i * layer.num_channels + c_j];
 
-                    MULTI(i, layer.connectivity) {
+                    MULTI(i, layer.connectivity_vol) {
                         payload.weights[i] = channel_link.weights[i];
                     }
                     SYNC;
 
                     MULTI(j, this->N) {
-                        for(auto i = 0u; i < layer.connectivity; i++) {
-                            const auto lhs_unit_idx = (j - layer.connectivity / 2u + i + this->N) % this->N;
-
-                            function(
-                                channel_link.begin_params + i,
-                                payload.input_activations[c_j * this->N + j] * (
-                                    layer_idx == 0 ?
-                                    get_real<dtype>(static_cast<real_dtype>(
-                                        configuration.network_unit_at(lhs_unit_idx)
-                                    )) :
-                                    my_logcosh(
-                                        this->layers[layer_idx - 1].channels[c_i].angles[
-                                            payload.conf_idx * this->num_angles + lhs_unit_idx
-                                        ],
-                                        layer_idx - 1
+                        detail::Convolve<dim>().foreach_connection(
+                            j, this->extent, layer.connectivity,
+                            [&](const unsigned int conn_idx, const unsigned int input_idx) {
+                                function(
+                                    channel_link.begin_params + conn_idx,
+                                    payload.input_activations[c_j * this->N + j] * (
+                                        layer_idx == 0 ?
+                                        get_real<dtype>(static_cast<real_dtype>(
+                                            configuration.network_unit_at(input_idx)
+                                        )) :
+                                        my_logcosh(
+                                            this->layers[layer_idx - 1].channels[c_i].angles[
+                                                payload.conf_idx * this->num_angles + input_idx
+                                            ],
+                                            layer_idx - 1
+                                        )
                                     )
-                                )
-                            );
-
-                            if(layer_idx > 0) {
-                                generic_atomicAdd(
-                                    &payload.output_activations[c_i * this->N + lhs_unit_idx],
-                                    payload.weights[i] *
-                                    payload.input_activations[c_j * this->N + j]
                                 );
+
+                                if(layer_idx > 0) {
+                                    generic_atomicAdd(
+                                        &payload.output_activations[c_i * this->N + input_idx],
+                                        payload.weights[conn_idx] *
+                                        payload.input_activations[c_j * this->N + j]
+                                    );
+                                }
                             }
-                        }
+                        );
                     }
 
                     SHARED_MEM_LOOP_END(c_j);
@@ -301,11 +284,12 @@ struct PsiCNN_t {
 } // namespace kernel
 
 
-template<typename dtype>
-struct PsiCNN_t : public kernel::PsiCNN_t<dtype> {
+template<unsigned int dim_t, typename dtype>
+struct PsiCNN_t : public kernel::PsiCNN_t<dim_t, dtype> {
+    static constexpr auto dim = dim_t;
     using std_dtype = typename std_dtype<dtype>::type;
     using real_dtype = typename cuda_complex::get_real_type<dtype>::type;
-    using Kernel = kernel::PsiCNN_t<dtype>;
+    using Kernel = kernel::PsiCNN_t<dim, dtype>;
 
     bool gpu;
     Array<unsigned int> num_channels_list;
@@ -316,10 +300,9 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dtype> {
 #ifdef __PYTHONCC__
 
     inline PsiCNN_t(
-        const unsigned int num_sites,
-        const unsigned int N,
+        const array<unsigned int, dim>& extent,
         const xt::pytensor<unsigned int, 1u>& num_channels_list,
-        const xt::pytensor<unsigned int, 1u>& connectivity_list,
+        const xt::pytensor<unsigned int, 2u>& connectivity_list,
         const xt::pytensor<std_dtype, 1u>& params,
         const std_dtype& final_factor,
         const std::complex<double> log_prefactor,
@@ -332,7 +315,11 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dtype> {
     params(params, gpu),
     angles(gpu)
     {
-        this->num_sites = num_sites;
+        auto N = 1u;
+        for(auto d = 0u; d < dim; d++) {
+            this->extent[d] = extent[d];
+            N *= extent[d];
+        }
         this->N = N;
         this->final_factor = dtype(final_factor);
         this->log_prefactor = log_prefactor;
@@ -350,8 +337,10 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dtype> {
     params(other.params),
     angles(other.angles)
     {
-        this->num_sites = other.num_sites;
         this->N = other.N;
+        for(auto d = 0u; d < dim; d++) {
+            this->extent[d] = other.extent[d];
+        }
         this->final_factor = other.final_factor;
         this->log_prefactor = other.log_prefactor;
 
@@ -369,6 +358,6 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dtype> {
 };
 
 
-using PsiCNN = PsiCNN_t<complex_t>;
+using PsiCNN = PsiCNN_t<1u, complex_t>;
 
 } // namespace ann_on_gpu

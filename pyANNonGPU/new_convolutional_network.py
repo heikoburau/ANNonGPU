@@ -20,9 +20,15 @@ def noise_vector(shape, real=True):
         return complex_noise(shape)
 
 
+def prod(x_list):
+    r = 1
+    for x in x_list:
+        r *= x
+    return r
+
+
 def new_convolutional_network(
-    num_sites,
-    N,
+    L,
     layers,
     initial_value=(0.01 + 1j * math.pi / 4),
     noise=1e-4,
@@ -34,8 +40,6 @@ def new_convolutional_network(
     A proper choice of 'final_factor' seems to be very important. For instance, for tdvp with 12 spins a value of 20 works well, but anything below fails.
     """
 
-    assert num_sites == N or 3 * num_sites == N
-
     num_channels_list = np.array(
         list(zip(*layers))[0]
     )
@@ -44,12 +48,15 @@ def new_convolutional_network(
     )
 
     params = []
-    for layer, (num_channels, connectivity) in enumerate(layers):
-        assert connectivity <= N
+    for layer, (num_channels, ndim_connectivity) in enumerate(layers):
+        for c, l in zip(ndim_connectivity, L):
+            assert c <= l
+
+        connectivity = prod(ndim_connectivity)
 
         num_prev_channels = layers[layer - 1][0] if layer > 0 else 1
         num_next_channels = layers[layer + 1][0] if layer < len(layers) - 1 else 1
-        next_connectivity = layers[layer + 1][1] if layer < len(layers) - 1 else 1
+        next_connectivity = prod(layers[layer + 1][1]) if layer < len(layers) - 1 else 1
 
         num_channel_links = num_channels * num_prev_channels
 
@@ -66,4 +73,4 @@ def new_convolutional_network(
 
     params = np.array(params)
 
-    return PsiCNN(num_sites, N, num_channels_list, connectivity_list, params, final_factor, 0, gpu)
+    return PsiCNN(L, num_channels_list, connectivity_list, params, final_factor, 0, gpu)
