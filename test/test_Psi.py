@@ -27,7 +27,7 @@ def complex_noise(shape):
     return real_noise(shape) + 1j * real_noise(shape)
 
 
-def test_psi_deep_s(psi_deep, ensemble, gpu):
+def _test_psi_deep_s(psi_deep, ensemble, gpu):
     psi = psi_deep(gpu)
 
     use_spins = ensemble.__name__.endswith("Spins")

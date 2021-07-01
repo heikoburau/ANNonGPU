@@ -68,6 +68,7 @@ struct PsiCNN_t {
     };
 
     unsigned int   N;
+    unsigned int   num_sites;
     unsigned int   extent[dim];
     unsigned int   num_params;
 
@@ -321,6 +322,7 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dim_t, dtype> {
             N *= extent[d];
         }
         this->N = N;
+        this->num_sites = N;
         this->final_factor = dtype(final_factor);
         this->log_prefactor = log_prefactor;
 
@@ -338,6 +340,7 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dim_t, dtype> {
     angles(other.angles)
     {
         this->N = other.N;
+        this->num_sites = other.num_sites;
         for(auto d = 0u; d < dim; d++) {
             this->extent[d] = other.extent[d];
         }

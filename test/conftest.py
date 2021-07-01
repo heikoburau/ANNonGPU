@@ -1,7 +1,7 @@
 from pyANNonGPU import (
-    new_deep_neural_network,
-    # new_convolutional_network,
-    new_classical_network,
+    # new_deep_neural_network,
+    new_convolutional_network,
+    # new_classical_network,
     ExactSummationSpins
 )
 from QuantumExpression import sigma_x, sigma_y, sigma_z
@@ -38,11 +38,12 @@ def pytest_generate_tests(metafunc):
             # lambda gpu: new_classical_network(2, 1, sigma_z(0) * sigma_z(1) + sigma_x(0), gpu=gpu),
             # lambda gpu: new_classical_network(6, 1, sigma_z(0) * sigma_z(1) + sigma_x(0) + sigma_x(0) * sigma_x(1), gpu=gpu),
             # lambda gpu: new_classical_network(4, 1, sigma_z(0) * sigma_z(1) + sigma_x(0), gpu=gpu),
-            lambda gpu: new_deep_neural_network(3, 3, [9, 6], [3, 3], noise=1e-2, gpu=gpu),
+            # lambda gpu: new_deep_neural_network(3, 3, [9, 6], [3, 3], noise=1e-2, gpu=gpu),
             # lambda gpu: new_deep_neural_network(2, 6, [12, 6], [6, 12], noise=1e-2, a=-0.2, gpu=gpu),
             # lambda gpu: new_deep_neural_network(3, 9, [18, 9, 3], [2, 2, 3], a=0.1, noise=1e-3, gpu=gpu),
-            # lambda gpu: new_convolutional_network(3, 3, [(1, 3)], noise=1e-2, gpu=gpu),
-            # lambda gpu: new_convolutional_network(5, 5, [(3, 3), (4, 5)], noise=1e-2, gpu=gpu)
+            lambda gpu: new_convolutional_network([3], [(1, [3])], noise=1e-1, gpu=gpu),
+            lambda gpu: new_convolutional_network([5], [(3, [5])], noise=1e-1, gpu=gpu)
+            # lambda gpu: new_convolutional_network([5], [(3, [3]), (4, [5])], noise=1e-2, gpu=gpu)
             # lambda gpu: new_classical_network(
             #     6, 2, sigma_z(0) * sigma_z((0 + 1) % 6) + 1.1 * sigma_y(0), gpu=gpu
             # ),
