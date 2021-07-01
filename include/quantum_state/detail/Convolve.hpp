@@ -17,7 +17,6 @@ struct Convolve<1u> {
     static constexpr auto dim = 1u;
     static constexpr auto max_N = MAX_SPINS;
 
-    unsigned int N;
     unsigned int extent[dim];
     unsigned int symmetry_classes[max_N];
 
@@ -37,6 +36,7 @@ struct Convolve<1u> {
     HDINLINE dtype operator()(
         const unsigned int idx,
         const unsigned int connectivity[dim],
+        const unsigned int connectivity_vol,
         dtype* weights,
         dtype* input_activations
     ) const {
@@ -45,7 +45,7 @@ struct Convolve<1u> {
         this->foreach_connection(
             idx, connectivity,
             [&](const unsigned int conn_idx, const unsigned int input_idx){
-                result += weights[this->symmetry_classes[idx] * this->N + conn_idx] * input_activations[input_idx];
+                result += weights[this->symmetry_classes[idx] * connectivity_vol + conn_idx] * input_activations[input_idx];
             }
         );
 
@@ -59,7 +59,6 @@ struct Convolve<2u> {
     static constexpr auto dim = 2u;
     static constexpr auto max_N = MAX_SPINS;
 
-    unsigned int N;
     unsigned int extent[dim];
     unsigned int symmetry_classes[max_N];
 
@@ -90,6 +89,7 @@ struct Convolve<2u> {
     HDINLINE dtype operator()(
         const unsigned int idx,
         const unsigned int connectivity[dim],
+        const unsigned int connectivity_vol,
         dtype* weights,
         dtype* input_activations
     ) const {
@@ -98,7 +98,7 @@ struct Convolve<2u> {
         this->foreach_connection(
             idx, connectivity,
             [&](const unsigned int conn_idx, const unsigned int input_idx){
-                result += weights[this->symmetry_classes[idx] * this->N + conn_idx] * input_activations[input_idx];
+                result += weights[this->symmetry_classes[idx] * connectivity_vol + conn_idx] * input_activations[input_idx];
             }
         );
 
@@ -111,7 +111,6 @@ struct Convolve<3u> {
     static constexpr auto dim = 3u;
     static constexpr auto max_N = MAX_SPINS;
 
-    unsigned int N;
     unsigned int extent[dim];
     unsigned int symmetry_classes[max_N];
 
@@ -149,6 +148,7 @@ struct Convolve<3u> {
     HDINLINE dtype operator()(
         const unsigned int idx,
         const unsigned int connectivity[dim],
+        const unsigned int connectivity_vol,
         dtype* weights,
         dtype* input_activations
     ) const {
@@ -157,7 +157,7 @@ struct Convolve<3u> {
         this->foreach_connection(
             idx, connectivity,
             [&](const unsigned int conn_idx, const unsigned int input_idx){
-                result += weights[this->symmetry_classes[idx] * this->N + conn_idx] * input_activations[input_idx];
+                result += weights[this->symmetry_classes[idx] * connectivity_vol + conn_idx] * input_activations[input_idx];
             }
         );
 

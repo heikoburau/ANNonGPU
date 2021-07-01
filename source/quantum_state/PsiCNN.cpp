@@ -14,7 +14,6 @@ void PsiCNN_t<dim, dtype>::init_kernel() {
     this->num_angles = 0u;
     auto params_offset = 0u;
 
-    this->convolve.N = this->N;
     for(auto d = 0u; d < dim; d++) {
         this->convolve.extent[d] = this->extent[d];
     }

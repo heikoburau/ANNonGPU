@@ -127,7 +127,7 @@ struct PsiCNN_t {
 
                     MULTI(j, this->N) {
                         REGISTER(activation, j) += this->convolve(
-                            j, layer.connectivity,
+                            j, layer.connectivity, layer.connectivity_vol,
                             payload.weights, payload.input_activations + c_i * this->N
                         );
                     }
@@ -233,7 +233,7 @@ struct PsiCNN_t {
                             j, layer.connectivity,
                             [&](const unsigned int conn_idx, const unsigned int input_idx) {
                                 function(
-                                    channel_link.begin_params + this->convolve.symmetry_classes[j] * this->N + conn_idx,
+                                    channel_link.begin_params + this->convolve.symmetry_classes[j] * layer.connectivity_vol + conn_idx,
                                     payload.input_activations[c_j * this->N + j] * (
                                         layer_idx == 0 ?
                                         dtype(configuration.network_unit_at(input_idx)) :
@@ -249,7 +249,7 @@ struct PsiCNN_t {
                                 if(layer_idx > 0) {
                                     generic_atomicAdd(
                                         &payload.output_activations[c_i * this->N + input_idx],
-                                        payload.weights[this->convolve.symmetry_classes[j] * this->N + conn_idx] *
+                                        payload.weights[this->convolve.symmetry_classes[j] * layer.connectivity_vol + conn_idx] *
                                         payload.input_activations[c_j * this->N + j]
                                     );
                                 }
@@ -372,6 +372,6 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dim_t, dtype> {
 };
 
 
-using PsiCNN = PsiCNN_t<1u, complex_t>;
+using PsiCNN = PsiCNN_t<3u, complex_t>;
 
 } // namespace ann_on_gpu
