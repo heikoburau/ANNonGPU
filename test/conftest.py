@@ -35,8 +35,8 @@ def pytest_generate_tests(metafunc):
 
     if 'psi_cnn' in metafunc.fixturenames:
         psi_list = [
-            lambda gpu: new_convolutional_network([3], [(1, [3])], noise=1e-1, gpu=gpu),
-            lambda gpu: new_convolutional_network([5], [(3, [3])], noise=1e-1, gpu=gpu),
+            lambda gpu: new_convolutional_network([3], [(2, [3])], noise=1e-1, gpu=gpu),
+            lambda gpu: new_convolutional_network([5], [(2, [3]), (1, [3])], noise=1e-1, gpu=gpu),
         ]
         metafunc.parametrize("psi_cnn", psi_list)
 
@@ -49,8 +49,8 @@ def pytest_generate_tests(metafunc):
             # lambda gpu: new_deep_neural_network(2, 6, [12, 6], [6, 12], noise=1e-2, a=-0.2, gpu=gpu),
             # lambda gpu: new_deep_neural_network(3, 9, [18, 9, 3], [2, 2, 3], a=0.1, noise=1e-3, gpu=gpu),
             # lambda gpu: new_convolutional_network([3], [(1, [3])], noise=1e-1, gpu=gpu),
-            # lambda gpu: new_convolutional_network([5], [(3, [3])], noise=1e-1, gpu=gpu),
-            # lambda gpu: new_convolutional_network([2], [(2, [2]), (1, [2])], noise=1e-1, gpu=gpu)
+            lambda gpu: new_convolutional_network([5], [(3, [3])], noise=1e-1, gpu=gpu),
+            lambda gpu: new_convolutional_network([2], [(2, [2]), (1, [2])], noise=1e-1, gpu=gpu),
             # lambda gpu: new_convolutional_network([5], [(3, [3]), (4, [5])], noise=1e-2, gpu=gpu)
             # lambda gpu: new_classical_network(
             #     6, 2, sigma_z(0) * sigma_z((0 + 1) % 6) + 1.1 * sigma_y(0), gpu=gpu

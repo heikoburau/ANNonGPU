@@ -61,7 +61,7 @@ def test_psi_CNN_s(psi_cnn, gpu):
                 for ch in range(num_channels)
             ])
 
-        log_psi_ref = np.sum(activations) * psi.final_factor
+        log_psi_ref = psi.log_prefactor + np.sum(activations) * psi.final_factor
 
         assert log_psi_s(psi, spins) == approx(log_psi_ref, 1e-4)
 
@@ -243,7 +243,7 @@ def _test_psi_classical_s(psi_classical, gpu):
         assert log_psi_s(psi, conf) == approx(log_psi_s_ref)
 
 
-def _test_O_k(psi_all, gpu):
+def test_O_k(psi_all, gpu):
     psi = psi_all(gpu)
 
     # use_spins = ensemble.__name__.endswith("Spins")

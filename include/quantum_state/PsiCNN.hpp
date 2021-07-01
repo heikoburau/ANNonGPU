@@ -128,7 +128,7 @@ struct PsiCNN_t {
                     MULTI(j, this->N) {
                         REGISTER(activation, j) += this->convolve(
                             j, layer.connectivity,
-                            payload.weights, payload.input_activations
+                            payload.weights, payload.input_activations + c_i * this->N
                         );
                     }
 
