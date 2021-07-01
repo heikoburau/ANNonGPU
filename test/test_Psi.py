@@ -27,6 +27,45 @@ def complex_noise(shape):
     return real_noise(shape) + 1j * real_noise(shape)
 
 
+def convolve(activations, weights):
+    return np.array([
+        np.roll(activations, -shift)[:len(weights)] @ weights
+        for shift in range(len(activations))
+    ])
+
+
+activation_function_vec = np.vectorize(activation_function, excluded=[1])
+
+
+def test_psi_CNN_s(psi_cnn, gpu):
+    psi = psi_cnn(gpu)
+    N = psi.num_sites
+
+    for i in range(10):
+        conf_idx = random.randint(0, 2**N - 1)
+        spins = Spins(conf_idx, 64)
+
+        activations = [spins.array(N)]
+
+        for l, (num_prev_channels, num_channels) in enumerate(zip(
+            [1] + list(psi.num_channels_list)[:-1], psi.num_channels_list
+        )):
+            activations = np.array([
+                activation_function_vec(
+                    sum(
+                        convolve(activations[prev_ch], psi.channel_link(l, prev_ch, ch))
+                        for prev_ch in range(num_prev_channels)
+                    ),
+                    l
+                )
+                for ch in range(num_channels)
+            ])
+
+        log_psi_ref = np.sum(activations) * psi.final_factor
+
+        assert log_psi_s(psi, spins) == approx(log_psi_ref, 1e-4)
+
+
 def _test_psi_deep_s(psi_deep, ensemble, gpu):
     psi = psi_deep(gpu)
 
@@ -204,7 +243,7 @@ def _test_psi_classical_s(psi_classical, gpu):
         assert log_psi_s(psi, conf) == approx(log_psi_s_ref)
 
 
-def test_O_k(psi_all, gpu):
+def _test_O_k(psi_all, gpu):
     psi = psi_all(gpu)
 
     # use_spins = ensemble.__name__.endswith("Spins")

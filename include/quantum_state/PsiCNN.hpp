@@ -36,9 +36,9 @@ struct PsiCNN_t {
     using real_dtype = typename cuda_complex::get_real_type<dtype>::type;
 
     static constexpr auto max_N = MAX_SPINS;
-    static constexpr auto max_layers = 2u;
+    static constexpr auto max_layers = 3u;
     static constexpr auto max_channels_per_layer = 6u;
-    static constexpr auto max_channel_links_per_layer = 18u;
+    static constexpr auto max_channel_links_per_layer = 9u;
     static constexpr auto max_symmetry_classes = 4u;
 
     struct Payload {
@@ -78,7 +78,7 @@ struct PsiCNN_t {
     detail::Convolve<dim> convolve;
 
     dtype          log_prefactor;
-    dtype          final_factor;
+    double         final_factor;
 
     Layer          layers[max_layers];
     unsigned int   num_layers;
@@ -191,7 +191,7 @@ struct PsiCNN_t {
         this->forward_pass(log_psi, configuration, payload, true);
 
         LOOP(j, this->layers[this->num_layers - 1u].num_channels * this->N) {
-            payload.output_activations[j] = this->final_factor;
+            payload.output_activations[j] = dtype(this->final_factor);
         }
 
         for(auto layer_idx = int(this->num_layers) - 1; layer_idx >= 0; layer_idx--) {
@@ -310,7 +310,7 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dim_t, dtype> {
         const xt::pytensor<unsigned int, 2u>& connectivity_list,
         const xt::pytensor<unsigned int, 1u>& symmetry_classes,
         const xt::pytensor<std_dtype, 1u>& params,
-        const std_dtype& final_factor,
+        const double final_factor,
         const std::complex<double> log_prefactor,
         const bool gpu
     ):
@@ -328,7 +328,7 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dim_t, dtype> {
         }
         this->N = N;
         this->num_sites = N;
-        this->final_factor = dtype(final_factor);
+        this->final_factor = final_factor;
         this->log_prefactor = log_prefactor;
 
         this->num_symmetry_classes = std::set<unsigned int>(
@@ -372,6 +372,6 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dim_t, dtype> {
 };
 
 
-using PsiCNN = PsiCNN_t<2u, complex_t>;
+using PsiCNN = PsiCNN_t<1u, complex_t>;
 
 } // namespace ann_on_gpu

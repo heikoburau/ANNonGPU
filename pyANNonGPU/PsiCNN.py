@@ -56,22 +56,30 @@ def calibrate(self, ensemble):
         self.log_prefactor -= log_psi(self, ensemble)
 
 
+def prod(x_list):
+    r = 1
+    for x in x_list:
+        r *= x
+    return r
+
+
 def channel_link(self, layer, i, j):
     num_channels_list = self.num_channels_list
     connectivity_list = self.connectivity_list
+    num_symmetry_classes = self.num_symmetry_classes
 
     offset = 0
     for l in range(layer):
         num_channel_links = num_channels_list[l] * (num_channels_list[l - 1] if l > 0 else 1)
 
-        offset += num_channel_links * connectivity_list[l]
+        offset += num_channel_links * num_symmetry_classes * prod(connectivity_list[l])
 
     num_channels = num_channels_list[layer]
-    connectivity = connectivity_list[layer]
+    connectivity = prod(connectivity_list[layer])
 
-    offset += (i * num_channels + j) * connectivity
+    offset += (i * num_channels + j) * num_symmetry_classes * connectivity
 
-    return self.params[offset:offset + connectivity]
+    return self.params[offset:offset + num_symmetry_classes * connectivity]
 
 
 def __pos__(self):

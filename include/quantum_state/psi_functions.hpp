@@ -37,15 +37,17 @@ T my_logcosh(const T z, const unsigned int layer) {
     //    return tanh(z);
     // }
 
-    const auto z2 = z * z;
-    const auto z4 = z2 * z2;
+    return z;
 
-    if(layer == 0u) {
-        // return 0.5 * z2 + (1.0 / 6.0) * z2 * z - (1.0 / 12.0) * z4 + (1.0 / 45.0) * z4 * z2;
-        return 0.5 * z2 - (1.0 / 12.0) * z4 + (1.0 / 45.0) * z4 * z2;
-        // return -(1.0 / 3.0) * z2 * z + (2.0 / 15.0) * z4 * z;
-    }
-    return z - (1.0 / 3.0) * z2 * z + (2.0 / 15.0) * z4 * z;
+    // const auto z2 = z * z;
+    // const auto z4 = z2 * z2;
+
+    // if(layer == 0u) {
+    //     // return 0.5 * z2 + (1.0 / 6.0) * z2 * z - (1.0 / 12.0) * z4 + (1.0 / 45.0) * z4 * z2;
+    //     return 0.5 * z2 - (1.0 / 12.0) * z4 + (1.0 / 45.0) * z4 * z2;
+    //     // return -(1.0 / 3.0) * z2 * z + (2.0 / 15.0) * z4 * z;
+    // }
+    // return z - (1.0 / 3.0) * z2 * z + (2.0 / 15.0) * z4 * z;
 
     // seems to be dangerous. Does not work for a SW-generator applied on an initial state.
     // return log(1.0 + z*z);
@@ -99,21 +101,22 @@ T my_tanh(const T z, const unsigned int layer) {
 
     // return z / sqrt(1.0 + z*z);
 
-    const auto z2 = z * z;
-    const auto z4 = z2 * z2;
+    return 1.0;
+    // const auto z2 = z * z;
+    // const auto z4 = z2 * z2;
 
-    // for TDVP it is important to use tanh, or at least not Pade(2, 4)
-    if(layer == 0u) {
-        // return tanh(z);
-        // return z + 0.5 * z2 - (1.0 / 3.0) * z2 * z + (2.0 / 15.0) * z4 * z;
-        return z - (1.0 / 3.0) * z2 * z + (2.0 / 15.0) * z4 * z;
-        // return -z2 + (2.0 / 3.0) * z4;
-    }
-    else {
-        // const auto co = cosh(z);
-        // return 1.0 / (co * co);
-        return 1.0 - z2 + (2.0 / 3.0) * z4;
-    }
+    // // for TDVP it is important to use tanh, or at least not Pade(2, 4)
+    // if(layer == 0u) {
+    //     // return tanh(z);
+    //     // return z + 0.5 * z2 - (1.0 / 3.0) * z2 * z + (2.0 / 15.0) * z4 * z;
+    //     return z - (1.0 / 3.0) * z2 * z + (2.0 / 15.0) * z4 * z;
+    //     // return -z2 + (2.0 / 3.0) * z4;
+    // }
+    // else {
+    //     // const auto co = cosh(z);
+    //     // return 1.0 / (co * co);
+    //     return 1.0 - z2 + (2.0 / 3.0) * z4;
+    // }
 
     // const auto e_z = exp(z);
     // return e_z + (1.0 + e_z);
