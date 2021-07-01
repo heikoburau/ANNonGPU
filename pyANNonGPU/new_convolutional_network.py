@@ -33,6 +33,7 @@ def new_convolutional_network(
     initial_value=(0.01 + 1j * math.pi / 4),
     noise=1e-4,
     final_factor=10,
+    symmetry_classes=None,
     real=False,
     gpu=False
 ):
@@ -46,6 +47,9 @@ def new_convolutional_network(
     connectivity_list = np.array(
         list(zip(*layers))[1]
     )
+    if symmetry_classes is None:
+        symmetry_classes = np.zeros(prod(L))
+    num_symmetry_classes = len(set(symmetry_classes))
 
     params = []
     for layer, (num_channels, ndim_connectivity) in enumerate(layers):
@@ -69,8 +73,8 @@ def new_convolutional_network(
                     6 / (connectivity * num_prev_channels + next_connectivity * num_next_channels)
                 ) * real_noise(connectivity)
 
-            params += list(channel_link)
+            params += num_symmetry_classes * list(channel_link)
 
     params = np.array(params)
 
-    return PsiCNN(L, num_channels_list, connectivity_list, params, final_factor, 0, gpu)
+    return PsiCNN(L, num_channels_list, connectivity_list, symmetry_classes, params, final_factor, 0, gpu)

@@ -184,6 +184,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
             const array<unsigned int, PsiCNN::dim>&,
             const xt::pytensor<unsigned int, 1u>&,
             const xt::pytensor<unsigned int, 2u>&,
+            const xt::pytensor<unsigned int, 1u>&,
             const std_tensor<PsiCNN::dtype, 1u>&,
             const PsiCNN::std_dtype&,
             const std::complex<double>,
@@ -203,6 +204,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         )
         .def_readonly("gpu", &PsiCNN::gpu)
         .def_readonly("num_params", &PsiCNN::num_params)
+        .def_readonly("num_symmetry_classes", &PsiCNN::num_symmetry_classes)
         .def_property(
             "params",
             [](const PsiCNN& psi) {return psi.params.to_pytensor_1d();},

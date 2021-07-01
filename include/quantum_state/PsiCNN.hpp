@@ -11,6 +11,7 @@
 #include <vector>
 #include <array>
 #include <list>
+#include <set>
 #include <complex>
 #include <memory>
 
@@ -34,17 +35,18 @@ struct PsiCNN_t {
     using dtype = dtype_t;
     using real_dtype = typename cuda_complex::get_real_type<dtype>::type;
 
-    static constexpr unsigned int max_N = MAX_SPINS;
-    static constexpr unsigned int max_layers = 2u;
-    static constexpr unsigned int max_channels_per_layer = 6u;
-    static constexpr unsigned int max_channel_links_per_layer = 18u;
+    static constexpr auto max_N = MAX_SPINS;
+    static constexpr auto max_layers = 2u;
+    static constexpr auto max_channels_per_layer = 6u;
+    static constexpr auto max_channel_links_per_layer = 18u;
+    static constexpr auto max_symmetry_classes = 4u;
 
     struct Payload {
         unsigned int conf_idx;
 
         dtype input_activations[max_N];
         dtype output_activations[max_N];
-        dtype weights[max_N];
+        dtype weights[max_symmetry_classes * max_N];
     };
 
 
@@ -71,6 +73,9 @@ struct PsiCNN_t {
     unsigned int   num_sites;
     unsigned int   extent[dim];
     unsigned int   num_params;
+    unsigned int   num_symmetry_classes;
+
+    detail::Convolve<dim> convolve;
 
     dtype          log_prefactor;
     dtype          final_factor;
@@ -115,14 +120,14 @@ struct PsiCNN_t {
                 SHARED_MEM_LOOP_BEGIN(c_i, layer_idx > 0u ? this->layers[layer_idx - 1u].num_channels : 1u) {
                     const auto& channel_link = layer.channel_links[c_i * layer.num_channels + c_j];
 
-                    MULTI(i, layer.connectivity_vol) {
+                    LOOP(i, this->num_symmetry_classes * layer.connectivity_vol) {
                         payload.weights[i] = channel_link.weights[i];
                     }
                     SYNC;
 
                     MULTI(j, this->N) {
-                        REGISTER(activation, j) += detail::Convolve<dim>()(
-                            j, this->extent, layer.connectivity,
+                        REGISTER(activation, j) += this->convolve(
+                            j, layer.connectivity,
                             payload.weights, payload.input_activations
                         );
                     }
@@ -218,22 +223,20 @@ struct PsiCNN_t {
                 SHARED_MEM_LOOP_BEGIN(c_j, layer.num_channels) {
                     const auto& channel_link = layer.channel_links[c_i * layer.num_channels + c_j];
 
-                    MULTI(i, layer.connectivity_vol) {
+                    LOOP(i, this->num_symmetry_classes * layer.connectivity_vol) {
                         payload.weights[i] = channel_link.weights[i];
                     }
                     SYNC;
 
                     MULTI(j, this->N) {
-                        detail::Convolve<dim>().foreach_connection(
-                            j, this->extent, layer.connectivity,
+                        this->convolve.foreach_connection(
+                            j, layer.connectivity,
                             [&](const unsigned int conn_idx, const unsigned int input_idx) {
                                 function(
-                                    channel_link.begin_params + conn_idx,
+                                    channel_link.begin_params + this->convolve.symmetry_classes[j] * this->N + conn_idx,
                                     payload.input_activations[c_j * this->N + j] * (
                                         layer_idx == 0 ?
-                                        get_real<dtype>(static_cast<real_dtype>(
-                                            configuration.network_unit_at(input_idx)
-                                        )) :
+                                        dtype(configuration.network_unit_at(input_idx)) :
                                         my_logcosh(
                                             this->layers[layer_idx - 1].channels[c_i].angles[
                                                 payload.conf_idx * this->num_angles + input_idx
@@ -246,7 +249,7 @@ struct PsiCNN_t {
                                 if(layer_idx > 0) {
                                     generic_atomicAdd(
                                         &payload.output_activations[c_i * this->N + input_idx],
-                                        payload.weights[conn_idx] *
+                                        payload.weights[this->convolve.symmetry_classes[j] * this->N + conn_idx] *
                                         payload.input_activations[c_j * this->N + j]
                                     );
                                 }
@@ -295,6 +298,7 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dim_t, dtype> {
     bool gpu;
     Array<unsigned int> num_channels_list;
     Array<unsigned int> connectivity_list;
+    Array<unsigned int> symmetry_classes;
     Array<dtype> params;
     Array<dtype> angles;
 
@@ -304,17 +308,18 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dim_t, dtype> {
         const array<unsigned int, dim>& extent,
         const xt::pytensor<unsigned int, 1u>& num_channels_list,
         const xt::pytensor<unsigned int, 2u>& connectivity_list,
+        const xt::pytensor<unsigned int, 1u>& symmetry_classes,
         const xt::pytensor<std_dtype, 1u>& params,
         const std_dtype& final_factor,
         const std::complex<double> log_prefactor,
         const bool gpu
-    )
-    :
-    gpu(gpu),
-    num_channels_list(num_channels_list, false),
-    connectivity_list(connectivity_list, false),
-    params(params, gpu),
-    angles(gpu)
+    ):
+        gpu(gpu),
+        num_channels_list(num_channels_list, false),
+        connectivity_list(connectivity_list, false),
+        symmetry_classes(symmetry_classes, false),
+        params(params, gpu),
+        angles(gpu)
     {
         auto N = 1u;
         for(auto d = 0u; d < dim; d++) {
@@ -326,18 +331,22 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dim_t, dtype> {
         this->final_factor = dtype(final_factor);
         this->log_prefactor = log_prefactor;
 
+        this->num_symmetry_classes = std::set<unsigned int>(
+            symmetry_classes.begin(), symmetry_classes.end()
+        ).size();
+
         this->init_kernel();
     }
 
 #endif // __PYTHONCC__
 
-    inline PsiCNN_t(const PsiCNN_t& other)
-    :
-    gpu(other.gpu),
-    num_channels_list(other.num_channels_list),
-    connectivity_list(other.connectivity_list),
-    params(other.params),
-    angles(other.angles)
+    inline PsiCNN_t(const PsiCNN_t& other):
+        gpu(other.gpu),
+        num_channels_list(other.num_channels_list),
+        connectivity_list(other.connectivity_list),
+        symmetry_classes(other.symmetry_classes),
+        params(other.params),
+        angles(other.angles)
     {
         this->N = other.N;
         this->num_sites = other.num_sites;
@@ -346,6 +355,8 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dim_t, dtype> {
         }
         this->final_factor = other.final_factor;
         this->log_prefactor = other.log_prefactor;
+
+        this->num_symmetry_classes = other.num_symmetry_classes;
 
         this->init_kernel();
     }
@@ -361,6 +372,6 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dim_t, dtype> {
 };
 
 
-using PsiCNN = PsiCNN_t<1u, complex_t>;
+using PsiCNN = PsiCNN_t<2u, complex_t>;
 
 } // namespace ann_on_gpu

@@ -13,6 +13,15 @@ void PsiCNN_t<dim, dtype>::init_kernel() {
 
     this->num_angles = 0u;
     auto params_offset = 0u;
+
+    this->convolve.N = this->N;
+    for(auto d = 0u; d < dim; d++) {
+        this->convolve.extent[d] = this->extent[d];
+    }
+    for(auto i = 0u; i < this->N; i++) {
+        this->convolve.symmetry_classes[i] = this->symmetry_classes[i];
+    }
+
     for(auto l = 0u; l < this->num_layers; l++) {
         auto& layer = this->layers[l];
 
@@ -33,7 +42,7 @@ void PsiCNN_t<dim, dtype>::init_kernel() {
             channel_link.begin_params = params_offset;
             channel_link.weights = this->params.data() + params_offset;
 
-            params_offset += layer.connectivity_vol;
+            params_offset += this->num_symmetry_classes * layer.connectivity_vol;
         }
 
         this->num_angles += layer.num_channels * this->N;
