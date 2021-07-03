@@ -172,10 +172,12 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def("init_gradient", &PsiCNN::init_gradient)
         .def_readonly("N", &PsiCNN::N)
         .def_readonly("num_sites", &PsiCNN::num_sites)
+        .def_readonly("extent", &PsiCNN::extent)
         .def_property_readonly("num_channels_list", [](const PsiCNN& psi) {return psi.num_channels_list.to_pytensor_1d();})
         .def_property_readonly("connectivity_list", [](const PsiCNN& psi) {return psi.connectivity_list.to_pytensor_2d({
             psi.num_layers, PsiCNN::dim
         });})
+        .def_property_readonly("symmetry_classes", [](const PsiCNN& psi) {return psi.symmetry_classes.to_pytensor_1d();})
         .def_readwrite("final_factor", &PsiCNN::final_factor)
         .def_property(
             "log_prefactor",

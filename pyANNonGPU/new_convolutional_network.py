@@ -59,21 +59,23 @@ def new_convolutional_network(
         connectivity = prod(ndim_connectivity)
 
         num_prev_channels = layers[layer - 1][0] if layer > 0 else 1
-        num_next_channels = layers[layer + 1][0] if layer < len(layers) - 1 else 1
-        next_connectivity = prod(layers[layer + 1][1]) if layer < len(layers) - 1 else 1
+        # num_next_channels = layers[layer + 1][0] if layer < len(layers) - 1 else 1
+        # next_connectivity = prod(layers[layer + 1][1]) if layer < len(layers) - 1 else 1
 
         num_channel_links = num_channels * num_prev_channels
 
         for cl in range(num_channel_links):
-            channel_link = noise * noise_vector(connectivity, real)
-            if layer == 0:
-                channel_link[connectivity // 2] = initial_value.real if real else initial_value
-            else:
-                channel_link += math.sqrt(
-                    6 / (connectivity * num_prev_channels + next_connectivity * num_next_channels)
-                ) * real_noise(connectivity)
+            for n in range(num_symmetry_classes):
+                channel_link = noise * noise_vector(connectivity, real)
+                if layer == 0:
+                    channel_link[connectivity // 2] = initial_value.real if real else initial_value
+                else:
+                    channel_link += math.sqrt(
+                        6 / (connectivity * num_prev_channels + connectivity * num_channels)
+                    ) * real_noise(connectivity)
 
-            params += num_symmetry_classes * list(channel_link)
+                params += list(channel_link)
+            # params += num_symmetry_classes * list(channel_link)
 
     params = np.array(params)
 

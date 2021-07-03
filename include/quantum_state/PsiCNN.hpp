@@ -71,7 +71,6 @@ struct PsiCNN_t {
 
     unsigned int   N;
     unsigned int   num_sites;
-    unsigned int   extent[dim];
     unsigned int   num_params;
     unsigned int   num_symmetry_classes;
 
@@ -296,6 +295,7 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dim_t, dtype> {
     using Kernel = kernel::PsiCNN_t<dim, dtype>;
 
     bool gpu;
+    std::array<unsigned int, dim> extent;
     Array<unsigned int> num_channels_list;
     Array<unsigned int> connectivity_list;
     Array<unsigned int> symmetry_classes;
@@ -315,6 +315,7 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dim_t, dtype> {
         const bool gpu
     ):
         gpu(gpu),
+        extent(extent),
         num_channels_list(num_channels_list, false),
         connectivity_list(connectivity_list, false),
         symmetry_classes(symmetry_classes, false),
@@ -323,7 +324,6 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dim_t, dtype> {
     {
         auto N = 1u;
         for(auto d = 0u; d < dim; d++) {
-            this->extent[d] = extent[d];
             N *= extent[d];
         }
         this->N = N;
@@ -342,6 +342,7 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dim_t, dtype> {
 
     inline PsiCNN_t(const PsiCNN_t& other):
         gpu(other.gpu),
+        extent(other.extent),
         num_channels_list(other.num_channels_list),
         connectivity_list(other.connectivity_list),
         symmetry_classes(other.symmetry_classes),
@@ -350,9 +351,6 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dim_t, dtype> {
     {
         this->N = other.N;
         this->num_sites = other.num_sites;
-        for(auto d = 0u; d < dim; d++) {
-            this->extent[d] = other.extent[d];
-        }
         this->final_factor = other.final_factor;
         this->log_prefactor = other.log_prefactor;
 

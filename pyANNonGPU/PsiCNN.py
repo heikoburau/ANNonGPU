@@ -7,13 +7,14 @@ import numpy as np
 def to_json(self):
     obj = dict(
         type="PsiCNN",
-        num_sites=self.num_sites,
-        N=self.N,
+        extent=self.extent,
         num_channels_list=self.num_channels_list,
         connectivity_list=self.connectivity_list,
+        symmetry_classes=self.symmetry_classes,
         params=self.params,
         final_factor=self.final_factor,
-        log_prefactor=self.log_prefactor
+        log_prefactor_re=self.log_prefactor.real,
+        log_prefactor_im=self.log_prefactor.imag
     )
 
     return json.loads(
@@ -32,13 +33,13 @@ def from_json(json_obj, gpu):
     )
 
     return PsiCNN(
-        obj["num_sites"],
-        obj["N"],
+        obj["extent"],
         obj["num_channels_list"],
         obj["connectivity_list"],
+        obj["symmetry_classes"],
         obj["params"],
         obj["final_factor"],
-        obj["log_prefactor"],
+        obj["log_prefactor_re"] + 1j * obj["log_prefactor_im"],
         gpu
     )
 
