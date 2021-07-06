@@ -98,7 +98,10 @@ struct Convolve<2u> {
         this->foreach_connection(
             idx, connectivity,
             [&](const unsigned int conn_idx, const unsigned int input_idx){
-                result += weights[this->symmetry_classes[idx] * connectivity_vol + conn_idx] * input_activations[input_idx];
+                result += (
+                    weights[this->symmetry_classes[idx] * connectivity_vol + conn_idx] *
+                    input_activations[input_idx]
+                );
             }
         );
 
@@ -157,7 +160,10 @@ struct Convolve<3u> {
         this->foreach_connection(
             idx, connectivity,
             [&](const unsigned int conn_idx, const unsigned int input_idx){
-                result += weights[this->symmetry_classes[idx] * connectivity_vol + conn_idx] * input_activations[input_idx];
+                result += (
+                    weights[this->symmetry_classes[idx] * connectivity_vol + conn_idx] *
+                    input_activations[input_idx]
+                );
             }
         );
 

@@ -195,6 +195,7 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         .def_readonly("N", &PsiCNN::N)
         .def_readonly("num_sites", &PsiCNN::num_sites)
         .def_readonly("extent", &PsiCNN::extent)
+        .def_property_readonly("dim", [](const PsiCNN&){return PsiCNN::dim;})
         .def_property_readonly("num_channels_list", [](const PsiCNN& psi) {return psi.num_channels_list.to_pytensor_1d();})
         .def_property_readonly("connectivity_list", [](const PsiCNN& psi) {return psi.connectivity_list.to_pytensor_2d({
             psi.num_layers, PsiCNN::dim

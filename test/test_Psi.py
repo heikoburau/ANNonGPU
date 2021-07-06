@@ -27,11 +27,24 @@ def complex_noise(shape):
     return real_noise(shape) + 1j * real_noise(shape)
 
 
-def convolve(activations, weights):
+def nd_convolve(inputs, weights):
+    nd_slice = [slice(0, w) for w in weights.shape]
+
     return np.array([
-        np.roll(activations, -shift)[:len(weights)] @ weights
-        for shift in range(len(activations))
-    ])
+        np.sum(
+            np.roll(
+                inputs, -np.array(shift), axis=range(len(inputs.shape))
+            )[nd_slice] * weights
+        )
+        for shift in np.ndindex(*inputs.shape)
+    ]).reshape(inputs.shape)
+
+
+def my_convolve(activations, weights, psi, layer):
+    return nd_convolve(
+        activations.reshape(psi.extent),
+        weights.reshape(psi.connectivity_list[layer])
+    ).flatten()
 
 
 activation_function_vec = np.vectorize(activation_function, excluded=[1])
@@ -53,7 +66,7 @@ def test_psi_CNN_s(psi_cnn, gpu):
             activations = np.array([
                 activation_function_vec(
                     sum(
-                        convolve(activations[prev_ch], psi.channel_link(l, prev_ch, ch))
+                        my_convolve(activations[prev_ch], psi.channel_link(l, prev_ch, ch), psi, l)
                         for prev_ch in range(num_prev_channels)
                     ),
                     l

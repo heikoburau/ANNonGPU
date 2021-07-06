@@ -66,7 +66,7 @@ struct StandartOperator {
             SINGLE {
                 auto diff = log_psi_prime - log_psi;
 
-                diff.__re_ = min(diff.__re_, 10.0);
+                // diff.__re_ = min(diff.__re_, 10.0);
 
                 result += matrix_element.coefficient * exp(diff);
             }

@@ -40,12 +40,13 @@ struct PsiCNN_t {
     static constexpr auto max_channels_per_layer = 6u;
     static constexpr auto max_channel_links_per_layer = 9u;
     static constexpr auto max_symmetry_classes = 4u;
+    static constexpr auto max_activations = 2u * max_N;
 
     struct Payload {
         unsigned int conf_idx;
 
-        dtype input_activations[max_N];
-        dtype output_activations[max_N];
+        dtype input_activations[max_activations];
+        dtype output_activations[max_activations];
         dtype weights[max_symmetry_classes * max_N];
     };
 
@@ -295,7 +296,7 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dim_t, dtype> {
     using Kernel = kernel::PsiCNN_t<dim, dtype>;
 
     bool gpu;
-    std::array<unsigned int, dim> extent;
+    array<unsigned int, dim> extent;
     Array<unsigned int> num_channels_list;
     Array<unsigned int> connectivity_list;
     Array<unsigned int> symmetry_classes;
