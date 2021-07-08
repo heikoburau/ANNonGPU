@@ -368,6 +368,13 @@ struct PsiCNN_t : public kernel::PsiCNN_t<dim_t, dtype> {
     void init_kernel_angles();
 
     void init_kernel();
+
+    inline Array<dtype> get_params() const {
+        return this->params;
+    }
+    inline void set_params(const Array<dtype>& new_params) {
+        this->params = new_params;
+    }
 };
 
 
