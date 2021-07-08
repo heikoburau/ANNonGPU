@@ -1923,147 +1923,231 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
         .def("eval", &TDVP::eval_py<PsiDeep, MonteCarlo_tt<Spins>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiDeep, MonteCarlo_tt<Spins>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
         .def("eval", &TDVP::eval_py<PsiRBM, MonteCarlo_tt<Spins>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiRBM, MonteCarlo_tt<Spins>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
         .def("eval", &TDVP::eval_py<PsiCNN, MonteCarlo_tt<Spins>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiCNN, MonteCarlo_tt<Spins>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval_py<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiFullyPolarized, MonteCarlo_tt<Spins>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval_py<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalFP<1u>, MonteCarlo_tt<Spins>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval_py<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalFP<2u>, MonteCarlo_tt<Spins>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval", &TDVP::eval_py<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalANN<1u>, MonteCarlo_tt<Spins>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval", &TDVP::eval_py<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalANN<2u>, MonteCarlo_tt<Spins>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
         .def("eval", &TDVP::eval_py<PsiDeep, MonteCarlo_tt<Fermions>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiDeep, MonteCarlo_tt<Fermions>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_RBM)
         .def("eval", &TDVP::eval_py<PsiRBM, MonteCarlo_tt<Fermions>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiRBM, MonteCarlo_tt<Fermions>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
         .def("eval", &TDVP::eval_py<PsiCNN, MonteCarlo_tt<Fermions>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiCNN, MonteCarlo_tt<Fermions>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval_py<PsiFullyPolarized, MonteCarlo_tt<Fermions>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiFullyPolarized, MonteCarlo_tt<Fermions>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval_py<PsiClassicalFP<1u>, MonteCarlo_tt<Fermions>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalFP<1u>, MonteCarlo_tt<Fermions>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval_py<PsiClassicalFP<2u>, MonteCarlo_tt<Fermions>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalFP<2u>, MonteCarlo_tt<Fermions>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval", &TDVP::eval_py<PsiClassicalANN<1u>, MonteCarlo_tt<Fermions>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalANN<1u>, MonteCarlo_tt<Fermions>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval", &TDVP::eval_py<PsiClassicalANN<2u>, MonteCarlo_tt<Fermions>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalANN<2u>, MonteCarlo_tt<Fermions>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
         .def("eval", &TDVP::eval_py<PsiDeep, MonteCarlo_tt<PauliString>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiDeep, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
         .def("eval", &TDVP::eval_py<PsiRBM, MonteCarlo_tt<PauliString>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiRBM, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
         .def("eval", &TDVP::eval_py<PsiCNN, MonteCarlo_tt<PauliString>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiCNN, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval_py<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiFullyPolarized, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval_py<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalFP<1u>, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval_py<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalFP<2u>, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval", &TDVP::eval_py<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalANN<1u>, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval", &TDVP::eval_py<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalANN<2u>, MonteCarlo_tt<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_DEEP)
         .def("eval", &TDVP::eval_py<PsiDeep, ExactSummation_t<Spins>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiDeep, ExactSummation_t<Spins>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_RBM)
         .def("eval", &TDVP::eval_py<PsiRBM, ExactSummation_t<Spins>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiRBM, ExactSummation_t<Spins>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CNN)
         .def("eval", &TDVP::eval_py<PsiCNN, ExactSummation_t<Spins>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiCNN, ExactSummation_t<Spins>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval_py<PsiFullyPolarized, ExactSummation_t<Spins>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiFullyPolarized, ExactSummation_t<Spins>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval_py<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalFP<1u>, ExactSummation_t<Spins>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval_py<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalFP<2u>, ExactSummation_t<Spins>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval", &TDVP::eval_py<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalANN<1u>, ExactSummation_t<Spins>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval", &TDVP::eval_py<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalANN<2u>, ExactSummation_t<Spins>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_DEEP)
         .def("eval", &TDVP::eval_py<PsiDeep, ExactSummation_t<Fermions>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiDeep, ExactSummation_t<Fermions>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_RBM)
         .def("eval", &TDVP::eval_py<PsiRBM, ExactSummation_t<Fermions>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiRBM, ExactSummation_t<Fermions>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CNN)
         .def("eval", &TDVP::eval_py<PsiCNN, ExactSummation_t<Fermions>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiCNN, ExactSummation_t<Fermions>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval_py<PsiFullyPolarized, ExactSummation_t<Fermions>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiFullyPolarized, ExactSummation_t<Fermions>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval_py<PsiClassicalFP<1u>, ExactSummation_t<Fermions>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalFP<1u>, ExactSummation_t<Fermions>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval_py<PsiClassicalFP<2u>, ExactSummation_t<Fermions>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalFP<2u>, ExactSummation_t<Fermions>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval", &TDVP::eval_py<PsiClassicalANN<1u>, ExactSummation_t<Fermions>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalANN<1u>, ExactSummation_t<Fermions>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval", &TDVP::eval_py<PsiClassicalANN<2u>, ExactSummation_t<Fermions>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalANN<2u>, ExactSummation_t<Fermions>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_DEEP)
         .def("eval", &TDVP::eval_py<PsiDeep, ExactSummation_t<PauliString>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiDeep, ExactSummation_t<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_RBM)
         .def("eval", &TDVP::eval_py<PsiRBM, ExactSummation_t<PauliString>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiRBM, ExactSummation_t<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CNN)
         .def("eval", &TDVP::eval_py<PsiCNN, ExactSummation_t<PauliString>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiCNN, ExactSummation_t<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval_py<PsiFullyPolarized, ExactSummation_t<PauliString>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiFullyPolarized, ExactSummation_t<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval_py<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalFP<1u>, ExactSummation_t<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL)
         .def("eval", &TDVP::eval_py<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalFP<2u>, ExactSummation_t<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval", &TDVP::eval_py<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalANN<1u>, ExactSummation_t<PauliString>>)
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS) && defined(ENABLE_PSI_CLASSICAL) && defined(ENABLE_PSI_CLASSICAL_ANN)
         .def("eval", &TDVP::eval_py<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<PsiClassicalANN<2u>, ExactSummation_t<PauliString>>)
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
+        .def("S_dot_vector", [](TDVP& tdvp, const complex_tensor<1u>& vec, MonteCarlo_tt<Spins>& ensemble){
+            tdvp.S_dot_vector(Array<complex_t>(vec, tdvp.gpu), ensemble);
+            return tdvp.output_vector.to_pytensor_1d();
+        })
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS)
+        .def("S_dot_vector", [](TDVP& tdvp, const complex_tensor<1u>& vec, MonteCarlo_tt<Fermions>& ensemble){
+            tdvp.S_dot_vector(Array<complex_t>(vec, tdvp.gpu), ensemble);
+            return tdvp.output_vector.to_pytensor_1d();
+        })
+#endif
+#if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
+        .def("S_dot_vector", [](TDVP& tdvp, const complex_tensor<1u>& vec, MonteCarlo_tt<PauliString>& ensemble){
+            tdvp.S_dot_vector(Array<complex_t>(vec, tdvp.gpu), ensemble);
+            return tdvp.output_vector.to_pytensor_1d();
+        })
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
+        .def("S_dot_vector", [](TDVP& tdvp, const complex_tensor<1u>& vec, ExactSummation_t<Spins>& ensemble){
+            tdvp.S_dot_vector(Array<complex_t>(vec, tdvp.gpu), ensemble);
+            return tdvp.output_vector.to_pytensor_1d();
+        })
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS)
+        .def("S_dot_vector", [](TDVP& tdvp, const complex_tensor<1u>& vec, ExactSummation_t<Fermions>& ensemble){
+            tdvp.S_dot_vector(Array<complex_t>(vec, tdvp.gpu), ensemble);
+            return tdvp.output_vector.to_pytensor_1d();
+        })
+#endif
+#if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
+        .def("S_dot_vector", [](TDVP& tdvp, const complex_tensor<1u>& vec, ExactSummation_t<PauliString>& ensemble){
+            tdvp.S_dot_vector(Array<complex_t>(vec, tdvp.gpu), ensemble);
+            return tdvp.output_vector.to_pytensor_1d();
+        })
 #endif
         ;
 

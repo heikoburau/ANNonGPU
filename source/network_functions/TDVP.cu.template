@@ -82,7 +82,6 @@ void TDVP::compute_averages(const Operator& op, Psi_t& psi, Ensemble& ensemble, 
     auto E_local_ptr = this->E_local.data();
     auto E2_local_ptr = this->E2_local.data();
     auto O_k_ptr = this->O_k_ar.data();
-    auto S_ptr = this->S_matrix.data();
     auto F_ptr = this->F_vector.data();
     auto O_k_samples_ptr = this->O_k_samples->data();
     // auto E_local_samples_ptr = this->E_local_samples->data();
@@ -174,6 +173,9 @@ void TDVP::compute_averages_fast(const Operator& op, Psi_t& psi, Ensemble& ensem
         }
     );
 }
+
+
+
 
 
 template<typename Psi_t, typename Ensemble, typename use_psi_ref_t>
@@ -287,23 +289,6 @@ void TDVP::eval(const Operator& op, Psi_t& psi, Ensemble& ensemble, use_psi_ref_
     this->O_k_ar.update_host();
     this->S_matrix.update_host();
     this->F_vector.update_host();
-    // this->total_weight.update_host();
-
-    // this->O_k_samples->update_host();
-    // this->E_local_samples->update_host();
-
-
-    // this->E_local.front() /= this->total_weight.front();
-    // this->E2_local.front() /= this->total_weight.front();
-    // for(auto k = 0u; k < num_params; k++) {
-    //     this->F_vector[k] /= this->total_weight.front();
-    //     this->O_k_ar[k] /= this->total_weight.front();
-
-    //     for(auto k_prime = 0u; k_prime < num_params; k_prime++) {
-    //         this->S_matrix[k * num_params + k_prime] /= this->total_weight.front();
-    //     }
-    // }
-
 
     for(auto k = 0u; k < num_params; k++) {
         for(auto k_prime = 0u; k_prime < num_params; k_prime++) {
@@ -315,6 +300,147 @@ void TDVP::eval(const Operator& op, Psi_t& psi, Ensemble& ensemble, use_psi_ref_
         this->F_vector[k] -= this->E_local.front() * conj(this->O_k_ar[k]);
     }
 }
+
+
+template<typename Psi_t, typename Ensemble>
+void TDVP::eval_F_vector(const Operator& op, Psi_t& psi, Ensemble& ensemble) {
+    if(!this->O_k_samples || this->O_k_samples->size() != ensemble.get_num_steps() * psi.num_params) {
+        this->O_k_samples = unique_ptr<Array<complex_t>>(
+            new Array<complex_t>(ensemble.get_num_steps() * psi.num_params, psi.gpu)
+        );
+    }
+    if(!this->weight_samples || this->weight_samples->size() != ensemble.get_num_steps()) {
+        this->weight_samples = unique_ptr<Array<double>>(
+            new Array<double>(ensemble.get_num_steps(), psi.gpu)
+        );
+    }
+
+    this->E_local.clear();
+    this->E2_local.clear();
+    this->O_k_ar.clear();
+    this->F_vector.clear();
+    this->O_k_samples->clear();
+
+    this->compute_averages(op, psi, ensemble, false_t());
+
+    this->E_local.update_host();
+    this->E2_local.update_host();
+    this->O_k_ar.update_host();
+    this->F_vector.update_host();
+
+    for(auto k = 0u; k < this->num_params; k++) {
+        this->F_vector[k] -= this->E_local.front() * conj(this->O_k_ar[k]);
+    }
+}
+
+template<typename Ensemble>
+void TDVP::S_dot_vector(
+    const Array<complex_t>& input_vector, Ensemble& ensemble
+) {
+    this->output_vector.clear();
+
+    auto num_params = this->num_params;
+    auto O_k_samples_ptr = this->O_k_samples->data();
+    auto input_vector_ptr = input_vector.data();
+    auto output_vector_ptr = this->output_vector.data();
+    auto weight_samples_ptr = this->weight_samples->data();
+
+
+    auto fill_output = [=] __device__ __host__ (
+        const unsigned int index
+    ) {
+        #include "cuda_kernel_defines.h"
+
+        SHARED complex_t    row_data[TILE_SIZE]; // using a register is not faster
+        SHARED complex_t    col_data[TILE_SIZE];
+        SHARED complex_t    output_data[TILE_SIZE];
+        SHARED complex_t*   O_k;
+        SHARED double       weight;
+
+        SINGLE {
+            O_k = O_k_samples_ptr + index * num_params;
+            weight = weight_samples_ptr[index];
+        }
+        SYNC;
+
+        SHARED_MEM_LOOP_BEGIN(tile_row, num_params / TILE_SIZE + 1) {
+
+            MULTI(i, TILE_SIZE) {
+                const auto i_abs = tile_row * TILE_SIZE + i;
+
+                if(i_abs < num_params) {
+                    row_data[i] = O_k[i_abs];
+                    output_data[i] = complex_t(0.0);
+                }
+            }
+
+            SHARED_MEM_LOOP_BEGIN(tile_col, num_params / TILE_SIZE + 1) {
+                MULTI(i, TILE_SIZE) {
+                    const auto i_abs = tile_col * TILE_SIZE + i;
+
+                    if(i_abs < num_params) {
+                        col_data[i] = O_k[i_abs];
+                    }
+                }
+                SYNC;
+
+                MULTI(row, TILE_SIZE) {
+                    const auto row_abs = tile_row * TILE_SIZE + row;
+
+                    if(row_abs < num_params) {
+                        for(auto col = 0u; col < TILE_SIZE; col++) {
+                            const auto col_abs = tile_col * TILE_SIZE + col;
+
+                            if(col_abs < num_params) {
+                                output_data[row] += (
+                                    conj(row_data[row]) * col_data[col] * input_vector[col_abs]
+                                );
+                            }
+                        }
+                    }
+                }
+
+                SHARED_MEM_LOOP_END(tile_col);
+            }
+
+            MULTI(row, TILE_SIZE) {
+                const auto row_abs = tile_row * TILE_SIZE + row;
+
+                if(row_abs < num_params) {
+                    generic_atomicAdd(
+                        &output_vector_ptr[row_abs],
+                        weight * output_data[row]
+                    );
+                }
+            }
+
+            SHARED_MEM_LOOP_END(tile_row);
+        }
+    };
+
+    if(this->gpu) {
+        cuda_kernel<<<ensemble.get_num_steps(), TILE_SIZE>>>(
+            [=] __device__ () {fill_output(blockIdx.x);}
+        );
+    }
+    else {
+        for(auto i = 0u; i < ensemble.get_num_steps(); i++) {
+            fill_output(i);
+        }
+    }
+
+    this->output_vector.update_host();
+
+    auto O_k_dot_input = complex_t(0.0);
+    for(auto k = 0u; k < num_params; k++) {
+        O_k_dot_input += this->O_k_ar[k] * input_vector[k];
+    }
+
+    for(auto k = 0u; k < num_params; k++) {
+        this->output_vector[k] -= conj(this->O_k_ar[k]) * O_k_dot_input;
+    }
+}
+
 
 
 template<typename Psi_t, typename Ensemble>
@@ -351,6 +477,15 @@ template void TDVP::eval(const Operator&, ClPsi&, Ensemble<Basis>&, true_t);
 //! begin template
 template void TDVP::eval(const Operator&, AllPsi&, Ensemble<Basis>&, false_t);
 //! end template
+
+//! begin template
+template void TDVP::eval_F_vector(const Operator&, AllPsi&, Ensemble<Basis>&);
+//! end template
+
+//! begin template
+template void TDVP::S_dot_vector(const Array<complex_t>&, Ensemble<Basis>&);
+//! end template
+
 
 } // namespace ann_on_gpu
 

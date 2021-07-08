@@ -477,6 +477,13 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         //! end template
         //! begin template
         .def("eval", &TDVP::eval_py<AllPsi, Ensemble<Basis>>)
+        .def("eval_F", &TDVP::eval_F_vector_py<AllPsi, Ensemble<Basis>>)
+        //! end template
+        //! begin template
+        .def("S_dot_vector", [](TDVP& tdvp, const complex_tensor<1u>& vec, Ensemble<Basis>& ensemble){
+            tdvp.S_dot_vector(Array<complex_t>(vec, tdvp.gpu), ensemble);
+            return tdvp.output_vector.to_pytensor_1d();
+        })
         //! end template
         ;
 
