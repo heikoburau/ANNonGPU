@@ -341,13 +341,13 @@ void TDVP::eval_F_vector(const Operator& op, Psi_t& psi, Ensemble& ensemble) {
 
 template<typename Ensemble>
 void TDVP::S_dot_vector(
-    const Array<complex_t>& input_vector, Ensemble& ensemble
+    Ensemble& ensemble
 ) {
     this->output_vector.clear();
 
     auto num_params = this->num_params;
     auto O_k_samples_ptr = this->O_k_samples->data();
-    auto input_vector_ptr = input_vector.data();
+    auto input_vector_ptr = this->input_vector.data();
     auto output_vector_ptr = this->output_vector.data();
     auto weight_samples_ptr = this->weight_samples->data();
 
@@ -359,7 +359,7 @@ void TDVP::S_dot_vector(
 
         SHARED complex_t    row_data[TILE_SIZE]; // using a register is not faster
         SHARED complex_t    col_data[TILE_SIZE];
-        SHARED complex_t    output_data[TILE_SIZE];
+        SHARED complex_t    row_dot_product[TILE_SIZE];
         SHARED complex_t*   O_k;
         SHARED double       weight;
 
@@ -376,7 +376,7 @@ void TDVP::S_dot_vector(
 
                 if(i_abs < num_params) {
                     row_data[i] = O_k[i_abs];
-                    output_data[i] = complex_t(0.0);
+                    row_dot_product[i] = complex_t(0.0);
                 }
             }
 
@@ -398,8 +398,8 @@ void TDVP::S_dot_vector(
                             const auto col_abs = tile_col * TILE_SIZE + col;
 
                             if(col_abs < num_params) {
-                                output_data[row] += (
-                                    conj(row_data[row]) * col_data[col] * input_vector[col_abs]
+                                row_dot_product[row] += (
+                                    col_data[col] * input_vector_ptr[col_abs]
                                 );
                             }
                         }
@@ -415,7 +415,8 @@ void TDVP::S_dot_vector(
                 if(row_abs < num_params) {
                     generic_atomicAdd(
                         &output_vector_ptr[row_abs],
-                        weight * output_data[row]
+                        weight * conj(row_data[row]) * row_dot_product[row]
+                        // weight * input_vector_ptr[row_abs]
                     );
                 }
             }
@@ -840,22 +841,22 @@ template void TDVP::eval_F_vector(const Operator&, PsiClassicalANN<2u>&, ExactSu
 #endif
 
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
-template void TDVP::S_dot_vector(const Array<complex_t>&, MonteCarlo_tt<Spins>&);
+template void TDVP::S_dot_vector(MonteCarlo_tt<Spins>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS)
-template void TDVP::S_dot_vector(const Array<complex_t>&, MonteCarlo_tt<Fermions>&);
+template void TDVP::S_dot_vector(MonteCarlo_tt<Fermions>&);
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
-template void TDVP::S_dot_vector(const Array<complex_t>&, MonteCarlo_tt<PauliString>&);
+template void TDVP::S_dot_vector(MonteCarlo_tt<PauliString>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
-template void TDVP::S_dot_vector(const Array<complex_t>&, ExactSummation_t<Spins>&);
+template void TDVP::S_dot_vector(ExactSummation_t<Spins>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS)
-template void TDVP::S_dot_vector(const Array<complex_t>&, ExactSummation_t<Fermions>&);
+template void TDVP::S_dot_vector(ExactSummation_t<Fermions>&);
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
-template void TDVP::S_dot_vector(const Array<complex_t>&, ExactSummation_t<PauliString>&);
+template void TDVP::S_dot_vector(ExactSummation_t<PauliString>&);
 #endif
 
 

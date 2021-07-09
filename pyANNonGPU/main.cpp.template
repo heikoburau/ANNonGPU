@@ -481,7 +481,8 @@ PYBIND11_MODULE(_pyANNonGPU, m)
         //! end template
         //! begin template
         .def("S_dot_vector", [](TDVP& tdvp, const complex_tensor<1u>& vec, Ensemble<Basis>& ensemble){
-            tdvp.S_dot_vector(Array<complex_t>(vec, tdvp.gpu), ensemble);
+            tdvp.input_vector = vec;
+            tdvp.S_dot_vector(ensemble);
             return tdvp.output_vector.to_pytensor_1d();
         })
         //! end template

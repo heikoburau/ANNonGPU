@@ -2115,37 +2115,43 @@ PYBIND11_MODULE(_pyANNonGPU, m)
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_SPINS)
         .def("S_dot_vector", [](TDVP& tdvp, const complex_tensor<1u>& vec, MonteCarlo_tt<Spins>& ensemble){
-            tdvp.S_dot_vector(Array<complex_t>(vec, tdvp.gpu), ensemble);
+            tdvp.input_vector = vec;
+            tdvp.S_dot_vector(ensemble);
             return tdvp.output_vector.to_pytensor_1d();
         })
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_FERMIONS)
         .def("S_dot_vector", [](TDVP& tdvp, const complex_tensor<1u>& vec, MonteCarlo_tt<Fermions>& ensemble){
-            tdvp.S_dot_vector(Array<complex_t>(vec, tdvp.gpu), ensemble);
+            tdvp.input_vector = vec;
+            tdvp.S_dot_vector(ensemble);
             return tdvp.output_vector.to_pytensor_1d();
         })
 #endif
 #if defined(ENABLE_MONTE_CARLO) && defined(ENABLE_PAULIS)
         .def("S_dot_vector", [](TDVP& tdvp, const complex_tensor<1u>& vec, MonteCarlo_tt<PauliString>& ensemble){
-            tdvp.S_dot_vector(Array<complex_t>(vec, tdvp.gpu), ensemble);
+            tdvp.input_vector = vec;
+            tdvp.S_dot_vector(ensemble);
             return tdvp.output_vector.to_pytensor_1d();
         })
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_SPINS)
         .def("S_dot_vector", [](TDVP& tdvp, const complex_tensor<1u>& vec, ExactSummation_t<Spins>& ensemble){
-            tdvp.S_dot_vector(Array<complex_t>(vec, tdvp.gpu), ensemble);
+            tdvp.input_vector = vec;
+            tdvp.S_dot_vector(ensemble);
             return tdvp.output_vector.to_pytensor_1d();
         })
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_FERMIONS)
         .def("S_dot_vector", [](TDVP& tdvp, const complex_tensor<1u>& vec, ExactSummation_t<Fermions>& ensemble){
-            tdvp.S_dot_vector(Array<complex_t>(vec, tdvp.gpu), ensemble);
+            tdvp.input_vector = vec;
+            tdvp.S_dot_vector(ensemble);
             return tdvp.output_vector.to_pytensor_1d();
         })
 #endif
 #if defined(ENABLE_EXACT_SUMMATION) && defined(ENABLE_PAULIS)
         .def("S_dot_vector", [](TDVP& tdvp, const complex_tensor<1u>& vec, ExactSummation_t<PauliString>& ensemble){
-            tdvp.S_dot_vector(Array<complex_t>(vec, tdvp.gpu), ensemble);
+            tdvp.input_vector = vec;
+            tdvp.S_dot_vector(ensemble);
             return tdvp.output_vector.to_pytensor_1d();
         })
 #endif

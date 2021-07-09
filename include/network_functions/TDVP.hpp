@@ -23,6 +23,7 @@ struct TDVP {
 
     Array<complex_t> S_matrix;
     Array<complex_t> F_vector;
+    Array<complex_t> input_vector;
     Array<complex_t> output_vector;
 
     unique_ptr<Array<complex_t>> O_k_samples;
@@ -41,6 +42,7 @@ struct TDVP {
     O_k_ar(num_params, gpu),
     S_matrix(num_params * num_params, gpu),
     F_vector(num_params, gpu),
+    input_vector(num_params, gpu),
     output_vector(num_params, gpu),
     threshold(-1e6),
     total_weight(1, gpu)
@@ -70,7 +72,7 @@ struct TDVP {
 
     template<typename Ensemble>
     void S_dot_vector(
-        const Array<complex_t>& input_vector, Ensemble& ensemble
+        Ensemble& ensemble
     );
 
     #ifdef __PYTHONCC__
