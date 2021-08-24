@@ -165,7 +165,7 @@ class LearningByGradientDescent:
     @property
     def min_report(self):
         result = {
-            "operator": self.operator.expr.to_json()
+            "operator": self.expr.to_json()
         }
         if hasattr(self, "is_unitary"):
             result["is_unitary"] = self.is_unitary
@@ -294,6 +294,7 @@ class LearningByGradientDescent:
         self.algorithm_kwargs = algorithm_kwargs
         self.distance_0 = distance_0
         self.regularization = regularization
+        self.expr = +operator
         self.operator = pyANNonGPU.Operator(operator, self.gpu)
         self.is_unitary = is_unitary
         self.mode = modes.unitary_evolution
