@@ -20,7 +20,7 @@ python setup.py install
 Features
 --------
 
- - Network architectures: RBM, deep CNN, vCN
+ - Supported network architectures: RBM, deep CNN, vCN
  - Markov-Chain Monte-Carlo sampling and exact summation
  - Arbitrary quantum operators
  - Generic interface for gradient descent optimization
