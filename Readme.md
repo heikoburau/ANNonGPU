@@ -1,7 +1,7 @@
 ANNonGPU
 ========
 
-This library implements the [algorithm of Carleo and Troyer](https://arxiv.org/abs/1606.02318) for respresenting quantum many-body wavefunction using various artificial neural network (ANN) architectures on the GPU.
+This library implements the [algorithm of Carleo and Troyer](https://arxiv.org/abs/1606.02318) for representing quantum many-body wavefunction using various artificial neural network (ANN) architectures on the GPU.
 
 
 Installation
